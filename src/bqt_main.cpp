@@ -10,12 +10,17 @@
 #include <iostream>
 
 #include "bqt_launchargs.hpp"
+#include "bqt_threadutil.hpp"
+
+#include "bqt_mutex.hpp"
 
 /******************************************************************************//******************************************************************************/
 
 int main( int argc, char* argv[] )
 {
-    int exit_code = 0x00;
+    bqt::mutex testm;
+    
+    int exit_code = EXIT_FINE;
     
     try
     {
@@ -25,7 +30,7 @@ int main( int argc, char* argv[] )
     {
         std::cout << e.what();
         
-        exit_code = 0x01;
+        exit_code = EXIT_STDERR;
     }
     
     return exit_code;

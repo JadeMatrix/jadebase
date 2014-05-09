@@ -1,5 +1,5 @@
-#ifndef BQT_LAUNCHARGS_H
-#define BQT_LAUNCHARGS_H
+#ifndef BQT_LAUNCHARGS_HPP
+#define BQT_LAUNCHARGS_HPP
 
 /* 
  * bqt_launchargs.hpp

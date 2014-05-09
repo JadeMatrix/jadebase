@@ -1,5 +1,5 @@
-#ifndef BQT_EXCEPTION_H
-#define BQT_EXCEPTION_H
+#ifndef BQT_EXCEPTION_HPP
+#define BQT_EXCEPTION_HPP
 
 /* 
  * bqt_exception.hpp

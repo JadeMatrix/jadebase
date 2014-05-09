@@ -22,6 +22,9 @@ namespace
     struct option long_flags[] = { { "devmode",       no_argument, NULL, 'd' },
                                    { "logfile", required_argument, NULL, 'l' } };
     
+    std::string flags_list = "[ -d | --devmode ]          Enables developer mode options\n"
+                             "[ -l | --logfile ] FILE     Sets a log file, none by default\n";
+    
     // Engine options are immutable after parseLaunchArgs is called.
     bool        dev_mode;
     std::string log_file_name;
@@ -47,7 +50,7 @@ namespace bqt
                 log_file_name = optarg;
                 break;
             default:
-                throw bqt::exception( "Usage: " + std::string( argv[ 0 ] ) + " [-d] [-l file]" );
+                throw bqt::exception( "Invalid flag specified; valid flags are:\n" + flags_list );
             }
         }
     }
