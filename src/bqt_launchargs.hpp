@@ -14,6 +14,8 @@
 
 /* DEFAULTS *******************************************************************//******************************************************************************/
 
+// TODO: Ensure all launch flags supported are documented in launch.sh
+
 #define LAUNCHARG_DEVMODE   "--devmode"
 #define LAUNCHFLG_DEVMODE   "-d"
 #define LAUNCHVAL_DEVMODE   false
@@ -30,7 +32,8 @@ namespace bqt
     
     // None of these are considered valid until parseLaunchArgs() has been
     // called, after which they will always return the same value.
-    bool getDevMode();                                                          // Get whether developer mode is enabled
+    bool        getDevMode();                                                   // Get whether developer mode is enabled
+    std::string getLogFileName();                                               // Get the path to the log file set at startup
 }
 
 /******************************************************************************//******************************************************************************/
