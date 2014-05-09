@@ -1,34 +1,31 @@
 /* 
- * bqt_main.cpp
+ * bqt_exception.cpp
  * 
- * Core program initialization
+ * Implements bqt_exeption.hpp
  * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include <iostream>
-
-#include "bqt_launchargs.hpp"
+#include "bqt_exception.hpp"
 
 /******************************************************************************//******************************************************************************/
 
-int main( int argc, char* argv[] )
+namespace bqt
 {
-    int exit_code = 0x00;
-    
-    try
+    exception::exception( std::string message ) throw()
     {
-        bqt::parseLaunchArgs( argc, argv );
+        this -> message = message;
     }
-    catch( std::exception& e )
+    exception::~exception() throw()
     {
-        std::cout << e.what();
-        
-        exit_code = 0x01;
+        // Do nothing
     }
     
-    return exit_code;
+    const char* exception::what() const throw()
+    {
+        return message.c_str();
+    }
 }
 
 
