@@ -6,6 +6,10 @@
  * 
  * Functions for parsing & accessing launch arguments and their values
  * 
+ * None of the getXYZ() functions are considered valid until parseLaunchArgs()
+ * has been called, after which they will always return the same value.  It is
+ * assumed the programe will only call parseLaunchArgs() once, on startup.
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -30,8 +34,6 @@ namespace bqt
 {
     void parseLaunchArgs( int argc, char* argv[] );
     
-    // None of these are considered valid until parseLaunchArgs() has been
-    // called, after which they will always return the same value.
     bool        getDevMode();                                                   // Get whether developer mode is enabled
     std::string getLogFileName();                                               // Get the path to the log file set at startup
 }

@@ -1,8 +1,8 @@
-#ifndef TEMPLATE_HPP
-#define TEMPLATE_HPP
+#ifndef BQT_TASKQUEUE_HPP
+#define BQT_TASKQUEUE_HPP
 
 /* 
- * template.hpp
+ * bqt_taskqueue.hpp
  * 
  * About
  * 

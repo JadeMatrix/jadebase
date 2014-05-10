@@ -1,8 +1,8 @@
-#ifndef TEMPLATE_HPP
-#define TEMPLATE_HPP
+#ifndef BQT_TASKEXEC_HPP
+#define BQT_TASKEXEC_HPP
 
 /* 
- * template.hpp
+ * bqt_taskexec.hpp
  * 
  * About
  * 
