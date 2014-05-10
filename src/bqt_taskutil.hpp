@@ -29,14 +29,20 @@ namespace bqt
 {
     typedef unsigned char task_mask;                                            // Describes where the task is allowed to execute
     
-    static task_mask BQT_TASK_ALL    = 0x00; /* 00000000 */                     // Thread: "All possible restrictions" Task: "Any thread"
-    static task_mask BQT_TASK_NONE   = 0xFF; /* 11111111 */                     // Thread: "No restrictions" Task: "No thread"
+    static task_mask TASK_ALL    = 0x00; /* 00000000 */                         // Thread: "All possible restrictions" Task: "Any thread"
+    static task_mask TASK_NONE   = 0xFF; /* 11111111 */                         // Thread: "No restrictions" Task: "No thread"
     
-    static task_mask BQT_TASK_GPU    = 0x01; /* 00000001 */                     // Thread: "Allow GPU tasks" Task: "Restrict to GPU threads"
-    static task_mask BQT_TASK_INPUT  = 0x02; /* 00000010 */                     // ... same for input tasks
-    static task_mask BQT_TASK_SYSTEM = 0x04; /* 00000100 */                     // System initialization thread (usually main thread)
-    static task_mask BQT_TASK_TASK   = 0x08; /* 00001000 */                     // Task system specifically
-    static task_mask BQT_TASK_VIDEO  = 0x10; /* 00010000 */                     // Video system, if any, seperate from GPU
+    static task_mask TASK_GPU    = 0x01; /* 00000001 */                         // Thread: "Allow GPU tasks" Task: "Restrict to GPU threads"
+    static task_mask TASK_INPUT  = 0x02; /* 00000010 */                         // ... same for input tasks
+    static task_mask TASK_SYSTEM = 0x04; /* 00000100 */                         // System initialization thread (usually main thread)
+    static task_mask TASK_TASK   = 0x08; /* 00001000 */                         // Task system specifically
+    static task_mask TASK_VIDEO  = 0x10; /* 00010000 */                         // Video system, if any, seperate from GPU
+    
+    typedef unsigned char task_priority;
+    
+    static task_priority PRIORITY_LOW  = 0x00;
+    static task_priority PRIORITY_NONE = 0x01;
+    static task_priority PRIORITY_HIGH = 0x02;
 }
 
 /******************************************************************************//******************************************************************************/

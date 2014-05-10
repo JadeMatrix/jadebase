@@ -29,7 +29,14 @@ namespace bqt
     {
     public:
         virtual bool execute( task_mask* caller_mask ) = 0;                     // Returns true on execution, false to re-queue
+        
+        virtual task_priority getPriority()
+        {
+            return bqt::PRIORITY_NONE;
+        }
+        
         virtual task_mask getMask() = 0;
+        
         virtual bool matchMask( task_mask m )                                   // Supplies the default matching algorithm
         {
             return !( ~m & getMask() );                                         // See bqt_taskutil.h

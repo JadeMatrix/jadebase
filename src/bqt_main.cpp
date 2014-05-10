@@ -3,6 +3,9 @@
  * 
  * Core program initialization
  * 
+ * Pasting the FastFormat documentation here for now:
+ * http://fastformat.sourceforge.net/documentation/index.html
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/

@@ -66,7 +66,12 @@ namespace bqt
                     
                     std::ofstream* log_file = new std::ofstream( log_file_name.c_str() );
                     if( log_file != NULL && !( log_file -> is_open() ) )
-                        throw bqt::exception( "Could not open \'" + log_file_name + "\' to use as a log file" );
+                    {
+                        log_stream = &std::cout;                                // Try to keep getLogStream() valid if possible
+                        throw bqt::exception( "Could not open \'"
+                                              + log_file_name
+                                              + "\' to use as a log file" );
+                    }
                     
                     log_stream = log_file;
                 }
