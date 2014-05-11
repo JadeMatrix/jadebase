@@ -40,9 +40,13 @@ namespace bqt
     
     typedef unsigned char task_priority;
     
-    static task_priority PRIORITY_LOW  = 0x00;
-    static task_priority PRIORITY_NONE = 0x01;
-    static task_priority PRIORITY_HIGH = 0x02;
+    #define PRIVAL_HIGH 0x00
+    #define PRIVAL_NONE 0x01
+    #define PRIVAL_LOW  0x02
+    
+    static task_priority PRIORITY_LOW  = PRIVAL_LOW;
+    static task_priority PRIORITY_NONE = PRIVAL_NONE;
+    static task_priority PRIORITY_HIGH = PRIVAL_HIGH;
 }
 
 /******************************************************************************//******************************************************************************/
