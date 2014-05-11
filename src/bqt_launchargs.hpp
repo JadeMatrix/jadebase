@@ -20,13 +20,17 @@
 
 // TODO: Ensure all launch flags supported are documented in launch.sh
 
-#define LAUNCHARG_DEVMODE   "--devmode"
-#define LAUNCHFLG_DEVMODE   "-d"
-#define LAUNCHVAL_DEVMODE   false
+// #define LAUNCHARG_DEVMODE       "--devmode"
+// #define LAUNCHFLG_DEVMODE       "-d"
+#define LAUNCHVAL_DEVMODE       false
 
-#define LAUNCHARG_LOGFILE   "--logfile"
-#define LAUNCHFLG_LOGFILE   "-l"
-#define LAUNCHVAL_LOGFILE   ""
+// #define LAUNCHARG_LOGFILE       "--logfile"
+// #define LAUNCHFLG_LOGFILE       "-l"
+#define LAUNCHVAL_LOGFILE       ""
+
+// #define LAUNCHARG_TASKTHREADS   "--taskthreads"
+// #define LAUNCHFLG_TASKTHREADS   "-t"
+#define LAUNCHVAL_TASKTHREADS   0
 
 /******************************************************************************//******************************************************************************/
 
@@ -36,6 +40,7 @@ namespace bqt
     
     bool        getDevMode();                                                   // Get whether developer mode is enabled
     std::string getLogFileName();                                               // Get the path to the log file set at startup
+    long        getTaskThreadLimit();                                           // Get the max number of threads available to the task system (>=1 or -1)
 }
 
 /******************************************************************************//******************************************************************************/

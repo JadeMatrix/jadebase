@@ -32,7 +32,7 @@ namespace bqt
         
         virtual task_priority getPriority()
         {
-            return bqt::PRIORITY_NONE;
+            return PRIORITY_NONE;
         }
         
         virtual task_mask getMask() = 0;

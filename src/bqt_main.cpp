@@ -12,9 +12,6 @@
 
 #include <iostream>
 
-#include <fastformat/ff.hpp>
-#include <fastformat/sinks/ostream.hpp>
-
 #include "bqt_launchargs.hpp"
 #include "bqt_exception.hpp"
 #include "bqt_threadutil.hpp"
