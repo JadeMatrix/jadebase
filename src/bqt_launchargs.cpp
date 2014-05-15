@@ -30,7 +30,8 @@ namespace
 {
     struct option long_flags[] = { { "devmode",           no_argument, NULL, 'd' },
                                    { "logfile",     required_argument, NULL, 'l' },
-                                   { "taskthreads", required_argument, NULL, 't' } };
+                                   { "taskthreads", required_argument, NULL, 't' },
+                                   { 0,             0,                 0,    0   } };
     
     std::string flags_list = "[ -d | --devmode ]                Enables developer mode options\n"
                              "[ -l | --logfile ] FILE           Sets a log file, none by default\n"
@@ -54,25 +55,29 @@ namespace bqt
         log_file_name     = LAUNCHVAL_LOGFILE;
         task_thread_limit = LAUNCHVAL_TASKTHREADS;
         
-        log_stream = NULL;
+        log_stream = &std::cout;
         
-        while( int flag = getopt_long( argc, argv, "dl:t:", long_flags, NULL ) != -1 )
+        int flag;                                                               // <--
+        
+        while( ( flag = getopt_long( argc, argv, "dl:t:", long_flags, NULL ) ) != -1 )
         {
             switch( flag )
             {
             case 'd':
+                ff::write( bqt_out, "Developer mode enabled\n" );
                 dev_mode = true;
                 break;
             case 'l':
                 {
                     log_file_name = optarg;
-                    if( log_stream != NULL )
+                    if( log_stream != NULL && log_stream != &std::cout )        // Don't want to try to delete std::cout, that would be awkward
                         delete log_stream;
                     
+                    ff::write( bqt_out, "Using file '", log_file_name, "' for logging\n" );
+                    
                     std::ofstream* log_file = new std::ofstream( log_file_name.c_str() );
-                    if( log_file != NULL && !( log_file -> is_open() ) )
+                    if( log_file == NULL || !( log_file -> is_open() ) )
                     {
-                        log_stream = &std::cout;                                // Try to keep getLogStream() valid if possible
                         throw exception( "Could not open \'"
                                               + log_file_name
                                               + "\' to use as a log file" );
@@ -87,15 +92,14 @@ namespace bqt
                         throw exception( "Task thread limit must be 0 or greater" );
                     else
                         task_thread_limit = strtol( optarg, NULL, 10 );
+                    
+                    ff::write( bqt_out, "Task threads limited to ", task_thread_limit, "\n" );
                 }
                 break;
             default:
                 throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
             }
         }
-        
-        if( log_stream == NULL )
-            log_stream = &std::cout;
     }
     
     bool getDevMode()

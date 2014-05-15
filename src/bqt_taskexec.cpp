@@ -5,7 +5,6 @@
  * system.
  * 
  * Things that still need to be ported from the CEE implementation:
- *  - waiting to prevent cycle hogging
  *  - thread arresting
  * 
  */
@@ -34,7 +33,7 @@ namespace
         bqt::task_mask* mask;
     };
     
-    bqt::task_queue* global_task_queue;                                              // This doesn't seem to work unless it's dynamically allocated
+    bqt::task_queue* global_task_queue;                                         // This doesn't seem to work unless it's dynamically allocated
     bqt::thread* task_threads = NULL;
     task_thread_data* task_threads_data = NULL;
     bqt::task_mask* task_threads_masks = NULL;
@@ -43,7 +42,7 @@ namespace
     bqt::mutex task_thread_count_mutex;
     long task_thread_count = 0;
     
-    bqt::exit_code taskThread( void* d )                                             // A cee_taskexec::task_thread_data* is passed as a void*
+    bqt::exit_code taskThread( void* d )                                        // A cee_taskexec::task_thread_data* is passed as a void*
     {
         task_thread_data* data = ( task_thread_data* )d;
         bqt::exit_code code = EXIT_FINE;
@@ -71,7 +70,7 @@ namespace
                 
                 while( running )
                 {
-                    // if( bqt::engineArrestHook() )
+                    // if( !bqt::getDevMode() || bqt::arrestHook() )               // Arrest hooks only available in dev mode
                     if( true )                                                  // TODO: implement arrest hooks
                     {
                         if( data -> mask == NULL )

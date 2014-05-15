@@ -35,15 +35,14 @@ int main( int argc, char* argv[] )
         // TODO: We want to log internal exceptions specially, maybe generate a
         // report or ticket of some kind?
         
-        ff::write( std::cerr, e.what() );
-        ff::write( bqt_out, e.what() );                                         // Won't write if bqt_out is invalid, so we write to std::cerr first
-                                                                                // This actually ends up being pretty nice, as it gets logged in both places
+        // ff::write( std::cerr, e.what() );
+        ff::write( bqt_out, e.what() );
         
         exit_code = EXIT_BQTERR;
     }
     catch( std::exception& e )
     {
-        ff::write( std::cerr, e.what() );
+        // ff::write( std::cerr, e.what() );
         ff::write( bqt_out, e.what() );
         
         exit_code = EXIT_STDERR;
