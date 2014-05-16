@@ -39,6 +39,8 @@ namespace bqt
     class task
     {
     public:
+        virtual ~task() {};                                                     // Safety
+        
         virtual bool execute( task_mask* caller_mask ) = 0;                     // Returns true on execution, false to re-queue
         
         virtual task_priority getPriority()

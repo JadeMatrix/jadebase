@@ -25,7 +25,7 @@ namespace bqt
     // void startTaskSystem();
     void stopTaskSystem();
     
-    bool deInitTaskSystem();                                                    // Must only be called AFTER stopTaskSystem(), which allows self-stopping
+    void deInitTaskSystem();                                                    // Must only be called AFTER stopTaskSystem(), which allows self-stopping
     
     class StopTaskSystem_task : public task
     {

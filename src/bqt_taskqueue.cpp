@@ -59,7 +59,7 @@ namespace bqt
                             break;
                         }
                         
-                        if( popping = false )
+                        if( !popping )
                             break;
                     }
                     

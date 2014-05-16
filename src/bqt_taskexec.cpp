@@ -196,7 +196,7 @@ namespace bqt
         }
     }
     
-    bool deInitTaskSystem()
+    void deInitTaskSystem()
     {
         delete[] task_threads;
         delete[] task_threads_data;
