@@ -37,6 +37,7 @@
 namespace bqt
 {
     void parseLaunchArgs( int argc, char* argv[] );
+    void initFromLaunchArgs();                                                  // Does any special stuff we may need to do only after platform code is called
     
     bool        getDevMode();                                                   // Get whether developer mode is enabled
     std::string getLogFileName();                                               // Get the path to the log file set at startup

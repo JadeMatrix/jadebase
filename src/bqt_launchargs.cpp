@@ -35,7 +35,7 @@ namespace
     
     std::string flags_list = "[ -d | --devmode ]                Enables developer mode options\n"
                              "[ -l | --logfile ] FILE           Sets a log file, none by default\n"
-                             "[ -t | --taskthreads ] NUMBER     Limits the max number of task threads; 0 = no limit; must be positive\n";
+                             "[ -t | --taskthreads ] UINT       Limits the max number of task threads; 0 = no limit\n";
     
     // Engine options are immutable after parseLaunchArgs is called.
     bool        dev_mode;
@@ -100,6 +100,10 @@ namespace bqt
                 throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
             }
         }
+    }
+    void initFromLaunchArgs()
+    {
+        // Nothing needed here yet
     }
     
     bool getDevMode()

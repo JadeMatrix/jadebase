@@ -10,6 +10,8 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include "bqt_main.h"
+
 #include <iostream>
 
 #include "bqt_launchargs.hpp"
@@ -19,30 +21,43 @@
 
 /******************************************************************************//******************************************************************************/
 
-int main( int argc, char* argv[] )
+bool bqt_parseLaunchArgs( int argc, char* argv[] )
+{
+    try
+    {
+        bqt::parseLaunchArgs( argc, argv );
+    }
+    catch( bqt::exception& e )
+    {
+        ff::write( bqt_out, e.what() );
+        
+        return false;
+    }
+    
+    return true;
+}
+
+int bqt_main( /* int argc, char* argv[] */ )
 {
     int exit_code = EXIT_FINE;
     
     try
     {
-        bqt::parseLaunchArgs( argc, argv );
+        bqt::initFromLaunchArgs();
         
-        std::cout << "OStream testing\n";
-        ff::fmt( bqt_out, "FastFormat testing{0}", "\n" );
+        ff::write( bqt_out, "Hello World from BQTDraw!\n" );
     }
     catch( bqt::exception& e )
     {
         // TODO: We want to log internal exceptions specially, maybe generate a
         // report or ticket of some kind?
         
-        // ff::write( std::cerr, e.what() );
         ff::write( bqt_out, e.what() );
         
         exit_code = EXIT_BQTERR;
     }
     catch( std::exception& e )
     {
-        // ff::write( std::cerr, e.what() );
         ff::write( bqt_out, e.what() );
         
         exit_code = EXIT_STDERR;
