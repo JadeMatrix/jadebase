@@ -42,7 +42,8 @@ namespace
     std::string log_file_name;
     long        task_thread_limit;
     
-    std::ostream* log_stream;
+    std::filebuf log_fb;
+    std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
 }
 
 /* bqt_launchargs.hpp *********************************************************//******************************************************************************/
@@ -54,8 +55,6 @@ namespace bqt
         dev_mode          = LAUNCHVAL_DEVMODE;
         log_file_name     = LAUNCHVAL_LOGFILE;
         task_thread_limit = LAUNCHVAL_TASKTHREADS;
-        
-        log_stream = &std::cout;
         
         int flag;                                                               // <--
         
@@ -70,20 +69,19 @@ namespace bqt
             case 'l':
                 {
                     log_file_name = optarg;
-                    if( log_stream != NULL && log_stream != &std::cout )        // Don't want to try to delete std::cout, that would be awkward
-                        delete log_stream;
+                    
+                    log_fb.open( log_file_name.c_str(), std::ios::out );
+                    
+                    if( !log_fb.is_open() )
+                    {
+                        throw exception( "Could not open \'"
+                                         + log_file_name
+                                         + "\' to use as a log file" );
+                    }
                     
                     ff::write( bqt_out, "Using file '", log_file_name, "' for logging\n" );
                     
-                    std::ofstream* log_file = new std::ofstream( log_file_name.c_str() );
-                    if( log_file == NULL || !( log_file -> is_open() ) )
-                    {
-                        throw exception( "Could not open \'"
-                                              + log_file_name
-                                              + "\' to use as a log file" );
-                    }
-                    
-                    log_stream = log_file;
+                    log_stream.rdbuf( &log_fb );
                 }
                 break;
             case 't':
@@ -126,13 +124,13 @@ namespace bqt
 {
     std::ostream* getLogStream()
     {
-        return log_stream;
+        return &log_stream;
     }
     
     void closeLog()
     {
-        if( log_stream != NULL && log_stream != &std::cout )
-            delete log_stream;
+        // if( log_stream != NULL && log_stream != &std::cout )
+        //     delete log_stream;
     }
 }
 

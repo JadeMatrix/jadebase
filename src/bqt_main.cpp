@@ -46,6 +46,8 @@ int bqt_main( /* int argc, char* argv[] */ )
         bqt::initFromLaunchArgs();
         
         ff::write( bqt_out, "Hello World from BQTDraw!\n" );
+        
+        bqt_out << "testestest\n" << std::flush;
     }
     catch( bqt::exception& e )
     {
