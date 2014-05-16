@@ -15,6 +15,17 @@
  * to store the mask as a variable or simply return it to save space.  It is
  * pure virtual to force a decision.
  * 
+ * To submit tasks from non-C++ code (such as Objective-C for Cocoa), it unfor-
+ * tunately seems necessary to write a C wrapper function that should follow
+ * the format:
+ *      void submit_TaskName_task( ... )
+ *      {
+ *          bqt::submitTask( new TaskName_task( ... ) );
+ *      }
+ * with the usual #ifdef __cplusplus/extern "C" guards, of course.  Arguments
+ * may be passed to the function in a C-friendly form and be converted as
+ * needed.
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
