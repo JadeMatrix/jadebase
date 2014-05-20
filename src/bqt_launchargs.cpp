@@ -33,8 +33,8 @@ namespace
                                    { "taskthreads", required_argument, NULL, 't' },
                                    { 0,             0,                 0,    0   } };
     
-    std::string flags_list = "[ -d | --devmode ]                Enables developer mode options\n"
-                             "[ -l | --logfile ] FILE           Sets a log file, none by default\n"
+    std::string flags_list = "[ -d | --devmode     ]            Enables developer mode options\n"
+                             "[ -l | --logfile     ] FILE       Sets a log file, none by default\n"
                              "[ -t | --taskthreads ] UINT       Limits the max number of task threads; 0 = no limit\n";
     
     // Engine options are immutable after parseLaunchArgs is called.
