@@ -18,11 +18,12 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <cstdlib>
+#include <cmath>
 
 #include "bqt_launchargs.hpp"
 #include "bqt_log.hpp"
-
 #include "bqt_exception.hpp"
+#include "bqt_imagemode.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -31,22 +32,28 @@ namespace
     struct option long_flags[] = { {     "devmode",       no_argument, NULL, 'd' },
                                    {     "logfile", required_argument, NULL, 'l' },
                                    { "taskthreads", required_argument, NULL, 't' },
+                                   {    "blockexp", required_argument, NULL, 'e' },
                                    {             0,                 0,     0,  0 } };
     
     std::string flags_list = "[ -d | --devmode     ]            Enables developer mode options\n"
                              "[ -l | --logfile     ] FILE       Sets a log file, none by default\n"
-                             "[ -t | --taskthreads ] UINT       Limits the max number of task threads; 0 = no limit\n";
+                             "[ -t | --taskthreads ] UINT       Limits the max number of task threads; 0 = no limit\n"
+                             "[ -e | --blockexp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n";
     
     // Engine options are immutable after parseLaunchArgs is called.
-    bool        dev_mode;
-    std::string log_file_name;
-    long        task_thread_limit;
+    bool          dev_mode;
+    std::string   log_file_name;
+    long          task_thread_limit;
+    unsigned char block_exponent;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
 }
 
 /* bqt_launchargs.hpp *********************************************************//******************************************************************************/
+
+#define MACROTOSTR_A( D ) #D
+#define   MACROTOSTR( D ) MACROTOSTR_A( D )                                     // Double expansion trick
 
 namespace bqt
 {
@@ -55,6 +62,7 @@ namespace bqt
         dev_mode          = LAUNCHVAL_DEVMODE;
         log_file_name     = LAUNCHVAL_LOGFILE;
         task_thread_limit = LAUNCHVAL_TASKTHREADS;
+        block_exponent    = LAUNCHVAL_BLOCKEXPONENT;
         
         int flag;                                                               // <--
         
@@ -86,12 +94,32 @@ namespace bqt
                 break;
             case 't':
                 {
-                    if( optarg < 0 )
+                    long optarg_l = strtol( optarg, NULL, 0 );
+                    
+                    if( optarg_l < 0 )
                         throw exception( "Task thread limit must be 0 or greater" );
                     else
-                        task_thread_limit = strtol( optarg, NULL, 10 );
+                        task_thread_limit = optarg_l;
                     
                     ff::write( bqt_out, "Task threads limited to ", task_thread_limit, "\n" );
+                }
+                break;
+            case 'e':
+                {
+                    long optarg_l = strtol( optarg, NULL, 0 );
+                    
+                    if( optarg_l < BLOCKEXPONENT_MIN || optarg_l > BLOCKEXPONENT_MAX )
+                        throw exception( "Block size exponent must be between " MACROTOSTR( BLOCKEXPONENT_MIN ) " and " MACROTOSTR( BLOCKEXPONENT_MAX ) );
+                    else
+                    {
+                        block_exponent = optarg_l;
+                        
+                        if( block_exponent < LAUNCHVAL_BLOCKEXP_RMAX )
+                            ff::write( bqt_out, "Warning: block exponent below recommended minimum (", LAUNCHVAL_BLOCKEXP_RMAX, ")\n" );
+                    }
+                    
+                    long block_w = pow( 2, block_exponent );
+                    ff::write( bqt_out, "Block size set to ", block_w, " x ", block_w, "\n" );
                 }
                 break;
             default:
@@ -115,6 +143,10 @@ namespace bqt
     long getTaskThreadLimit()
     {
         return task_thread_limit;
+    }
+    unsigned char getBlockExponent()
+    {
+        return block_exponent;
     }
 }
 

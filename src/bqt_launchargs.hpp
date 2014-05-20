@@ -32,6 +32,9 @@
 // #define LAUNCHFLG_TASKTHREADS   "-t"
 #define LAUNCHVAL_TASKTHREADS   0
 
+#define LAUNCHVAL_BLOCKEXPONENT 8
+#define LAUNCHVAL_BLOCKEXP_RMAX 7
+
 /******************************************************************************//******************************************************************************/
 
 namespace bqt
@@ -39,9 +42,10 @@ namespace bqt
     void parseLaunchArgs( int argc, char* argv[] );
     void initFromLaunchArgs();                                                  // Does any special stuff we may need to do only after platform code is called
     
-    bool        getDevMode();                                                   // Get whether developer mode is enabled
-    std::string getLogFileName();                                               // Get the path to the log file set at startup
-    long        getTaskThreadLimit();                                           // Get the max number of threads available to the task system (>=1 or -1)
+    bool          getDevMode();                                                 // Get whether developer mode is enabled
+    std::string   getLogFileName();                                             // Get the path to the log file set at startup
+    long          getTaskThreadLimit();                                         // Get the max number of threads available to the task system (>=1 or -1)
+    unsigned char getBlockExponent();                                           // Get the block size exponent: blocks are 2^exp x 2^exp textures
 }
 
 /******************************************************************************//******************************************************************************/
