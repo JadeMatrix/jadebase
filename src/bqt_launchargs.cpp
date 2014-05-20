@@ -28,10 +28,10 @@
 
 namespace
 {
-    struct option long_flags[] = { { "devmode",           no_argument, NULL, 'd' },
-                                   { "logfile",     required_argument, NULL, 'l' },
+    struct option long_flags[] = { {     "devmode",       no_argument, NULL, 'd' },
+                                   {     "logfile", required_argument, NULL, 'l' },
                                    { "taskthreads", required_argument, NULL, 't' },
-                                   { 0,             0,                 0,    0   } };
+                                   {             0,                 0,     0,  0 } };
     
     std::string flags_list = "[ -d | --devmode     ]            Enables developer mode options\n"
                              "[ -l | --logfile     ] FILE       Sets a log file, none by default\n"
