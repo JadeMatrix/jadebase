@@ -54,13 +54,13 @@ int bqt_main( /* int argc, char* argv[] */ )
         // TODO: We want to log internal exceptions specially, maybe generate a
         // report or ticket of some kind?
         
-        ff::write( bqt_out, e.what() );
+        ff::write( bqt_out, e.what(), "\n" );
         
         exit_code = EXIT_BQTERR;
     }
     catch( std::exception& e )
     {
-        ff::write( bqt_out, e.what() );
+        ff::write( bqt_out, e.what(), "\n" );
         
         exit_code = EXIT_STDERR;
     }
