@@ -13,6 +13,8 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include "bqt_launchargs.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
@@ -20,7 +22,6 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "bqt_launchargs.hpp"
 #include "bqt_log.hpp"
 #include "bqt_exception.hpp"
 #include "bqt_imagemode.hpp"
