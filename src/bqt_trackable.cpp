@@ -1,7 +1,7 @@
 /* 
  * bqt_trackable.cpp
  * 
- * About
+ * Implements the implementable stuff in bqt_trackable.hpp
  * 
  */
 
@@ -9,9 +9,11 @@
 
 #include "bqt_trackable.hpp"
 
-#include <stack>
+#include <deque>
+#include <map>
 
 #include "bqt_mutex.hpp"
+#include "bqt_exception.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -24,8 +26,10 @@ namespace
     };
     
     bqt::mutex history_mutex;
-    std::stack< history_event > undo_history;
-    std::stack< history_event > redo_history;
+    std::deque< bqt::timestamp > undo_stamps;
+    std::multimap< bqt::timestamp, bqt::trackable* > undo_history;
+    std::deque< bqt::timestamp > redo_stamps;
+    std::multimap< bqt::timestamp, bqt::trackable* > redo_history;
 }
 
 /******************************************************************************//******************************************************************************/
@@ -38,9 +42,11 @@ namespace bqt
     {
         scoped_lock slock( history_mutex );
         
-        history_event he = { stamp, this };
+        undo_stamps.push_back( stamp );
+        undo_history.insert( std::pair< bqt::timestamp, bqt::trackable* >( stamp, this ) );
         
-        undo_history.push( he );
+        redo_stamps.clear();
+        redo_history.clear();
     }
     
     /**************************************************************************//******************************************************************************/
@@ -49,43 +55,93 @@ namespace bqt
     {
         scoped_lock slock( history_mutex );
         
-        if( undo_history.empty() )
+        if( undo_stamps.empty() )
             return HIST_NONELEF;
         else
         {
-            history_event swap = undo_history.top();
-            undo_history.pop();
+            timestamp last_change = undo_stamps.back();
+            undo_stamps.pop_back();
             
-            int result = swap.object -> undo( swap.stamp );
+            std::pair< std::multimap< bqt::timestamp,
+                                      bqt::trackable* >::iterator,
+                       std::multimap< bqt::timestamp,
+                                      bqt::trackable* >::iterator > iters = undo_history.equal_range( last_change );
             
-            if( !result )
-                redo_history.push( swap );
-            else
-                return result;                                                  // Discard event
+            std::multimap< bqt::timestamp,
+                           bqt::trackable* >::iterator r_first = iters.first;
+            std::multimap< bqt::timestamp,
+                           bqt::trackable* >::iterator r_last = iters.second;
+            
+            int ret_val = HIST_SUCCESS;
+            
+            for( ; r_first != r_last; r_first++ )
+            {
+                int result = r_first -> second -> undo( last_change );
+                
+                if( result != HIST_SUCCESS )
+                {
+                    if( result == HIST_NOSTAMP )
+                        throw exception( "undoLastChange(): trackable has no change matching stamp" );
+                    
+                    else ret_val = result;
+                }                                                               // Drop event
+                else
+                {
+                    redo_stamps.push_back( last_change );
+                    redo_history.insert( std::pair< bqt::timestamp, bqt::trackable* >( last_change, r_first -> second ) );
+                }                                                               // Keep event
+            }
+            
+            undo_history.erase( last_change );
+            
+            return ret_val;
         }
-        
-        return HIST_SUCCESS;
     }
     int redoLastChange()
     {
         scoped_lock slock( history_mutex );
         
-        if( redo_history.empty() )
+        if( redo_stamps.empty() )
             return HIST_NONELEF;
         else
         {
-            history_event swap = redo_history.top();
-            redo_history.pop();
+            timestamp prev_change = redo_stamps.back();
+            redo_stamps.pop_back();
             
-            int result = swap.object -> redo( swap.stamp );
+            std::pair< std::multimap< bqt::timestamp,
+                                      bqt::trackable* >::iterator,
+                       std::multimap< bqt::timestamp,
+                                      bqt::trackable* >::iterator > iters = redo_history.equal_range( prev_change );
             
-            if( !result )
-                undo_history.push( swap );
-            else
-                return result;                                                  // Discard event
+            std::multimap< bqt::timestamp,
+                           bqt::trackable* >::iterator r_first = iters.first;
+            std::multimap< bqt::timestamp,
+                           bqt::trackable* >::iterator r_last = iters.second;
+            
+            int ret_val = HIST_SUCCESS;
+            
+            for( ; r_first != r_last; r_first++ )
+            {
+                int result = r_first -> second -> redo( prev_change );
+                
+                if( result != HIST_SUCCESS )
+                {
+                    if( result == HIST_NOSTAMP )
+                        throw exception( "redoLastChange(): trackable has no change matching stamp" );
+                    
+                    else ret_val = result;
+                }                                                               // Drop event
+                else
+                {
+                    undo_stamps.push_back( prev_change );
+                    undo_history.insert( std::pair< bqt::timestamp, bqt::trackable* >( prev_change, r_first -> second ) );
+                }                                                               // Keep event
+            }
+            
+            redo_history.erase( prev_change );
+            
+            return ret_val;
         }
-        
-        return HIST_SUCCESS;
     }
 }
 
