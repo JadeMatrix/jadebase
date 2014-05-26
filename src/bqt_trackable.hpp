@@ -14,7 +14,7 @@
  * (even if the objects are different) they will be undone/redone at the same
  * time.
  * undo() and redo() step backward & forward through changes.  undo(stamp) and
- * redo(stamp) take the timestamp of a change, revert to/from that state, then
+ * redo(stamp) take the timestamp of a change, revert from/to that state, then
  * return 0x00 (HIST_SUCCESS) or an error code:
  * HIST_NONELEF     No more undo/redo steps
  * HIST_NOSTAMP     No step associated with timestamp
