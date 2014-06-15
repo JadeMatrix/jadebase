@@ -12,13 +12,18 @@
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
+// #include <OpenGL/glu.h>
 #else
-#include "GL/gl.h"
-#include "GL/glu.h"
+#include <GL/gl.h>
+// #include <GL/glu.h>
 #endif
 
 /******************************************************************************//******************************************************************************/
+
+#define ZVAL_BACKGROUND -2.0f
+#define ZVAL_NONCOMPSLC -1.0f
+#define ZVAL_COMPDSLICE  0.0f
+#define ZVAL_GUIOVERLAY  1.0f
 
 namespace bqt
 {
