@@ -23,8 +23,9 @@
  * should be called by any appropriate task (friended of course).
  * 
  * undoLastChange() and redoLastChange() work like undo() and redo() but on a
- * global scale, working on the global bqt::trackable stack.
- * 
+ * global scale, working on the global bqt::trackable stack.  They undo/redo
+ * ALL changes associated with the most recent timestamp in the respective
+ * stack.
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/

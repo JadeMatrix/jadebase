@@ -25,16 +25,14 @@ bool bqt_parseLaunchArgs( int argc, char* argv[] )
 {
     try
     {
-        bqt::parseLaunchArgs( argc, argv );
+        return bqt::parseLaunchArgs( argc, argv );
     }
     catch( bqt::exception& e )
     {
         ff::write( bqt_out, e.what() );
-        
-        return false;
     }
     
-    return true;
+    return false;
 }
 
 int bqt_main( /* int argc, char* argv[] */ )

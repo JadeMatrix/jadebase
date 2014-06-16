@@ -19,7 +19,8 @@ extern "C"
 {
 #endif
 
-bool bqt_parseLaunchArgs( int argc, char* argv[] );                             // Wrapping this in C is easier than trying to parse once we're in NS
+bool bqt_parseLaunchArgs( int argc, char* argv[] );                             // Returns true if execution should continue; a C wrapper for the C++ function,
+                                                                                // this handles any exceptions from bqt::parseLaunchArgs()
 
 int bqt_main( /* int argc, char* argv[] */ );                                   // No longer need argc & argv as we parse these before calling bqt_main()
 

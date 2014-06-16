@@ -25,18 +25,23 @@
 #include "bqt_log.hpp"
 #include "bqt_exception.hpp"
 #include "bqt_imagemode.hpp"
+#include "bqt_version.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
 {
-    struct option long_flags[] = { {     "devmode",       no_argument, NULL, 'd' },
+    struct option long_flags[] = { {        "help",       no_argument, NULL, 'h' },
+                                   {     "version",       no_argument, NULL, 'v' },
+                                   {     "devmode",       no_argument, NULL, 'd' },
                                    {     "logfile", required_argument, NULL, 'l' },
                                    { "taskthreads", required_argument, NULL, 't' },
                                    {    "blockexp", required_argument, NULL, 'e' },
-                                   {             0,                 0,     0,  0 } };
+                                   {             0,                 0,    0,   0 } };
     
-    std::string flags_list = "[ -d | --devmode     ]            Enables developer mode options\n"
+    std::string flags_list = "[ -h | --help        ]            Prints this guide & exits\n"
+                             "[ -v | --version     ]            Prints the software version & exits\n"
+                             "[ -d | --devmode     ]            Enables developer mode options\n"
                              "[ -l | --logfile     ] FILE       Sets a log file, none by default\n"
                              "[ -t | --taskthreads ] UINT       Limits the max number of task threads; 0 = no limit\n"
                              "[ -e | --blockexp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n";
@@ -53,12 +58,9 @@ namespace
 
 /* bqt_launchargs.hpp *********************************************************//******************************************************************************/
 
-#define MACROTOSTR_A( D ) #D
-#define   MACROTOSTR( D ) MACROTOSTR_A( D )                                     // Double expansion trick
-
 namespace bqt
 {
-    void parseLaunchArgs( int argc, char* argv[] )
+    bool parseLaunchArgs( int argc, char* argv[] )
     {
         dev_mode          = LAUNCHVAL_DEVMODE;
         log_file_name     = LAUNCHVAL_LOGFILE;
@@ -67,10 +69,16 @@ namespace bqt
         
         int flag;                                                               // <--
         
-        while( ( flag = getopt_long( argc, argv, "dl:t:", long_flags, NULL ) ) != -1 )
+        while( ( flag = getopt_long( argc, argv, "hvdl:t:", long_flags, NULL ) ) != -1 )
         {
             switch( flag )
             {
+            case 'h':
+                ff::write( bqt_out, flags_list );
+                return false;
+            case 'v':
+                ff::write( bqt_out, BQT_VERSION_STRING, "\n" );
+                return false;
             case 'd':
                 ff::write( bqt_out, "Developer mode enabled\n" );
                 dev_mode = true;
@@ -127,6 +135,8 @@ namespace bqt
                 throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
             }
         }
+        
+        return true;
     }
     void initFromLaunchArgs()
     {

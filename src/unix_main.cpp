@@ -16,7 +16,7 @@ int main( int argc, char* argv[] )
     if( bqt_parseLaunchArgs( argc, argv ) )
         return bqt_main();
     else
-        return -1;
+        return 0;
 }
 
 

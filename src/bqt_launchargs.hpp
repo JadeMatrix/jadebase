@@ -39,7 +39,7 @@
 
 namespace bqt
 {
-    void parseLaunchArgs( int argc, char* argv[] );
+    bool parseLaunchArgs( int argc, char* argv[] );                             // Returns true if the program should continue after parsing, false if exit
     void initFromLaunchArgs();                                                  // Does any special stuff we may need to do only after platform code is called
     
     bool          getDevMode();                                                 // Get whether developer mode is enabled

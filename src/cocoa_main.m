@@ -27,11 +27,9 @@ int main( int argc, char* argv[] )
         [ application run ];
         
         [ pool drain ];
-        
-        return 0;
     }
-    else
-        return -1;
+    
+    return 0;
 }
 
 

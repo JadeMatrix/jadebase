@@ -6,8 +6,11 @@
  * 
  * Contains utilities for retrieving timestamps.
  * 
- * getUNIXTimestamp() is essentially C's time( NULL ), but may be implementa-
- * tion-defined.
+ * getTrackTimestamp() returns an internal timestamp for change tracking; this
+ * may or may not be the same as getUNIXTimestamp().
+ * 
+ * getUNIXTimestamp() is essentially C's time( NULL ): it returrns the non-local
+ * time in seconds since 1/1/70.
  * 
  */
 
@@ -21,9 +24,9 @@ namespace bqt
 {
     typedef unsigned long timestamp;
     
-    timestamp getBlockTimestamp();                                              // Return internal timestamp for block updates
+    timestamp getTrackTimestamp();
     
-    timestamp getUNIXTimestamp();                                               // Return the local time in seconds since 1/1/70
+    timestamp getUNIXTimestamp();
 }
 
 /******************************************************************************//******************************************************************************/
