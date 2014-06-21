@@ -21,6 +21,8 @@
 #include <getopt.h>
 #include <cstdlib>
 #include <cmath>
+#include <vector>
+#include <string>
 
 #include "bqt_log.hpp"
 #include "bqt_exception.hpp"
@@ -33,16 +35,18 @@ namespace
 {
     struct option long_flags[] = { {        "help",       no_argument, NULL, 'h' },
                                    {     "version",       no_argument, NULL, 'v' },
-                                   {     "devmode",       no_argument, NULL, 'd' },
+                                   {   "open-file", required_argument, NULL, 'f' },
                                    {     "logfile", required_argument, NULL, 'l' },
+                                   {     "devmode",       no_argument, NULL, 'd' },
                                    { "taskthreads", required_argument, NULL, 't' },
                                    {    "blockexp", required_argument, NULL, 'e' },
                                    {             0,                 0,    0,   0 } };
     
     std::string flags_list = "[ -h | --help        ]            Prints this guide & exits\n"
                              "[ -v | --version     ]            Prints the software version & exits\n"
-                             "[ -d | --devmode     ]            Enables developer mode options\n"
+                             "[ -f | --open-file   ] FILE       Opens file on startup\n"
                              "[ -l | --logfile     ] FILE       Sets a log file, none by default\n"
+                             "[ -d | --devmode     ]            Enables developer mode options\n"
                              "[ -t | --taskthreads ] UINT       Limits the max number of task threads; 0 = no limit\n"
                              "[ -e | --blockexp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n";
     
@@ -51,6 +55,7 @@ namespace
     std::string   log_file_name;
     long          task_thread_limit;
     unsigned char block_exponent;
+    std::vector< std::string > startup_files;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
@@ -69,7 +74,7 @@ namespace bqt
         
         int flag;                                                               // <--
         
-        while( ( flag = getopt_long( argc, argv, "hvdl:t:", long_flags, NULL ) ) != -1 )
+        while( ( flag = getopt_long( argc, argv, "hvf:l:dt:e:", long_flags, NULL ) ) != -1 )
         {
             switch( flag )
             {
@@ -131,6 +136,10 @@ namespace bqt
                     ff::write( bqt_out, "Block size set to ", block_w, " x ", block_w, "\n" );
                 }
                 break;
+            case 'f':
+                {
+                    ff::write( bqt_out, "File opening not implemented yet\n" );
+                }
             default:
                 throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
             }

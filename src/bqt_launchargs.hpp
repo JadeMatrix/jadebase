@@ -46,6 +46,8 @@ namespace bqt
     std::string   getLogFileName();                                             // Get the path to the log file set at startup
     long          getTaskThreadLimit();                                         // Get the max number of threads available to the task system (>=1 or -1)
     unsigned char getBlockExponent();                                           // Get the block size exponent: blocks are 2^exp x 2^exp textures
+    
+    // TODO: get file names to initially open; possibly allow -b flag for binary stream input
 }
 
 /******************************************************************************//******************************************************************************/
