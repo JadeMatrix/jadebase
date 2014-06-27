@@ -18,22 +18,12 @@
 
 /* DEFAULTS *******************************************************************//******************************************************************************/
 
-// TODO: Ensure all launch flags supported are documented in launch.sh
-
-// #define LAUNCHARG_DEVMODE       "--devmode"
-// #define LAUNCHFLG_DEVMODE       "-d"
 #define LAUNCHVAL_DEVMODE       false
-
-// #define LAUNCHARG_LOGFILE       "--logfile"
-// #define LAUNCHFLG_LOGFILE       "-l"
 #define LAUNCHVAL_LOGFILE       ""
-
-// #define LAUNCHARG_TASKTHREADS   "--taskthreads"
-// #define LAUNCHFLG_TASKTHREADS   "-t"
 #define LAUNCHVAL_TASKTHREADS   0
-
 #define LAUNCHVAL_BLOCKEXPONENT 8
 #define LAUNCHVAL_BLOCKEXP_RMAX 7
+#define LAUNCHVAL_MAXUNDO       -1
 
 /******************************************************************************//******************************************************************************/
 
@@ -46,6 +36,7 @@ namespace bqt
     std::string   getLogFileName();                                             // Get the path to the log file set at startup
     long          getTaskThreadLimit();                                         // Get the max number of threads available to the task system (>=1 or -1)
     unsigned char getBlockExponent();                                           // Get the block size exponent: blocks are 2^exp x 2^exp textures
+    long          getMaxUndoSteps();                                            // Get the max number of undos; -1 for unlimited
     
     // TODO: get file names to initially open; possibly allow -b flag for binary stream input
 }

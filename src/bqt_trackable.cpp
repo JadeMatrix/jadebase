@@ -16,6 +16,7 @@
 
 #include "bqt_mutex.hpp"
 #include "bqt_exception.hpp"
+#include "bqt_launchargs.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -49,6 +50,16 @@ namespace bqt
         
         redo_stamps.clear();
         redo_history.clear();
+        
+        long undo_steps = getMaxUndoSteps();
+        if( undo_steps >= 0 && undo_stamps.size() > undo_steps )
+        {
+            if( undo_stamps.size() > ( undo_steps + 1 ) )                       // Sanity check, should always be false (we remove whenever one goes out)
+                throw exception( "trackable::registerChange(): Multiple stamps hanging out of window" );
+            
+            undo_history.erase( *( undo_stamps.begin() ) );                     // Remove all trackable pointers associated with the oldest timestamp 
+            undo_stamps.pop_front();                                            // Remove the oldest timestamp
+        }
     }
     
     /**************************************************************************//******************************************************************************/

@@ -33,22 +33,24 @@
 
 namespace
 {
-    struct option long_flags[] = { {        "help",       no_argument, NULL, 'h' },
-                                   {     "version",       no_argument, NULL, 'v' },
-                                   {   "open-file", required_argument, NULL, 'f' },
-                                   {     "logfile", required_argument, NULL, 'l' },
-                                   {     "devmode",       no_argument, NULL, 'd' },
-                                   { "taskthreads", required_argument, NULL, 't' },
-                                   {    "blockexp", required_argument, NULL, 'e' },
-                                   {             0,                 0,    0,   0 } };
+    struct option long_flags[] = { {         "help",       no_argument, NULL, 'h' },
+                                   {      "version",       no_argument, NULL, 'v' },
+                                   {    "open-file", required_argument, NULL, 'f' },
+                                   {     "max-undo", required_argument, NULL, 'u' },
+                                   {     "log-file", required_argument, NULL, 'l' },
+                                   {     "dev-mode",       no_argument, NULL, 'd' },
+                                   { "task-threads", required_argument, NULL, 't' },
+                                   {    "block-exp", required_argument, NULL, 'e' },
+                                   {              0,                 0,    0,   0 } };
     
-    std::string flags_list = "[ -h | --help        ]            Prints this guide & exits\n"
-                             "[ -v | --version     ]            Prints the software version & exits\n"
-                             "[ -f | --open-file   ] FILE       Opens file on startup\n"
-                             "[ -l | --logfile     ] FILE       Sets a log file, none by default\n"
-                             "[ -d | --devmode     ]            Enables developer mode options\n"
-                             "[ -t | --taskthreads ] UINT       Limits the max number of task threads; 0 = no limit\n"
-                             "[ -e | --blockexp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n";
+    std::string flags_list = "[ -h | --help         ]            Prints this guide & exits\n"
+                             "[ -v | --version      ]            Prints the software version & exits\n"
+                             "[ -f | --open-file    ] FILE       Opens file on startup\n"
+                             "[ -u | --max-undo     ] INT        Max undo & redo steps; -1 for unlimited\n"
+                             "[ -l | --log-file     ] FILE       Sets a log file, none by default\n"
+                             "[ -d | --dev-mode     ]            Enables developer mode options\n"
+                             "[ -t | --task-threads ] UINT       Limits the max number of task threads; 0 = no limit\n"
+                             "[ -e | --block-exp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n";
     
     // Engine options are immutable after parseLaunchArgs is called.
     bool          dev_mode;
@@ -56,6 +58,7 @@ namespace
     long          task_thread_limit;
     unsigned char block_exponent;
     std::vector< std::string > startup_files;
+    long          max_undo_steps;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
@@ -71,10 +74,11 @@ namespace bqt
         log_file_name     = LAUNCHVAL_LOGFILE;
         task_thread_limit = LAUNCHVAL_TASKTHREADS;
         block_exponent    = LAUNCHVAL_BLOCKEXPONENT;
+        max_undo_steps   = LAUNCHVAL_MAXUNDO;
         
         int flag;                                                               // <--
         
-        while( ( flag = getopt_long( argc, argv, "hvf:l:dt:e:", long_flags, NULL ) ) != -1 )
+        while( ( flag = getopt_long( argc, argv, "hvf:u:l:dt:e:", long_flags, NULL ) ) != -1 )
         {
             switch( flag )
             {
@@ -84,9 +88,25 @@ namespace bqt
             case 'v':
                 ff::write( bqt_out, BQT_VERSION_STRING, "\n" );
                 return false;
-            case 'd':
-                ff::write( bqt_out, "Developer mode enabled\n" );
-                dev_mode = true;
+            case 'f':
+                {
+                    ff::write( bqt_out, "File opening not implemented yet\n" );
+                }
+                break;
+            case 'u':
+                {
+                    long optarg_l = strtol( optarg, NULL, 0 );
+                    
+                    if( optarg_l < -1 )
+                        throw exception( "Undo steps must be -1 or greater" );
+                    else
+                        max_undo_steps = optarg_l;
+                    
+                    if( max_undo_steps < 0 )
+                        ff::write( bqt_out, "Undo/redo steps not limited\n" );
+                    else
+                        ff::write( bqt_out, "Undo/redo limited to ", max_undo_steps, "steps\n" );
+                }
                 break;
             case 'l':
                 {
@@ -105,6 +125,10 @@ namespace bqt
                     
                     log_stream.rdbuf( &log_fb );
                 }
+                break;
+            case 'd':
+                ff::write( bqt_out, "Developer mode enabled\n" );
+                dev_mode = true;
                 break;
             case 't':
                 {
@@ -136,10 +160,6 @@ namespace bqt
                     ff::write( bqt_out, "Block size set to ", block_w, " x ", block_w, "\n" );
                 }
                 break;
-            case 'f':
-                {
-                    ff::write( bqt_out, "File opening not implemented yet\n" );
-                }
             default:
                 throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
             }
@@ -167,6 +187,10 @@ namespace bqt
     unsigned char getBlockExponent()
     {
         return block_exponent;
+    }
+    long getMaxUndoSteps()
+    {
+        return max_undo_steps;
     }
 }
 

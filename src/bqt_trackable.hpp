@@ -29,6 +29,9 @@
  * global scale, working on the global bqt::trackable stack.  They undo/redo
  * ALL changes associated with the most recent timestamp in the respective
  * stack.
+ * 
+ * Classes that inherit from trackable are in charge of observing the max undo/
+ * redo step count as well as destroying redo data when a change is made.
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -44,6 +47,8 @@
 
 namespace bqt
 {
+    typedef unsigned int document_id;
+    
     class trackable
     {
     protected:
