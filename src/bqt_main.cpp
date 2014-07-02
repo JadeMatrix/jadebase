@@ -19,31 +19,26 @@
 #include "bqt_threadutil.hpp"
 #include "bqt_log.hpp"
 #include "bqt_taskexec.hpp"
+#include "bqt_version.hpp"
 
 /******************************************************************************//******************************************************************************/
 
-class debugPrintClass : public bqt::task
+class StartBQTDraw_task : public bqt::task
 {
-protected:
-    std::string str;
 public:
-    debugPrintClass( std::string str )
-    {
-        this -> str = str;
-    }
     bool execute( bqt::task_mask* caller_mask )
     {
-        // ff::write( bqt_out, "\"", str, "\" from #", ( unsigned int )( *caller_mask ), "\n" );
-        ff::write( bqt_out, str, "\n" );
+        
+        
+        ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );
+        
+        bqt::submitTask( new bqt::StopTaskSystem_task() );
+        
         return true;
     }
     bqt::task_mask getMask()
     {
         return bqt::TASK_ALL;
-    }
-    bqt::task_priority getPriority()
-    {
-        return bqt::PRIORITY_HIGH;
     }
 };
 
@@ -73,10 +68,7 @@ int bqt_main( /* int argc, char* argv[] */ )
         
         if( bqt::initTaskSystem( true ) )
         {
-            for( int i = 0; i < 20; i++ )
-                bqt::submitTask( new debugPrintClass( "Hello World" ) );
-            
-            bqt::submitTask( new bqt::StopTaskSystem_task() );
+            bqt::submitTask( new StartBQTDraw_task() );
             
             bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
             bqt::becomeTaskThread( &main_mask );
