@@ -53,10 +53,13 @@ namespace bqt
                              iter != data[ i ].end();
                              iter++ )
                         {
-                            r = *iter;
-                            data[ 0 ].erase( iter );
-                            popping = false;
-                            break;
+                            if( ( *iter ) -> matchMask( mask ) )
+                            {
+                                r = *iter;
+                                data[ i ].erase( iter );
+                                popping = false;
+                                break;
+                            }
                         }
                         
                         if( !popping )
@@ -121,8 +124,7 @@ namespace bqt
                      iter != data[ i ].end();
                      iter++ )
                 {
-                    delete *iter;
-                    data[ i ].erase( iter );
+                    delete *iter;                                               // Don't use list::erase(), it invalidates the iterator
                 }
             }
         }

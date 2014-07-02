@@ -166,6 +166,9 @@ namespace bqt
         
         global_task_queue -> open();
         
+        if( getDevMode() )
+            ff::write( bqt_out, "Spawned ", tc, " task threads\n" );
+        
         return true;
     }
     bool isInitTaskSystem()
@@ -185,7 +188,7 @@ namespace bqt
 
     void stopTaskSystem()
     {
-        global_task_queue -> close();                                               // Task queue will now pop NULLs
+        global_task_queue -> close();                                           // Task queue will now pop NULLs
         
         for( int i = 0; i < spawned_task_thread_count; i++ )
         {

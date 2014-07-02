@@ -105,7 +105,7 @@ namespace bqt
                     if( max_undo_steps < 0 )
                         ff::write( bqt_out, "Undo/redo steps not limited\n" );
                     else
-                        ff::write( bqt_out, "Undo/redo limited to ", max_undo_steps, "steps\n" );
+                        ff::write( bqt_out, "Undo/redo limited to ", max_undo_steps, " steps\n" );
                 }
                 break;
             case 'l':
