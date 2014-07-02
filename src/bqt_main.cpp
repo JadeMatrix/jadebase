@@ -33,7 +33,8 @@ public:
     }
     bool execute( bqt::task_mask* caller_mask )
     {
-        ff::write( bqt_out, "\"", str, "\" from #", ( unsigned int )( *caller_mask ), "\n" );
+        // ff::write( bqt_out, "\"", str, "\" from #", ( unsigned int )( *caller_mask ), "\n" );
+        ff::write( bqt_out, str, "\n" );
         return true;
     }
     bqt::task_mask getMask()
