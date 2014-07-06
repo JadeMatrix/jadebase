@@ -10,6 +10,8 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <string>
+
 #include "bqt_taskutil.hpp"
 #include "bqt_task.hpp"
 #include "bqt_threadutil.hpp"
@@ -22,8 +24,10 @@ namespace bqt
     bool initTaskSystem( long tc );                                             // Returns false if tc < 0 or already running
     bool isInitTaskSystem();                                                    // Very rough right now, usage unadvised
     
-    // void startTaskSystem();
     void stopTaskSystem();
+    
+    void arrestTaskSystem();
+    void releaseTaskSystem();
     
     void deInitTaskSystem();                                                    // Must only be called AFTER stopTaskSystem(), which allows self-stopping
     
@@ -33,7 +37,8 @@ namespace bqt
         bool execute( task_mask* caller_mask );
         task_priority getPriority()
         {
-            return PRIORITY_HIGH;
+            // return PRIORITY_HIGH;
+            return PRIORITY_LOW;
         }
         task_mask getMask();
     };

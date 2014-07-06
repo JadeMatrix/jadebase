@@ -21,8 +21,6 @@
 #include <getopt.h>
 #include <cstdlib>
 #include <cmath>
-#include <vector>
-#include <string>
 
 #include "bqt_log.hpp"
 #include "bqt_exception.hpp"
@@ -191,6 +189,10 @@ namespace bqt
     long getMaxUndoSteps()
     {
         return max_undo_steps;
+    }
+    const std::vector< std::string >* getStartupFiles()
+    {
+        return &startup_files;
     }
 }
 

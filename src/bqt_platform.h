@@ -1,16 +1,16 @@
-#ifndef BQT_MAIN_H
-#define BQT_MAIN_H
+#ifndef BQT_PLATFORM_H
+#define BQT_PLATFORM_H
 
 /* 
- * bqt_main.h
+ * bqt_platform.h
  * 
- * Contains the main function for wrapping by platform-specific code
+ * Single location for (most) platform-specific stuff
  * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-
+#include <SDL2/SDL.h>
 
 /******************************************************************************//******************************************************************************/
 
@@ -19,10 +19,7 @@ extern "C"
 {
 #endif
 
-bool bqt_parseLaunchArgs( int argc, char* argv[] );                             // Returns true if execution should continue; a C wrapper for the C++ function,
-                                                                                // this handles any exceptions from bqt::parseLaunchArgs()
-
-int bqt_main();                                                                 // No longer need argc & argv as we parse these before calling bqt_main()
+typedef SDL_Window* bqt_platform_window_t;
 
 #ifdef __cplusplus
 }

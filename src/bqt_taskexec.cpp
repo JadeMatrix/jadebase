@@ -22,6 +22,9 @@
 #include "bqt_thread.hpp"
 #include "bqt_log.hpp"
 #include "bqt_launchargs.hpp"
+#include "bqt_condition.hpp"
+
+#include "bqt_platform.h"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -41,6 +44,20 @@ namespace
     
     bqt::mutex task_thread_count_mutex;
     long task_thread_count = 0;
+    
+    bool arrested = false;
+    bool arrest_continue = true;
+    bqt::mutex arrest_mutex;
+    bqt::condition arrest_condition;
+    bool arrestHook()
+    {
+        bqt::scoped_lock slock( arrest_mutex );
+        
+        if( arrested )
+            arrest_condition.wait( arrest_mutex );
+        
+        return arrest_continue;
+    }
     
     bqt::exit_code taskThread( void* d )                                        // A cee_taskexec::task_thread_data* is passed as a void*
     {
@@ -70,8 +87,7 @@ namespace
                 
                 while( running )
                 {
-                    // if( !bqt::getDevMode() || bqt::arrestHook() )               // Arrest hooks only available in dev mode
-                    if( true )                                                  // TODO: implement arrest hooks
+                    if( arrestHook() )
                     {
                         if( data -> mask == NULL )
                             current_task = data -> queue -> pop();
@@ -199,6 +215,22 @@ namespace bqt
         }
     }
     
+    void arrestTaskSystem()
+    {
+        scoped_lock slock( arrest_mutex );
+        
+        arrested = true;
+        arrest_continue = true;
+    }
+    void releaseTaskSystem()
+    {
+        scoped_lock slock( arrest_mutex );
+        
+        arrested = false;
+        
+        arrest_condition.broadcast();
+    }
+    
     void deInitTaskSystem()
     {
         delete[] task_threads;
@@ -212,6 +244,8 @@ namespace bqt
 
     bool StopTaskSystem_task::execute( task_mask* caller_mask )
     {
+        SDL_Delay( 2000 );
+        
         if( ( *caller_mask ) & TASK_TASK )                                          // A little sanity check
             stopTaskSystem();
         else
