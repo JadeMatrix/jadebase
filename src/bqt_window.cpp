@@ -16,7 +16,7 @@
 
 namespace
 {
-    bqt::window_id getNewWindowID()                                                  // Need to be thread-safe?
+    bqt::window_id getNewWindowID()                                             // Need to be thread-safe?
     {
         static bqt::window_id last_id = 0x00;
         return last_id++;
@@ -31,24 +31,23 @@ namespace bqt
     
     void window::init()
     {
-        SDL_Window*& sdl_window( platform_window );
+        platform_window.sdl_window = SDL_CreateWindow( title.c_str(),
+                                                       SDL_WINDOWPOS_CENTERED,
+                                                       SDL_WINDOWPOS_CENTERED,
+                                                       dimensions[ 0 ],
+                                                       dimensions[ 1 ],
+                                                       SDL_WINDOW_OPENGL );
         
-        sdl_window = SDL_CreateWindow( title.c_str(),
-                                       SDL_WINDOWPOS_CENTERED,
-                                       SDL_WINDOWPOS_CENTERED,
-                                       dimensions[ 0 ],
-                                       dimensions[ 1 ],
-                                       SDL_WINDOW_OPENGL );
         
-        if( sdl_window == NULL )
+        if( platform_window.sdl_window == NULL )
             throw exception( "bqt::window::init(): Could not create SDL window" );
+        
+        platform_window.sdl_gl_context = SDL_GL_CreateContext( platform_window.sdl_window );
     }
     
     window::window( window_id id ) : id( id )
     {
-        SDL_Window*& sdl_window = platform_window;
-        
-        sdl_window = NULL;
+        platform_window.sdl_window = NULL;
         
         title = BQT_WINDOW_DEFAULT_NAME;
         
@@ -69,10 +68,19 @@ namespace bqt
     }
     window::~window()
     {
-        SDL_Window*& sdl_window = platform_window;
+        if( platform_window.sdl_window != NULL )
+        {
+            SDL_GL_DeleteContext( platform_window.sdl_gl_context );
+            SDL_DestroyWindow( platform_window.sdl_window );
+        }
+    }
+    
+    void window::makeCurrent()
+    {
+        scoped_lock slock( window_mutex );
         
-        if( sdl_window != NULL )
-            SDL_DestroyWindow( sdl_window );
+        if( SDL_GL_MakeCurrent( platform_window.sdl_window, platform_window.sdl_gl_context ) )
+            throw exception( "bqt::window::makeCurrent(): Could not make SDL GL context current" );
     }
     
     void window::addCanvas( canvas* c, view_id v, int t )
@@ -118,7 +126,7 @@ namespace bqt
         return view_zoom;
     }
     
-    void window::acceptEvent( /* event* e */ )
+    void window::acceptEvent( event& e )
     {
         scoped_lock slock( window_mutex );
         // TODO: implement
@@ -142,7 +150,7 @@ namespace bqt
     {
         scoped_lock slock( target -> window_mutex );
         
-        SDL_Window*& sdl_window = target -> platform_window;
+        SDL_Window*& sdl_window = target -> platform_window.sdl_window;
         
         if( sdl_window == NULL )
             target -> init();

@@ -34,10 +34,10 @@ public:
         {
             bqt::submitTask( new bqt::window::manipulate( NULL ) );
             
-            ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );
-            
             bqt::submitTask( new bqt::StopTaskSystem_task() );
         }
+        
+        ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );
         
         return true;
     }
@@ -77,20 +77,6 @@ int bqt_main()
             
             bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
             bqt::becomeTaskThread( &main_mask );
-            
-            // bqt::window::manipulate test_m = bqt::window::manipulate( NULL );
-            // test_m.execute( &main_mask );
-            
-            // // SDL_Window* test_w = SDL_CreateWindow( BQT_WINDOW_DEFAULT_NAME,
-            // //                            SDL_WINDOWPOS_CENTERED,
-            // //                            SDL_WINDOWPOS_CENTERED,
-            // //                            BQT_WINDOW_DEFAULT_WIDTH,
-            // //                            BQT_WINDOW_DEFAULT_HEIGHT,
-            // //                            SDL_WINDOW_OPENGL );
-            
-            // SDL_Delay( 5000 );
-            
-            // SDL_DestroyWindow( test_w );
             
             bqt::deInitTaskSystem();
         }

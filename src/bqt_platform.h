@@ -6,6 +6,9 @@
  * 
  * Single location for (most) platform-specific stuff
  * 
+ * bqt_platform_window_t
+ * Type wrapper for platform window handle & OpenGL context if necessary
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -19,7 +22,11 @@ extern "C"
 {
 #endif
 
-typedef SDL_Window* bqt_platform_window_t;
+typedef struct
+{
+    SDL_Window* sdl_window;
+    SDL_GLContext sdl_gl_context;
+} bqt_platform_window_t;
 
 #ifdef __cplusplus
 }

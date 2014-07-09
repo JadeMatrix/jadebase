@@ -33,6 +33,7 @@
 #include "bqt_task.hpp"
 #include "bqt_mutex.hpp"
 #include "bqt_version.hpp"
+#include "bqt_event.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -81,6 +82,8 @@ namespace bqt
         window( window_id id );
         ~window();
         
+        void makeCurrent();
+        
         // BQTDraw-specific stuff; exposed as higher-level functions ///////////
         
         void addCanvas( canvas* c, view_id v, int t );                         // Note: adding same canvas multiple times is safe (multiple views)
@@ -97,7 +100,7 @@ namespace bqt
         
         float getViewZoom( view_id v );
         
-        void acceptEvent( /* event* e */ );
+        void acceptEvent( event& e );
         
         class manipulate : public task
         {
