@@ -37,11 +37,9 @@ namespace bqt
             const std::vector< std::string >* startup_files = getStartupFiles();
             
             {
-                // submitTask( new HandleEvents_task() );
+                submitTask( new HandleEvents_task() );
                 
                 submitTask( new window::manipulate( NULL ) );
-                
-                submitTask( new StopTaskSystem_task() );
             }
             
             ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );

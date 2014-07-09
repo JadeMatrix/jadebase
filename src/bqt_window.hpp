@@ -43,7 +43,6 @@
 
 namespace bqt
 {
-    typedef unsigned int window_id;
     typedef unsigned int view_id;
     typedef unsigned int tool_id;
     
@@ -77,12 +76,10 @@ namespace bqt
         
         float view_zoom;
     protected:
-        const window_id id;
         mutex window_mutex;
         
         void init();
         
-        window( window_id id );
         ~window();
         
         // BQTDraw-specific stuff; exposed as higher-level functions ///////////
@@ -96,6 +93,8 @@ namespace bqt
         void setToolVisibility( bool v );
         void setViewZoom( view_id v, float z );
     public:
+        window();
+        
         std::pair< unsigned int, unsigned int > getDimensions();
         std::pair< unsigned int, unsigned int > getPosition();
         
@@ -113,7 +112,7 @@ namespace bqt
             manipulate( window* t = NULL );                                     // If target is NULL, injects a new window into the manager
             
             bool execute( task_mask* caller_mask );
-            virtual task_mask getMask()
+            task_mask getMask()
             {
                 return TASK_SYSTEM;
             }

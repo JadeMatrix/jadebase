@@ -69,11 +69,7 @@ namespace bqt
                     }
                     
                     if( popping )                                               // If we didn't find anything this time through, try the whole process again
-                    {
-                        ff::write( bqt_out, "Task thread sleeping (", ( unsigned int )mask, ")\n" );
                         tq_cond.wait( tq_mutex );                               // when something's inserted (or the queue closes)
-                        ff::write( bqt_out, "Task thread waking up (", ( unsigned int )mask, ")\n" );
-                    }
                 }
             }
         }

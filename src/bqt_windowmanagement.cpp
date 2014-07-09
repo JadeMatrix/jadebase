@@ -13,6 +13,8 @@
 
 #include "bqt_mutex.hpp"
 #include "bqt_exception.hpp"
+#include "bqt_taskexec.hpp"
+
 #include "bqt_log.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
@@ -33,7 +35,12 @@ namespace bqt
     {
         scoped_lock slock( wm_mutex );
         
-        id_window_map[ SDL_GetWindowID( w.getPlatformWindow().sdl_window ) ] = &w;
+        Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().sdl_window );
+        
+        if( id_window_map.count( window_id ) )
+            throw exception( "registerWindow(): Window already registered" );
+        else
+            id_window_map[ window_id ] = &w;
         
         ff::write( bqt_out, "Registered a window, currently ", id_window_map.size(), " windows registered\n" );
     }
@@ -76,6 +83,37 @@ namespace bqt
             return *( id_window_map[ window_id ] );
         else
             throw exception( "getWindow(): No window associated with platform window" );
+    }
+    
+    void closeAllWindows()
+    {
+        scoped_lock slock( wm_mutex );
+        
+        window::manipulate* wmanip = NULL;
+        task_mask close_mask = TASK_SYSTEM;
+        
+        int iwm_size = id_window_map.size();
+        
+        ff::write( bqt_out, "Closing all of ", iwm_size, " windows...\n" );
+        
+        for( int i = id_window_map.size(); i > 0; i-- )
+        {
+            ff::write( bqt_out, "Executing window close loop iteration ", i, "/", iwm_size, "...\n" );
+            
+            wmanip = new window::manipulate( id_window_map.begin() -> second );
+            wmanip -> close();
+            
+            ff::write( bqt_out, "wmanip is task ", ( unsigned long )wmanip, ", being executed manually\n" );
+            
+            if( wmanip -> execute( &close_mask ) )
+                delete wmanip;
+            else
+                throw exception( "closeAllWindows(): Failed to close a window" );
+        }
+        
+        ff::write( bqt_out, "Closed all windows\n" );
+        
+        id_window_map.clear();
     }
 }
 

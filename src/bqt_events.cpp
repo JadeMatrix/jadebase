@@ -11,6 +11,8 @@
 
 #include <SDL2/SDL_events.h>
 #include "bqt_taskexec.hpp"
+#include "bqt_windowmanagement.hpp"
+
 #include "bqt_log.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
@@ -26,7 +28,7 @@ namespace bqt
 {
     bool HandleEvents_task::execute( task_mask* caller_mask )
     {
-        ff::write( bqt_out, "Task ", ( unsigned long )this, ": Handling events\n" );
+        // ff::write( bqt_out, "Task ", ( unsigned long )this, ": Handling events\n" );
         
         {
             SDL_Event sdl_event;
@@ -70,6 +72,8 @@ namespace bqt
                 case SDL_MULTIGESTURE:
                     break;
                 case SDL_QUIT:
+                    ff::write( bqt_out, "Got quit even\n" );
+                    closeAllWindows();
                     submitTask( new StopTaskSystem_task() );
                     break;
                 case SDL_SYSWMEVENT:

@@ -93,8 +93,6 @@ namespace
                         
                         if( current_task != NULL )                              // current_task will be NULL if the task system is ending
                         {
-                            ff::write( bqt_out, "Thread ", ( unsigned long )data, " (", ( unsigned int )( *( data -> mask ) ), ") picked up task ", ( unsigned long )current_task, "\n" );
-                            
                             if( current_task -> execute( data -> mask ) )       // Try executing the tast, re-push if requeue requested
                                 delete current_task;
                             else
@@ -186,7 +184,7 @@ namespace bqt
     }
     bool isInitTaskSystem()
     {
-        // Ugh...
+        // Ugh, not very nice
         
         if( task_threads == NULL || task_threads_data == NULL )
         {
@@ -241,8 +239,6 @@ namespace bqt
 
     bool StopTaskSystem_task::execute( task_mask* caller_mask )
     {
-        SDL_Delay( 2000 );
-        
         if( ( *caller_mask ) & TASK_TASK )                                      // A little sanity check
             stopTaskSystem();
         else

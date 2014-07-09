@@ -37,8 +37,7 @@ namespace bqt
         bool execute( task_mask* caller_mask );
         task_priority getPriority()
         {
-            // return PRIORITY_HIGH;
-            return PRIORITY_LOW;
+            return PRIORITY_HIGH;
         }
         task_mask getMask();
     };

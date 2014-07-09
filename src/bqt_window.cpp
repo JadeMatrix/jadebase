@@ -13,17 +13,6 @@
 #include "bqt_log.hpp"
 #include "bqt_windowmanagement.hpp"
 
-/* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
-
-namespace
-{
-    bqt::window_id getNewWindowID()                                             // Need to be thread-safe?
-    {
-        static bqt::window_id last_id = 0x00;
-        return last_id++;
-    }
-}
-
 /******************************************************************************//******************************************************************************/
 
 namespace bqt
@@ -48,7 +37,7 @@ namespace bqt
         registerWindow( *this );
     }
     
-    window::window( window_id id ) : id( id )
+    window::window()
     {
         platform_window.sdl_window = NULL;
         
@@ -147,7 +136,7 @@ namespace bqt
     {
         if( t == NULL )
         {
-            target = new window( getNewWindowID() );
+            target = new window();
         }
         else
             target = t;
@@ -155,7 +144,9 @@ namespace bqt
     
     bool window::manipulate::execute( task_mask* caller_mask )
     {
-        scoped_lock slock( target -> window_mutex );
+        target -> window_mutex.lock();                                          // We need to explicitly lock/unlock this as the window can be destroyed
+        
+        ff::write( bqt_out, "Manipulating window ", ( unsigned long )target, " with task ", ( unsigned long )this, "\n" );
         
         SDL_Window*& sdl_window = target -> platform_window.sdl_window;
         
@@ -165,6 +156,7 @@ namespace bqt
         if( target -> updates.close )
         {
             deregisterWindow( *target );
+            target -> window_mutex.unlock();
             delete target;
         }
         else
@@ -225,6 +217,8 @@ namespace bqt
                 
                 // bqt::submitTask( new redraw( *this ) );
             }
+            
+            target -> window_mutex.unlock();
         }
         
         return true;

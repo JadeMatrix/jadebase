@@ -23,6 +23,8 @@ namespace bqt
     void makeWindowActive( bqt_platform_window_t& w );
     window* getActiveWindow();                                                  // Returns NULL if there is no active window
     window& getWindow( bqt_platform_window_t& w );                              // Throws an exception if no window matches the platform window
+    
+    void closeAllWindows();                                                     // Meant for cleanup; must be called from a task thread with TASK_SYSTEM
 }
 
 /******************************************************************************//******************************************************************************/
