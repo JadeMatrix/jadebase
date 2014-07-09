@@ -146,8 +146,6 @@ namespace bqt
     {
         target -> window_mutex.lock();                                          // We need to explicitly lock/unlock this as the window can be destroyed
         
-        ff::write( bqt_out, "Manipulating window ", ( unsigned long )target, " with task ", ( unsigned long )this, "\n" );
-        
         SDL_Window*& sdl_window = target -> platform_window.sdl_window;
         
         if( sdl_window == NULL )

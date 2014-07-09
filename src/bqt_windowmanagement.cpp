@@ -92,28 +92,18 @@ namespace bqt
         window::manipulate* wmanip = NULL;
         task_mask close_mask = TASK_SYSTEM;
         
-        int iwm_size = id_window_map.size();
-        
-        ff::write( bqt_out, "Closing all of ", iwm_size, " windows...\n" );
-        
         for( int i = id_window_map.size(); i > 0; i-- )
         {
-            ff::write( bqt_out, "Executing window close loop iteration ", i, "/", iwm_size, "...\n" );
-            
             wmanip = new window::manipulate( id_window_map.begin() -> second );
             wmanip -> close();
             
-            ff::write( bqt_out, "wmanip is task ", ( unsigned long )wmanip, ", being executed manually\n" );
-            
-            if( wmanip -> execute( &close_mask ) )
+            if( wmanip -> execute( &close_mask ) )                              // This is a dirty hack but it was the nicest of the current alternatives
                 delete wmanip;
             else
                 throw exception( "closeAllWindows(): Failed to close a window" );
         }
         
-        ff::write( bqt_out, "Closed all windows\n" );
-        
-        id_window_map.clear();
+        id_window_map.clear();                                                  // Just in case, but shouldn't be needed
     }
 }
 

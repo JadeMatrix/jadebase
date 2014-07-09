@@ -255,7 +255,6 @@ namespace bqt
 
     void submitTask( task* t )
     {
-        ff::write( bqt_out, "Submitting task ", ( unsigned long )t, "\n" );
         global_task_queue -> push( t );
     }
 
