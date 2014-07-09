@@ -10,6 +10,8 @@
 #include "bqt_taskqueue.hpp"
 
 #include "bqt_exception.hpp"
+#include "bqt_log.hpp"
+#include "bqt_launchargs.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -67,7 +69,11 @@ namespace bqt
                     }
                     
                     if( popping )                                               // If we didn't find anything this time through, try the whole process again
+                    {
+                        ff::write( bqt_out, "Task thread sleeping (", ( unsigned int )mask, ")\n" );
                         tq_cond.wait( tq_mutex );                               // when something's inserted (or the queue closes)
+                        ff::write( bqt_out, "Task thread waking up (", ( unsigned int )mask, ")\n" );
+                    }
                 }
             }
         }
@@ -83,23 +89,31 @@ namespace bqt
         {
             scoped_lock slock( tq_mutex );
             
-            switch( item -> getPriority() )
+            if( status == OPEN )
             {
-            case PRIVAL_HIGH:
-                data[ 0 ].push_back( item );
-                break;
-            case PRIVAL_NONE:
-                data[ 1 ].push_back( item );
-                break;
-            case PRIVAL_LOW:
-                data[ 2 ].push_back( item );
-                break;
-            default:
-                throw exception( "bqt::task_queue::push(): Invalid priority level" );
+                switch( item -> getPriority() )
+                {
+                case PRIVAL_HIGH:
+                    data[ 0 ].push_back( item );
+                    break;
+                case PRIVAL_NONE:
+                    data[ 1 ].push_back( item );
+                    break;
+                case PRIVAL_LOW:
+                    data[ 2 ].push_back( item );
+                    break;
+                default:
+                    throw exception( "bqt::task_queue::push(): Invalid priority level" );
+                }
+            }
+            else
+            {
+                ff::write( bqt_out, "Warning: bqt::task_queue::push(): Queue closed, deleting pushed task\n" );
+                delete item;
             }
         }
         
-        tq_cond.signal();
+        tq_cond.broadcast();                                                    // Broadcast so all threads can match against mask
     }
 
     void task_queue::open()

@@ -41,7 +41,8 @@ namespace bqt
     public:
         virtual ~task() {};                                                     // Safety
         
-        virtual bool execute( task_mask* caller_mask ) = 0;                     // Returns true on execution, false to re-queue
+        // TODO: pass a task_mask& instead of task_mask*
+        virtual bool execute( task_mask* caller_mask ) = 0;                     // Returns true on success, false to re-queue
         
         virtual task_priority getPriority()
         {

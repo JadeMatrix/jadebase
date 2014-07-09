@@ -49,12 +49,15 @@ namespace bqt
     {
         platform_window.sdl_window = NULL;
         
+        pending_redraws = 0;
+        
         title = BQT_WINDOW_DEFAULT_NAME;
         
         dimensions[ 0 ] = BQT_WINDOW_DEFAULT_WIDTH;
         dimensions[ 1 ] = BQT_WINDOW_DEFAULT_HEIGHT;
         
         fullscreen = false;
+        in_focus = false;
         
         updates.changed    = false;
         updates.close      = false;
@@ -73,14 +76,6 @@ namespace bqt
             SDL_GL_DeleteContext( platform_window.sdl_gl_context );
             SDL_DestroyWindow( platform_window.sdl_window );
         }
-    }
-    
-    void window::makeCurrent()
-    {
-        scoped_lock slock( window_mutex );
-        
-        if( SDL_GL_MakeCurrent( platform_window.sdl_window, platform_window.sdl_gl_context ) )
-            throw exception( "bqt::window::makeCurrent(): Could not make SDL GL context current" );
     }
     
     void window::addCanvas( canvas* c, view_id v, int t )
@@ -126,14 +121,14 @@ namespace bqt
         return view_zoom;
     }
     
-    void window::acceptEvent( event& e )
+    void window::acceptEvent( window_event& e )
     {
         scoped_lock slock( window_mutex );
         // TODO: implement
         throw exception( "bqt::window::acceptEvent(): Not implemented" );
     }
     
-    // WINDOW::MANIPULATE //////////////////////////////////////////////////////
+    // WINDOW::MANIPULATE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     window::manipulate::manipulate( window* t )
     {
@@ -212,6 +207,8 @@ namespace bqt
                 }
                 
                 target -> updates.changed = false;
+                
+                // bqt::submitTask( new redraw( *this ) );
             }
         }
         
@@ -258,6 +255,13 @@ namespace bqt
         target -> updates.changed = true;
     }
     
+    void window::manipulate::setFocus( bool f )
+    {
+        scoped_lock slock( target -> window_mutex );
+        
+        target -> in_focus = true;
+    }
+    
     void window::manipulate::minimize()
     {
         scoped_lock slock( target -> window_mutex );
@@ -296,6 +300,36 @@ namespace bqt
         scoped_lock slock( target -> window_mutex );
         // TODO: implement
         throw exception( "bqt::window::manipulate::dropCanvas(): Not implemented" );
+    }
+    
+    // WINDOW::REDRAW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    window::redraw::redraw( window& t ) : target( t )
+    {
+        scoped_lock slock( target.window_mutex );
+        
+        target.pending_redraws++;
+    }
+    bool window::redraw::execute( task_mask* caller_mask )
+    {
+        scoped_lock slock( target.window_mutex );
+        
+        if( target.pending_redraws == 1 )                                       // Only redraw if there are no other pending redraws for that window; this is
+                                                                                // safe because the redraw task is high-priority, so the task system will
+                                                                                // eventually drill down to the last one.
+        {
+            if( SDL_GL_MakeCurrent( target.platform_window.sdl_window, target.platform_window.sdl_gl_context ) )
+                throw exception( "bqt::window::redraw::execute(): Could not make SDL GL context current" );
+            
+            
+        }
+        else
+            if( target.pending_redraws < 1 )                                    // Sanity check
+                throw exception( "window::redraw::execute(): Target pending redraws somehow 0" );
+        
+        target.pending_redraws--;
+        
+        return true;
     }
 }
 

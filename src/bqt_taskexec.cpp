@@ -96,15 +96,17 @@ namespace
                         
                         if( current_task != NULL )                              // current_task will be NULL if the task system is ending
                         {
+                            ff::write( bqt_out, "Thread ", ( unsigned long )data, " (", ( unsigned int )( *( data -> mask ) ), ") picked up task ", ( unsigned long )current_task, "\n" );
+                            
                             if( current_task -> execute( data -> mask ) )       // Try executing the tast, re-push if requeue requested
                                 delete current_task;
                             else
                                 data -> queue -> push( current_task );
+                            
+                            nanosleep( &rest_time, NULL );                      // Only sleep if we're continuing
                         }
                         else
                             running = false;                                    // Popped a null task so exit
-                        
-                        nanosleep( &rest_time, NULL );
                     }
                     else
                     {
@@ -262,6 +264,7 @@ namespace bqt
 
     void submitTask( task* t )
     {
+        ff::write( bqt_out, "Submitting task ", ( unsigned long )t, "\n" );
         global_task_queue -> push( t );
     }
 

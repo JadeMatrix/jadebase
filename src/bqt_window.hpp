@@ -33,7 +33,7 @@
 #include "bqt_task.hpp"
 #include "bqt_mutex.hpp"
 #include "bqt_version.hpp"
-#include "bqt_event.hpp"
+#include "bqt_windowevent.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -52,10 +52,13 @@ namespace bqt
     private:
         bqt_platform_window_t platform_window;
         
+        unsigned int pending_redraws;
+        
         std::string title;
         int dimensions[2];
         int position[2];
         bool fullscreen;
+        bool in_focus;
         
         struct
         {
@@ -82,11 +85,9 @@ namespace bqt
         window( window_id id );
         ~window();
         
-        void makeCurrent();
-        
         // BQTDraw-specific stuff; exposed as higher-level functions ///////////
         
-        void addCanvas( canvas* c, view_id v, int t );                         // Note: adding same canvas multiple times is safe (multiple views)
+        void addCanvas( canvas* c, view_id v, int t );                          // Note: adding same canvas multiple times is safe (multiple views)
         void removeCanvas( canvas* c );
         
         // void splitView( view_id a, bool v );
@@ -100,7 +101,7 @@ namespace bqt
         
         float getViewZoom( view_id v );
         
-        void acceptEvent( event& e );
+        void acceptEvent( window_event& e );
         
         class manipulate : public task
         {
@@ -121,12 +122,31 @@ namespace bqt
             void setFullscreen( bool f );
             void setTitle( std::string t );
             
+            void setFocus( bool f );                                            // Change any window styles to fit in- or out-of-focus
+            
             void minimize();
             void maximize();
             void restore();
             void close();
             
             void dropCanvas( canvas* c, unsigned int x, unsigned int y );
+        };
+        
+        class redraw : public task
+        {
+        protected:
+            window& target;
+        public:
+            redraw( window& t );
+            bool execute( task_mask* caller_mask );
+            task_priority getPriority()
+            {
+                return PRIORITY_HIGH;
+            }
+            task_mask getMask()
+            {
+                return TASK_GPU;
+            }
         };
     };
 }

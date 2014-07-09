@@ -20,32 +20,40 @@
 #include "bqt_log.hpp"
 #include "bqt_taskexec.hpp"
 #include "bqt_version.hpp"
+#include "bqt_events.hpp"
+
+// TODO: Debug, remove later?
 #include "bqt_window.hpp"
 
 /******************************************************************************//******************************************************************************/
 
-class StartBQTDraw_task : public bqt::task
+namespace bqt
 {
-public:
-    bool execute( bqt::task_mask* caller_mask )
+    class StartBQTDraw_task : public task
     {
-        const std::vector< std::string >* startup_files = bqt::getStartupFiles();
-        
+    public:
+        bool execute( task_mask* caller_mask )
         {
-            bqt::submitTask( new bqt::window::manipulate( NULL ) );
+            const std::vector< std::string >* startup_files = getStartupFiles();
             
-            bqt::submitTask( new bqt::StopTaskSystem_task() );
+            {
+                submitTask( new HandleEvents_task() );
+                
+                submitTask( new window::manipulate( NULL ) );
+                
+                submitTask( new StopTaskSystem_task() );
+            }
+            
+            ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );
+            
+            return true;
         }
-        
-        ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );
-        
-        return true;
-    }
-    bqt::task_mask getMask()
-    {
-        return bqt::TASK_ALL;
-    }
-};
+        task_mask getMask()
+        {
+            return TASK_ALL;
+        }
+    };
+}
 
 /******************************************************************************//******************************************************************************/
 
@@ -73,7 +81,7 @@ int bqt_main()
         
         if( bqt::initTaskSystem( true ) )
         {
-            bqt::submitTask( new StartBQTDraw_task() );
+            bqt::submitTask( new bqt::StartBQTDraw_task() );
             
             bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
             bqt::becomeTaskThread( &main_mask );
