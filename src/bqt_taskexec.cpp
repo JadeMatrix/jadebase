@@ -4,9 +4,6 @@
  * Implements bqt_taskexec.hpp; stores the internal state & data for the task
  * system.
  * 
- * Things that still need to be ported from the CEE implementation:
- *  - thread arresting
- * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -117,15 +114,13 @@ namespace
             }
             catch( bqt::exception& e )
             {
-                ff::write( std::cerr, e.what() );
-                ff::write( bqt_out, e.what() );
+                ff::write( bqt_out, e.what(), "\n" );
                 
                 code = bqt::EXITCODE_BQTERR;
             }
             catch( std::exception& e )
             {
-                ff::write( std::cerr, e.what() );
-                ff::write( bqt_out, e.what() );
+                ff::write( bqt_out, e.what(), "\n" );
                 
                 code = bqt::EXITCODE_STDERR;
             }
@@ -138,7 +133,7 @@ namespace
             return code;
         }
         else
-            throw bqt::exception( "bqt::taskThread(): Task system not initialized" );
+            throw bqt::exception( "taskThread(): Task system not initialized" );
     }
 }
 
@@ -242,13 +237,13 @@ namespace bqt
         task_threads_data = NULL;
     }
 
-    /******************************************************************************//******************************************************************************/
+    // STOPTASKSYSTEM_TASK /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     bool StopTaskSystem_task::execute( task_mask* caller_mask )
     {
         SDL_Delay( 2000 );
         
-        if( ( *caller_mask ) & TASK_TASK )                                          // A little sanity check
+        if( ( *caller_mask ) & TASK_TASK )                                      // A little sanity check
             stopTaskSystem();
         else
             throw exception( "StopTaskSystem_task::execute(): Calling thread's mask does not contain TASK_TASK" );
@@ -260,7 +255,7 @@ namespace bqt
         return TASK_TASK;
     }
 
-    /******************************************************************************//******************************************************************************/
+    // OTHER STUFF /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void submitTask( task* t )
     {

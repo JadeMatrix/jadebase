@@ -37,7 +37,7 @@ namespace bqt
             const std::vector< std::string >* startup_files = getStartupFiles();
             
             {
-                submitTask( new HandleEvents_task() );
+                // submitTask( new HandleEvents_task() );
                 
                 submitTask( new window::manipulate( NULL ) );
                 

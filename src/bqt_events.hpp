@@ -24,12 +24,11 @@ namespace bqt
         bool execute( task_mask* caller_mask );
         task_mask getMask()
         {
-            // return TASK_SYSTEM;
-            return TASK_ALL;
+            return TASK_SYSTEM;
         }
         // task_priority getPriority()
         // {
-        //     return PRIORITY_LOW;
+        //     return PRIORITY_HIGH;
         // }
     };
 }

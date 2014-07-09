@@ -11,6 +11,7 @@
 
 #include "bqt_exception.hpp"
 #include "bqt_log.hpp"
+#include "bqt_windowmanagement.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -27,7 +28,7 @@ namespace
 
 namespace bqt
 {
-    // WINDOW //////////////////////////////////////////////////////////////////
+    // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     void window::init()
     {
@@ -40,9 +41,11 @@ namespace bqt
         
         
         if( platform_window.sdl_window == NULL )
-            throw exception( "bqt::window::init(): Could not create SDL window" );
+            throw exception( "window::init(): Could not create SDL window" );
         
         platform_window.sdl_gl_context = SDL_GL_CreateContext( platform_window.sdl_window );
+        
+        registerWindow( *this );
     }
     
     window::window( window_id id ) : id( id )
@@ -82,26 +85,26 @@ namespace bqt
     {
         scoped_lock slock( window_mutex );
         // TODO: implement
-        throw exception( "bqt::window::addCanvas(): Not implemented" );
+        throw exception( "window::addCanvas(): Not implemented" );
     }
     void window::removeCanvas( canvas* c )
     {
         scoped_lock slock( window_mutex );
         // TODO: implement
-        throw exception( "bqt::window::removeCanvas(): Not implemented" );
+        throw exception( "window::removeCanvas(): Not implemented" );
     }
     
     void window::setToolVisibility( bool v )
     {
         scoped_lock slock( window_mutex );
         // TODO: implement
-        throw exception( "bqt::window::setToolVisibility(): Not implemented" );
+        throw exception( "window::setToolVisibility(): Not implemented" );
     }
     void window::setViewZoom( view_id v, float z )
     {
         scoped_lock slock( window_mutex );
         // TODO: implement
-        throw exception( "bqt::window::setViewZoom(): Not implemented" );
+        throw exception( "window::setViewZoom(): Not implemented" );
     }
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
@@ -125,7 +128,17 @@ namespace bqt
     {
         scoped_lock slock( window_mutex );
         // TODO: implement
-        throw exception( "bqt::window::acceptEvent(): Not implemented" );
+        throw exception( "window::acceptEvent(): Not implemented" );
+    }
+    
+    bqt_platform_window_t& window::getPlatformWindow()
+    {
+        scoped_lock slock( window_mutex );
+        
+        if( platform_window.sdl_window == NULL )
+            throw exception( "window::getPlatformWindow(): Window does not have a platform window yet" );
+        else
+            return platform_window;
     }
     
     // WINDOW::MANIPULATE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +148,6 @@ namespace bqt
         if( t == NULL )
         {
             target = new window( getNewWindowID() );
-            // TODO: register with manager
         }
         else
             target = t;
@@ -151,7 +163,10 @@ namespace bqt
             target -> init();
         
         if( target -> updates.close )
+        {
+            deregisterWindow( *target );
             delete target;
+        }
         else
         {
             if( target -> updates.changed )
@@ -196,7 +211,7 @@ namespace bqt
                 if( target -> updates.maximize )
                 {
                     // TODO: implement
-                    throw exception( "bqt::window::manipulate::execute(): Window maximize not implemented" );
+                    throw exception( "window::manipulate::execute(): Window maximize not implemented" );
                     target -> updates.maximize = false;
                 }
                 
@@ -299,7 +314,7 @@ namespace bqt
     {
         scoped_lock slock( target -> window_mutex );
         // TODO: implement
-        throw exception( "bqt::window::manipulate::dropCanvas(): Not implemented" );
+        throw exception( "window::manipulate::dropCanvas(): Not implemented" );
     }
     
     // WINDOW::REDRAW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -319,7 +334,7 @@ namespace bqt
                                                                                 // eventually drill down to the last one.
         {
             if( SDL_GL_MakeCurrent( target.platform_window.sdl_window, target.platform_window.sdl_gl_context ) )
-                throw exception( "bqt::window::redraw::execute(): Could not make SDL GL context current" );
+                throw exception( "window::redraw::execute(): Could not make SDL GL context current" );
             
             
         }

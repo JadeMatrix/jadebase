@@ -49,11 +49,11 @@ namespace bqt
                     tq_cond.wait( tq_mutex );
                 else
                 {
-                    for( int i = 0; i < 3; i++ )
+                    for( int i = 0; i < 3; i++ )                                // Iterate through priority levels
                     {
                         for( std::list< task* >::iterator iter = data[ i ].begin();
                              iter != data[ i ].end();
-                             iter++ )
+                             iter++ )                                           // Iterate through tasks in priority level
                         {
                             if( ( *iter ) -> matchMask( mask ) )
                             {
@@ -84,7 +84,7 @@ namespace bqt
     void task_queue::push( task* item )
     {
         if( item == NULL )
-            throw exception( "bqt::task_queue::push(): Cannot push a null task" );
+            throw exception( "task_queue::push(): Cannot push a null task" );
         
         {
             scoped_lock slock( tq_mutex );
@@ -103,12 +103,12 @@ namespace bqt
                     data[ 2 ].push_back( item );
                     break;
                 default:
-                    throw exception( "bqt::task_queue::push(): Invalid priority level" );
+                    throw exception( "task_queue::push(): Invalid priority level" );
                 }
             }
             else
             {
-                ff::write( bqt_out, "Warning: bqt::task_queue::push(): Queue closed, deleting pushed task\n" );
+                ff::write( bqt_out, "Warning: task_queue::push(): Queue closed, deleting pushed task\n" );
                 delete item;
             }
         }

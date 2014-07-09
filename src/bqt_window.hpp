@@ -103,6 +103,8 @@ namespace bqt
         
         void acceptEvent( window_event& e );
         
+        bqt_platform_window_t& getPlatformWindow();                             // TODO: make this const-correct
+        
         class manipulate : public task
         {
         protected:
