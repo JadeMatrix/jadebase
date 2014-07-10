@@ -28,8 +28,6 @@ namespace bqt
 {
     bool HandleEvents_task::execute( task_mask* caller_mask )
     {
-        // ff::write( bqt_out, "Task ", ( unsigned long )this, ": Handling events\n" );
-        
         {
             SDL_Event sdl_event;
             
@@ -72,9 +70,11 @@ namespace bqt
                 case SDL_MULTIGESTURE:
                     break;
                 case SDL_QUIT:
-                    ff::write( bqt_out, "Got quit even\n" );
-                    closeAllWindows();
-                    submitTask( new StopTaskSystem_task() );
+                    {
+                        ff::write( bqt_out, "Got quit event\n" );
+                        closeAllWindows();
+                        submitTask( new StopTaskSystem_task() );
+                    }
                     break;
                 case SDL_SYSWMEVENT:
                     break;
@@ -85,6 +85,53 @@ namespace bqt
                 case SDL_USEREVENT:
                     break;
                 case SDL_WINDOWEVENT:
+                    {
+                        switch( sdl_event.window.event )
+                        {
+                            case SDL_WINDOWEVENT_SHOWN:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_HIDDEN:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_EXPOSED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_MOVED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_RESIZED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_SIZE_CHANGED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_MINIMIZED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_MAXIMIZED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_RESTORED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_ENTER:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_LEAVE:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_FOCUS_LOST:
+                                
+                                break;
+                            case SDL_WINDOWEVENT_CLOSE:
+                                
+                                break;
+                        }
+                    }
                     break;
                 default:
                     NULL;
@@ -92,7 +139,7 @@ namespace bqt
             }
         }
         
-        return false;
+        return false;                                                           // Requeue instead of submitting a new copy
     }
 }
 

@@ -61,14 +61,8 @@ namespace
         task_thread_data* data = ( task_thread_data* )d;
         bqt::exit_code code = EXIT_FINE;
         
-        timespec rest_time;                                                     // We'll let each thread have its own, could be useful in the future
-        rest_time.tv_sec = 0;
-        rest_time.tv_nsec = 500000;                                             // Half a millisecond seems reasonable to start with.  Also, from the nanosleep
-                                                                                // man page:
-                                                                                // "If the interval specified in req is not an exact multiple of the granularity
-                                                                                // underlying clock (see time(7)), then the interval will be rounded up to the
-                                                                                // next multiple."
-                                                                                // This is OK.
+        timespec rest_time;
+        int queue_size;
         
         if( bqt::isInitTaskSystem() )
         {
@@ -97,6 +91,20 @@ namespace
                                 delete current_task;
                             else
                                 data -> queue -> push( current_task );
+                            
+                            queue_size = data -> queue -> size();               // Dynamic waiting between tasks - more in queue, faster
+                            if( queue_size > 0 )
+                            {
+                                rest_time.tv_nsec = 100000 + 900000 / queue_size;
+                                
+                                rest_time.tv_sec = rest_time.tv_nsec / 1000000;
+                                rest_time.tv_nsec %= 1000000;
+                            }
+                            else
+                            {
+                                rest_time.tv_sec = 0;
+                                rest_time.tv_nsec = 500000;
+                            }
                             
                             nanosleep( &rest_time, NULL );                      // Only sleep if we're continuing
                         }
@@ -141,7 +149,14 @@ namespace bqt
 {
     bool initTaskSystem( bool main_is_tasker )
     {
-        long thread_count = getSystemCoreCount();
+        long thread_limit = getTaskThreadLimit();
+        long core_count = getSystemCoreCount();
+        long thread_count;
+        
+        if( ( thread_limit > 0 ) && ( thread_limit < core_count ) )
+            thread_count = thread_limit;
+        else
+            thread_count = core_count;
         
         if( main_is_tasker )
             return initTaskSystem( thread_count - 1 );
