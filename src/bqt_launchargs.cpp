@@ -32,7 +32,7 @@
 #define LAUNCHVAL_DEVMODE       false
 #define LAUNCHVAL_LOGFILE       ""
 #define LAUNCHVAL_TASKTHREADS   0
-#define LAUNCHVAL_PREFFILE      "~/.BQTDraw.cfg"
+#define LAUNCHVAL_PREFFILE      ""
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -54,10 +54,11 @@ namespace
                              "[ -f | --open-file    ] FILE       Opens file on startup\n"
                              // "[ -u | --max-undo     ] INT        Max undo & redo steps; -1 for unlimited\n"
                              "[ -l | --log-file     ] FILE       Sets a log file, none by default\n"
-                             "[ -p | --pref-file    ] FILE       Sets a preferences file, " LAUNCHVAL_PREFFILE " by default\n"
+                             "[ -p | --pref-file    ] FILE       Sets a preferences file\n"
                              "[ -d | --dev-mode     ]            Enables developer mode options\n"
-                             "[ -t | --task-threads ] UINT       Limits the max number of task threads; 0 = no limit\n";
-                             // "[ -e | --block-exp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n";
+                             "[ -t | --task-threads ] UINT       Limits the max number of task threads; 0 = no limit\n"
+                             // "[ -e | --block-exp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n"
+                             "Options are applied in order, so it is recommended to change the log file first to log any init errors\n";
     
     // Engine options are immutable after parseLaunchArgs is called.
     bool          dev_mode;
@@ -134,8 +135,6 @@ namespace bqt
             case 'p':
                 {
                     pref_file_name = optarg;
-                    
-                    loadPreferencesFile( pref_file_name );
                 }
                 break;
             case 'd':
@@ -176,6 +175,11 @@ namespace bqt
                 throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
             }
         }
+        
+        if( pref_file_name == "" )
+            resetPreferencesToDefaults();
+        else
+            loadPreferencesFile( pref_file_name );
         
         return true;
     }
