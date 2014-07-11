@@ -66,6 +66,13 @@ namespace bqt
         return id_window_map.count( SDL_GetWindowID( w.sdl_window ) );
     }
     
+    int getRegisteredWindowCount()
+    {
+        scoped_lock slock( wm_mutex );
+        
+        return id_window_map.size();
+    }
+    
     void makeWindowActive( bqt_platform_window_t& w )
     {
         scoped_lock slock( wm_mutex );

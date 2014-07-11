@@ -14,6 +14,7 @@
 #include "bqt_windowmanagement.hpp"
 #include "bqt_taskexec.hpp"
 #include "bqt_gl.hpp"
+#include "bqt_preferences.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -163,6 +164,19 @@ namespace bqt
             deregisterWindow( *target );
             target -> window_mutex.unlock();
             delete target;
+            
+            if( getQuitOnNoWindows() && getRegisteredWindowCount() < 1 )
+            {
+                SDL_Event* sdl_event = new SDL_Event;
+                sdl_event -> type = SDL_QUIT;
+                
+                if( SDL_PushEvent( sdl_event ) < 1 )
+                {
+                    ff::write( bqt_out, "Warning: Failed to push a quit event internally\n" );
+                    delete sdl_event;
+                }                                                               // If pushed, we let the allocate event hang since it's not clear what SDL does
+                                                                                // with it.
+            }
         }
         else
         {
