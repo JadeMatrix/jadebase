@@ -87,7 +87,7 @@ namespace bqt
             
             int ret_val = HIST_SUCCESS;
             
-            for( ; r_first != r_last; r_first++ )
+            for( ; r_first != r_last; ++r_first )
             {
                 int result = r_first -> second -> undo( last_change );
                 
@@ -133,7 +133,7 @@ namespace bqt
             
             int ret_val = HIST_SUCCESS;
             
-            for( ; r_first != r_last; r_first++ )
+            for( ; r_first != r_last; ++r_first )
             {
                 int result = r_first -> second -> redo( prev_change );
                 

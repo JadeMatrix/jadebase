@@ -18,6 +18,8 @@
 
 namespace bqt
 {
+    void eventsSetUp();                                                         // Set up an utilities necessary for handling events
+    
     class HandleEvents_task : public task
     {
     public:

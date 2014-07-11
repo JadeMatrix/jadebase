@@ -14,6 +14,7 @@
 #include "bqt_mutex.hpp"
 #include "bqt_exception.hpp"
 #include "bqt_taskexec.hpp"
+#include "bqt_launchargs.hpp"
 
 #include "bqt_log.hpp"
 
@@ -42,7 +43,8 @@ namespace bqt
         else
             id_window_map[ window_id ] = &w;
         
-        ff::write( bqt_out, "Registered a window, currently ", id_window_map.size(), " windows registered\n" );
+        if( getDevMode() )
+            ff::write( bqt_out, "Registered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
     }
     void deregisterWindow( window& w )
     {
@@ -53,7 +55,15 @@ namespace bqt
         if( id_window_map.erase( window_id ) < 1 )
             throw exception( "deregisterWindow(): No window associated with platform window" );
         
-        ff::write( bqt_out, "Deregistered a window, currently ", id_window_map.size(), " windows registered\n" );
+        if( getDevMode() )
+            ff::write( bqt_out, "Deregistered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
+    }
+    
+    bool isRegisteredWindow( bqt_platform_window_t& w )
+    {
+        scoped_lock slock( wm_mutex );
+        
+        return id_window_map.count( SDL_GetWindowID( w.sdl_window ) );
     }
     
     void makeWindowActive( bqt_platform_window_t& w )
@@ -82,7 +92,10 @@ namespace bqt
         if( id_window_map.count( window_id ) )
             return *( id_window_map[ window_id ] );
         else
+        {
+            ff::write( bqt_out, "No window associated with id ", window_id, "\n" );
             throw exception( "getWindow(): No window associated with platform window" );
+        }
     }
     
     void closeAllWindows()
@@ -92,7 +105,7 @@ namespace bqt
         window::manipulate* wmanip = NULL;
         task_mask close_mask = TASK_SYSTEM;
         
-        for( int i = id_window_map.size(); i > 0; i-- )
+        for( int i = id_window_map.size(); i > 0; --i )
         {
             wmanip = new window::manipulate( id_window_map.begin() -> second );
             wmanip -> close();

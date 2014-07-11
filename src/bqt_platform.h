@@ -9,6 +9,9 @@
  * bqt_platform_window_t
  * Type wrapper for platform window handle & OpenGL context if necessary
  * 
+ * bqt_platform_idevid_t
+ * Type wrapper for platform input device IDs
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -27,6 +30,8 @@ typedef struct
     SDL_Window* sdl_window;
     SDL_GLContext sdl_gl_context;
 } bqt_platform_window_t;
+
+typedef unsigned int bqt_platform_idevid_t;
 
 #ifdef __cplusplus
 }

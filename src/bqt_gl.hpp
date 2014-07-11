@@ -20,6 +20,7 @@
 
 /******************************************************************************//******************************************************************************/
 
+// TODO: Remove these if they're not needed any more:
 #define ZVAL_BACKGROUND -2.0f
 #define ZVAL_NONCOMPSLC -1.0f
 #define ZVAL_COMPDSLICE  0.0f

@@ -25,6 +25,9 @@
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
+#define MIN_SLEEP_TIME   100000
+#define MAX_SLEEP_TIME  2000000
+
 namespace
 {
     struct task_thread_data
@@ -62,6 +65,7 @@ namespace
         bqt::exit_code code = EXIT_FINE;
         
         timespec rest_time;
+        rest_time.tv_sec = 0;                                                   // We're never going to rest for a full second
         int queue_size;
         
         if( bqt::isInitTaskSystem() )
@@ -94,17 +98,9 @@ namespace
                             
                             queue_size = data -> queue -> size();               // Dynamic waiting between tasks - more in queue, faster
                             if( queue_size > 0 )
-                            {
-                                rest_time.tv_nsec = 100000 + 900000 / queue_size;
-                                
-                                rest_time.tv_sec = rest_time.tv_nsec / 1000000;
-                                rest_time.tv_nsec %= 1000000;
-                            }
+                                rest_time.tv_nsec = MIN_SLEEP_TIME + ( MAX_SLEEP_TIME - MIN_SLEEP_TIME ) / queue_size;
                             else
-                            {
-                                rest_time.tv_sec = 0;
-                                rest_time.tv_nsec = 500000;
-                            }
+                                rest_time.tv_nsec = MAX_SLEEP_TIME;
                             
                             nanosleep( &rest_time, NULL );                      // Only sleep if we're continuing
                         }
@@ -178,7 +174,7 @@ namespace bqt
         task_threads_data  = new task_thread_data[ tc ];
         task_threads_masks = new        task_mask[ tc ];
         
-        for( int i = 0; i < tc; i++ )
+        for( int i = 0; i < tc; ++i )
         {
             task_threads_masks[i] = TASK_ALL;
             
@@ -216,7 +212,7 @@ namespace bqt
     {
         global_task_queue -> close();                                           // Task queue will now pop NULLs
         
-        for( int i = 0; i < spawned_task_thread_count; i++ )
+        for( int i = 0; i < spawned_task_thread_count; ++i )
         {
             exit_code ec = task_threads[i].wait();
             

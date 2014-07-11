@@ -12,6 +12,8 @@
 #include "bqt_exception.hpp"
 #include "bqt_log.hpp"
 #include "bqt_windowmanagement.hpp"
+#include "bqt_taskexec.hpp"
+#include "bqt_gl.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -26,7 +28,7 @@ namespace bqt
                                                        SDL_WINDOWPOS_CENTERED,
                                                        dimensions[ 0 ],
                                                        dimensions[ 1 ],
-                                                       SDL_WINDOW_OPENGL );
+                                                       SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
         
         
         if( platform_window.sdl_window == NULL )
@@ -144,12 +146,17 @@ namespace bqt
     
     bool window::manipulate::execute( task_mask* caller_mask )
     {
+        bool redraw_window = false;
+        
         target -> window_mutex.lock();                                          // We need to explicitly lock/unlock this as the window can be destroyed
         
         SDL_Window*& sdl_window = target -> platform_window.sdl_window;
         
         if( sdl_window == NULL )
+        {
             target -> init();
+            redraw_window = true;
+        }
         
         if( target -> updates.close )
         {
@@ -200,8 +207,7 @@ namespace bqt
                 
                 if( target -> updates.maximize )
                 {
-                    // TODO: implement
-                    throw exception( "window::manipulate::execute(): Window maximize not implemented" );
+                    SDL_MaximizeWindow( sdl_window );
                     target -> updates.maximize = false;
                 }
                 
@@ -213,11 +219,14 @@ namespace bqt
                 
                 target -> updates.changed = false;
                 
-                // bqt::submitTask( new redraw( *this ) );
+                redraw_window = true;
             }
             
             target -> window_mutex.unlock();
         }
+        
+        if( redraw_window )
+            submitTask( new window::redraw( *target ) );
         
         return true;
     }
@@ -302,6 +311,13 @@ namespace bqt
         target -> updates.changed = true;
     }
     
+    void window::manipulate::redraw()
+    {
+        scoped_lock slock( target -> window_mutex );
+        
+        target -> updates.changed = true;
+    }
+    
     void window::manipulate::dropCanvas( canvas* c, unsigned int x, unsigned int y )
     {
         scoped_lock slock( target -> window_mutex );
@@ -321,18 +337,29 @@ namespace bqt
     {
         scoped_lock slock( target.window_mutex );
         
-        if( target.pending_redraws == 1 )                                       // Only redraw if there are no other pending redraws for that window; this is
+        if( target.pending_redraws <= 1 )                                       // Only redraw if there are no other pending redraws for that window; this is
                                                                                 // safe because the redraw task is high-priority, so the task system will
                                                                                 // eventually drill down to the last one.
         {
+            if( target.pending_redraws != 1 )                                   // Sanity check
+                throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
+            
             if( SDL_GL_MakeCurrent( target.platform_window.sdl_window, target.platform_window.sdl_gl_context ) )
                 throw exception( "window::redraw::execute(): Could not make SDL GL context current" );
             
+            // TODO: Implement
+            {
+                glEnable(GL_DEPTH_TEST);
+                glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
+                
+                glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
+                glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+                
+                
+            }
             
+            SDL_GL_SwapWindow( target.platform_window.sdl_window );
         }
-        else
-            if( target.pending_redraws < 1 )                                    // Sanity check
-                throw exception( "window::redraw::execute(): Target pending redraws somehow 0" );
         
         target.pending_redraws--;
         

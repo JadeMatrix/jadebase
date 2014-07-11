@@ -24,11 +24,38 @@
 
 // TODO: Debug, remove later?
 #include "bqt_window.hpp"
+#include <cstdlib>
 
 /******************************************************************************//******************************************************************************/
 
 namespace bqt
 {
+    class BusyWork_task : public task
+    {
+    public:
+        BusyWork_task()
+        {
+            srand( 7036925814 );
+        }
+        bool execute( task_mask* caller_mask )
+        {
+            int* arr = new int[ 256 ];
+            
+            for( int i = 0; i < 2048; ++i )
+            {
+                arr[ i % 256 ] = rand();
+            }
+            
+            delete arr;
+            
+            return false;
+        }
+        task_mask getMask()
+        {
+            return TASK_ALL;
+        }
+    };
+    
     class StartBQTDraw_task : public task
     {
     public:
@@ -40,6 +67,12 @@ namespace bqt
                 submitTask( new HandleEvents_task() );
                 
                 submitTask( new window::manipulate( NULL ) );
+                submitTask( new window::manipulate( NULL ) );
+                
+                
+                
+                // for( int i = 0; i < 4; ++i )
+                //     submitTask( new BusyWork_task() );
             }
             
             ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );

@@ -26,6 +26,7 @@
 #include "bqt_exception.hpp"
 #include "bqt_imagemode.hpp"
 #include "bqt_version.hpp"
+#include "bqt_preferences.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -36,6 +37,7 @@ namespace
                                    {    "open-file", required_argument, NULL, 'f' },
                                    {     "max-undo", required_argument, NULL, 'u' },
                                    {     "log-file", required_argument, NULL, 'l' },
+                                   {    "pref-file", required_argument, NULL, 'p' },
                                    {     "dev-mode",       no_argument, NULL, 'd' },
                                    { "task-threads", required_argument, NULL, 't' },
                                    {    "block-exp", required_argument, NULL, 'e' },
@@ -46,6 +48,7 @@ namespace
                              "[ -f | --open-file    ] FILE       Opens file on startup\n"
                              "[ -u | --max-undo     ] INT        Max undo & redo steps; -1 for unlimited\n"
                              "[ -l | --log-file     ] FILE       Sets a log file, none by default\n"
+                             "[ -p | --pref-file    ] FILE       Sets a preferences file, " LAUNCHVAL_PREFFILE " by default\n"
                              "[ -d | --dev-mode     ]            Enables developer mode options\n"
                              "[ -t | --task-threads ] UINT       Limits the max number of task threads; 0 = no limit\n"
                              "[ -e | --block-exp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n";
@@ -57,6 +60,7 @@ namespace
     unsigned char block_exponent;
     std::vector< std::string > startup_files;
     long          max_undo_steps;
+    std::string   pref_file_name;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
@@ -72,11 +76,12 @@ namespace bqt
         log_file_name     = LAUNCHVAL_LOGFILE;
         task_thread_limit = LAUNCHVAL_TASKTHREADS;
         block_exponent    = LAUNCHVAL_BLOCKEXPONENT;
-        max_undo_steps   = LAUNCHVAL_MAXUNDO;
+        max_undo_steps    = LAUNCHVAL_MAXUNDO;
+        pref_file_name    = LAUNCHVAL_PREFFILE;
         
         int flag;                                                               // <--
         
-        while( ( flag = getopt_long( argc, argv, "hvf:u:l:dt:e:", long_flags, NULL ) ) != -1 )
+        while( ( flag = getopt_long( argc, argv, "hvf:u:l:p:dt:e:", long_flags, NULL ) ) != -1 )
         {
             switch( flag )
             {
@@ -122,6 +127,13 @@ namespace bqt
                     ff::write( bqt_out, "Using file '", log_file_name, "' for logging\n" );
                     
                     log_stream.rdbuf( &log_fb );
+                }
+                break;
+            case 'p':
+                {
+                    pref_file_name = optarg;
+                    
+                    loadPreferencesFile( pref_file_name );
                 }
                 break;
             case 'd':

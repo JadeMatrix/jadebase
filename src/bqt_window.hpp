@@ -82,7 +82,7 @@ namespace bqt
         
         ~window();
         
-        // BQTDraw-specific stuff; exposed as higher-level functions ///////////
+        // BQTDraw-specific stuff; exposed as higher-level functions ///////////////////////////////////////////////////////////////////////////////////////////
         
         void addCanvas( canvas* c, view_id v, int t );                          // Note: adding same canvas multiple times is safe (multiple views)
         void removeCanvas( canvas* c );
@@ -92,6 +92,24 @@ namespace bqt
         
         void setToolVisibility( bool v );
         void setViewZoom( view_id v, float z );
+        
+        class redraw : public task
+        {
+        protected:
+            window& target;
+        public:
+            redraw( window& t );
+            bool execute( task_mask* caller_mask );
+            task_priority getPriority()
+            {
+                return PRIORITY_HIGH;
+            }
+            task_mask getMask()
+            {
+                // return TASK_GPU;
+                return TASK_SYSTEM;
+            }
+        };
     public:
         window();
         
@@ -130,24 +148,9 @@ namespace bqt
             void restore();
             void close();
             
+            void redraw();                                                      // Just redraw the window (sets changed flag to true)
+            
             void dropCanvas( canvas* c, unsigned int x, unsigned int y );
-        };
-        
-        class redraw : public task
-        {
-        protected:
-            window& target;
-        public:
-            redraw( window& t );
-            bool execute( task_mask* caller_mask );
-            task_priority getPriority()
-            {
-                return PRIORITY_HIGH;
-            }
-            task_mask getMask()
-            {
-                return TASK_GPU;
-            }
         };
     };
 }
