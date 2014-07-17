@@ -174,8 +174,8 @@ namespace bqt
                 {
                     ff::write( bqt_out, "Warning: Failed to push a quit event internally\n" );
                     delete sdl_event;
-                }                                                               // If pushed, we let the allocate event hang since it's not clear what SDL does
-                                                                                // with it.
+                }                                                               // If pushed, we let the allocated memory hang since it's not clear what SDL
+                                                                                // does with it.
             }
         }
         else

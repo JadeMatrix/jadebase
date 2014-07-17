@@ -1,7 +1,9 @@
 /* 
  * bqt_events.cpp
  * 
- * About
+ * Clicks & strokes are both converted to stroke events & passed to windows,
+ * as it is entirely up to the window to check the event position(s) and thus to
+ * decide whether it is a drag or a click.
  * 
  */
 
@@ -36,7 +38,7 @@ namespace
     
     // http://www.wacomeng.com/mac/Developers%20Guide.htm
     
-    typedef unsigned int click_type;
+    typedef unsigned short click_type;
     #define CLICK_PRIMARY   0x0001      // 0000 0001
     #define CLICK_SECONDARY 0x0002      // 0000 0010
     #define CLICK_ALT       0x0004      // 0000 0100
@@ -46,6 +48,12 @@ namespace
     struct substroke
     {
         click_type click;
+        
+        bool shift : 1;
+        bool ctrl  : 1;
+        bool alt   : 1;                                                         // Apple Option/Alt or Windows Alt
+        bool meta  : 1;                                                         // Apple Command or Windows key
+        
         int   start_pos[ 2 ];                                                   // Position [ x, y ] relative to screen
         int     end_pos[ 2 ];
         int   start_pres;                                                       // Pressure
@@ -71,7 +79,111 @@ namespace
     
     std::map< bqt_platform_idevid_t, linear_input > linear_inputs;
     
+    struct key_input
+    {
+        bqt_platform_keycode_t key;
+        
+        bool shift : 1;
+        bool ctrl  : 1;
+        bool alt   : 1;
+        bool meta  : 1;
+    };
+    
+    struct pinch_input
+    {
+        float distance;                                                         // Relative change in distance
+        float rotation;                                                         // Relative change, 0.0 through 1.0 for a full rotation, repeating
+        int position[ 2 ];                                                      // Absolute position in-window
+    };
+    
     // EVENT HANDLERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void handleKeyEvent( SDL_Event& sdl_event )
+    {
+        // https://wiki.libsdl.org/SDL_KeyboardEvent
+        // https://wiki.libsdl.org/SDL_Keysym
+        // https://wiki.libsdl.org/SDL_Keymod
+        switch( sdl_event.type )
+        {
+        case SDL_KEYDOWN:
+            break;
+        case SDL_KEYUP:
+            break;
+        default:
+            break;
+        }
+    }
+    
+    void handleTouchEvent( SDL_Event& sdl_event )
+    {
+        bqt::window* active_window = getActiveWindow();
+        
+        switch( sdl_event.type )
+        {
+            // https://wiki.libsdl.org/SDL_TouchFingerEvent
+            // http://hg.libsdl.org/SDL/file/default/README-gesture.txt
+        case SDL_FINGERMOTION:
+            break;
+        case SDL_FINGERDOWN:
+            break;
+        case SDL_FINGERUP:
+            break;
+        case SDL_MULTIGESTURE:
+            {
+                if( sdl_event.mgesture.numFingers == 2 )                        // Ignore event.mgesture.numFingers != 2
+                {
+                    SDL_DisplayMode d_mode;
+                    if( SDL_GetCurrentDisplayMode( SDL_GetWindowDisplayIndex( active_window -> getPlatformWindow().sdl_window ),
+                                                   &d_mode ) )                  // Current instead of Desktop for fullscreen
+                    {
+                        pinch_input p_i;
+                        
+                        p_i.distance = sdl_event.mgesture.dDist;
+                        p_i.rotation = sdl_event.mgesture.dTheta;
+                        p_i.position[ 0 ] = active_window -> getPosition().first - sdl_event.mgesture.x * d_mode.w;
+                        p_i.position[ 1 ] = active_window -> getPosition().second - sdl_event.mgesture.y * d_mode.h;
+                    }
+                    else
+                        throw exception( "handleTouchEvent(): Could not get display mode" );
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    
+    void handleMouseEvent( SDL_Event& sdl_event )
+    {
+        // https://wiki.libsdl.org/SDL_MouseButtonEvent#Remarks
+        // ignore SDL_TOUCH_MOUSEID
+        switch( sdl_event.type )
+        {
+        case SDL_MOUSEMOTION:
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            break;
+        case SDL_MOUSEBUTTONUP:
+            break;
+        case SDL_MOUSEWHEEL:
+            break;
+        default:
+            break;
+        }
+    }
+    
+    void handleTextEvent( SDL_Event& sdl_event )
+    {
+        switch( sdl_event.type )
+        {
+        case SDL_TEXTEDITING:
+            break;
+        case SDL_TEXTINPUT:
+            break;
+        default:
+            break;
+        }
+    }
     
     void handleWindowEvent( SDL_Event& sdl_event )
     {
@@ -80,7 +192,7 @@ namespace
         bqt_platform_window_t platform_window;
         platform_window.sdl_window = SDL_GetWindowFromID( sdl_event.window.windowID );
         
-        if( isRegisteredWindow( platform_window ) )
+        if( isRegisteredWindow( platform_window ) )                             // There's a problem with SDL sending events for phantom windows
         {
             if( !window_manipulates.count( sdl_event.window.windowID ) )        // Create a new manipulate task if necessary
                 window_manipulates[ sdl_event.window.windowID ] = new window::manipulate( &getWindow( platform_window ) );
@@ -166,38 +278,34 @@ namespace bqt
                 switch( sdl_event.type )
                 {
                 case SDL_DOLLARGESTURE:
+                    // Ignore
                     break;
                 case SDL_DROPFILE:
                     break;
                 case SDL_FINGERMOTION:
-                    break;
                 case SDL_FINGERDOWN:
-                    break;
                 case SDL_FINGERUP:
+                    handleTouchEvent( sdl_event );
                     break;
                 case SDL_KEYDOWN:
-                    break;
                 case SDL_KEYUP:
+                    handleKeyEvent( sdl_event );
                     break;
                 case SDL_JOYAXISMOTION:
-                    break;
                 case SDL_JOYBALLMOTION:
-                    break;
                 case SDL_JOYHATMOTION:
-                    break;
                 case SDL_JOYBUTTONDOWN:
-                    break;
                 case SDL_JOYBUTTONUP:
+                    // Ignore
                     break;
                 case SDL_MOUSEMOTION:
-                    break;
                 case SDL_MOUSEBUTTONDOWN:
-                    break;
                 case SDL_MOUSEBUTTONUP:
-                    break;
                 case SDL_MOUSEWHEEL:
+                    handleMouseEvent( sdl_event );
                     break;
                 case SDL_MULTIGESTURE:
+                    handleTouchEvent( sdl_event );
                     break;
                 case SDL_QUIT:
                     {
@@ -208,12 +316,14 @@ namespace bqt
                     }
                     break;
                 case SDL_SYSWMEVENT:
+                    // Ignore
                     break;
                 case SDL_TEXTEDITING:
-                    break;
                 case SDL_TEXTINPUT:
+                    handleTextEvent( sdl_event );
                     break;
                 case SDL_USEREVENT:
+                    // Ignore
                     break;
                 case SDL_WINDOWEVENT:
                     handleWindowEvent( sdl_event );
