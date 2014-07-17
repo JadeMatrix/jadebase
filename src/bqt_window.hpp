@@ -26,9 +26,10 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include "bqt_platform.h"
+
 #include <string>
 
-#include "bqt_platform.h"
 #include "bqt_canvas.hpp"
 #include "bqt_task.hpp"
 #include "bqt_mutex.hpp"
@@ -69,6 +70,7 @@ namespace bqt
             bool position   : 1;
             bool fullscreen : 1;
             bool title      : 1;
+            bool center     : 1;
             bool minimize   : 1;
             bool maximize   : 1;
             bool restore    : 1;
@@ -77,7 +79,7 @@ namespace bqt
         float view_zoom;
     protected:
         mutex window_mutex;
-        
+    public:
         void init();
         
         ~window();
@@ -143,6 +145,7 @@ namespace bqt
             
             void setFocus( bool f );                                            // Change any window styles to fit in- or out-of-focus
             
+            void center();
             void minimize();
             void maximize();
             void restore();

@@ -25,7 +25,7 @@ namespace
     bqt::mutex wm_mutex;
     
     bqt::window* active_window = NULL;
-    std::map< Uint32, bqt::window* > id_window_map;                             // SDL window id's are Uint32
+    std::map< Window, bqt::window* > id_window_map;                             // SDL window id's are Uint32
 }
 
 /******************************************************************************//******************************************************************************/
@@ -36,34 +36,37 @@ namespace bqt
     {
         scoped_lock slock( wm_mutex );
         
-        Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().sdl_window );
+        // Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().x_window );
+        Window window_id = w.getPlatformWindow().x_window;
         
         if( id_window_map.count( window_id ) )
             throw exception( "registerWindow(): Window already registered" );
         else
             id_window_map[ window_id ] = &w;
         
-        if( getDevMode() )
-            ff::write( bqt_out, "Registered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
+        // if( getDevMode() )
+        //     ff::write( bqt_out, "Registered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
     }
     void deregisterWindow( window& w )
     {
         scoped_lock slock( wm_mutex );
         
-        Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().sdl_window );
+        // Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().sdl_window );
+        Window window_id = w.getPlatformWindow().x_window;
         
         if( id_window_map.erase( window_id ) < 1 )
             throw exception( "deregisterWindow(): No window associated with platform window" );
         
-        if( getDevMode() )
-            ff::write( bqt_out, "Deregistered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
+        // if( getDevMode() )
+        //     ff::write( bqt_out, "Deregistered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
     }
     
     bool isRegisteredWindow( bqt_platform_window_t& w )
     {
         scoped_lock slock( wm_mutex );
         
-        return id_window_map.count( SDL_GetWindowID( w.sdl_window ) );
+        // return id_window_map.count( SDL_GetWindowID( w.sdl_window ) );
+        return id_window_map.count( w.x_window );
     }
     
     int getRegisteredWindowCount()
@@ -77,7 +80,8 @@ namespace bqt
     {
         scoped_lock slock( wm_mutex );
         
-        Uint32 window_id = SDL_GetWindowID( w.sdl_window );
+        // Uint32 window_id = SDL_GetWindowID( w.sdl_window );
+        Window window_id = w.x_window;
         
         if( id_window_map.count( window_id ) )
             active_window = id_window_map[ window_id ];
@@ -94,13 +98,14 @@ namespace bqt
     {
         scoped_lock slock( wm_mutex );
         
-        Uint32 window_id = SDL_GetWindowID( w.sdl_window );
+        // Uint32 window_id = SDL_GetWindowID( w.sdl_window );
+        Window window_id = w.x_window;
         
         if( id_window_map.count( window_id ) )
             return *( id_window_map[ window_id ] );
         else
         {
-            ff::write( bqt_out, "No window associated with id ", window_id, "\n" );
+            // ff::write( bqt_out, "No window associated with id ", window_id, "\n" );
             throw exception( "getWindow(): No window associated with platform window" );
         }
     }

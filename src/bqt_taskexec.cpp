@@ -10,7 +10,12 @@
 
 #include "bqt_taskexec.hpp"
 
+#if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
 #include <time.h>
+#else
+// TODO: Implement timing on other platforms
+#error "Timing not implemented on non-POSIX platforms"
+#endif
 
 #include "bqt_taskqueue.hpp"
 #include "bqt_exception.hpp"
@@ -64,8 +69,13 @@ namespace
         task_thread_data* data = ( task_thread_data* )d;
         bqt::exit_code code = EXIT_FINE;
         
+        #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
         timespec rest_time;
         rest_time.tv_sec = 0;                                                   // We're never going to rest for a full second
+        #else
+        #error "Timing not implemented on non-POSIX platforms"
+        #endif
+        
         int queue_size;
         
         if( bqt::isInitTaskSystem() )
@@ -96,6 +106,7 @@ namespace
                             else
                                 data -> queue -> push( current_task );
                             
+                            #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
                             queue_size = data -> queue -> size();               // Dynamic waiting between tasks - more in queue, faster
                             if( queue_size > 0 )
                                 rest_time.tv_nsec = MIN_SLEEP_TIME + ( MAX_SLEEP_TIME - MIN_SLEEP_TIME ) / queue_size;
@@ -103,6 +114,9 @@ namespace
                                 rest_time.tv_nsec = MAX_SLEEP_TIME;
                             
                             nanosleep( &rest_time, NULL );                      // Only sleep if we're continuing
+                            #else
+                            #error "Timing not implemented on non-POSIX platforms"
+                            #endif
                         }
                         else
                             running = false;                                    // Popped a null task so exit

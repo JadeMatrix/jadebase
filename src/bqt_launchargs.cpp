@@ -17,10 +17,16 @@
 
 #include <iostream>
 #include <fstream>
-#include <unistd.h>
-#include <getopt.h>
 #include <cstdlib>
 #include <cmath>
+
+#if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
+#include <unistd.h>
+#include <getopt.h>
+#else
+// TODO: Implement arg parsing on other platforms
+#error "Launch argument parsing not implemented on non-POSIX platforms"
+#endif
 
 #include "bqt_log.hpp"
 #include "bqt_exception.hpp"
@@ -38,6 +44,7 @@
 
 namespace
 {
+    #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
     struct option long_flags[] = { {         "help",       no_argument, NULL, 'h' },
                                    {      "version",       no_argument, NULL, 'v' },
                                    {    "open-file", required_argument, NULL, 'f' },
@@ -48,6 +55,9 @@ namespace
                                    { "task-threads", required_argument, NULL, 't' },
                                    // {    "block-exp", required_argument, NULL, 'e' },
                                    {              0,                 0,    0,   0 } };
+    #else
+    #error "Launch argument parsing not implemented on non-POSIX platforms"
+    #endif
     
     std::string flags_list = "[ -h | --help         ]            Prints this guide & exits\n"
                              "[ -v | --version      ]            Prints the software version & exits\n"
@@ -75,6 +85,7 @@ namespace
 
 namespace bqt
 {
+    #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
     bool parseLaunchArgs( int argc, char* argv[] )
     {
         dev_mode          = LAUNCHVAL_DEVMODE;
@@ -183,6 +194,10 @@ namespace bqt
         
         return true;
     }
+    #else
+    #error "Launch argument parsing not implemented on non-POSIX platforms"
+    #endif
+    
     void initFromLaunchArgs()
     {
         // Nothing needed here yet

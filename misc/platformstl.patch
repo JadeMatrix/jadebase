@@ -1,0 +1,8 @@
+# Patch to fix compilation with STLSoft under MacOS X
+# Run this patch on ${STLSOFT}/include/platformstl/platformstl.h
+
+157c157,158
+<     defined(__unix)
+---
+>     defined(__unix) || \
+>     defined(__MACH__)

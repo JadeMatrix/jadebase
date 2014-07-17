@@ -110,17 +110,20 @@ int bqt_main()
     {
         bqt::initFromLaunchArgs();
         
-        if( bqt::initTaskSystem( true ) )
-        {
-            bqt::submitTask( new bqt::StartBQTDraw_task() );
+        bqt::window test_window;
+        test_window.init();
+        
+        // if( bqt::initTaskSystem( true ) )
+        // {
+        //     bqt::submitTask( new bqt::StartBQTDraw_task() );
             
-            bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
-            bqt::becomeTaskThread( &main_mask );
+        //     bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
+        //     bqt::becomeTaskThread( &main_mask );
             
-            bqt::deInitTaskSystem();
-        }
-        else
-            throw( bqt::exception( "bqt_main(): Failed to initialize task system" ) );
+        //     bqt::deInitTaskSystem();
+        // }
+        // else
+        //     throw( bqt::exception( "bqt_main(): Failed to initialize task system" ) );
     }
     catch( bqt::exception& e )
     {
