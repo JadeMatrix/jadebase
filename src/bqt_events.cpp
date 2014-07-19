@@ -9,6 +9,7 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include "bqt_platform.h"
 #include "bqt_events.hpp"
 
 #include <map>
@@ -35,6 +36,20 @@ namespace
     std::map< Uint32, bqt::window::manipulate* > window_manipulates;            // Waiting room so we don't submit more than we need
     
     // INPUT DEVICES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    #ifdef PLATFORM_XWS_GNUPOSIX
+    
+    struct
+    {
+        const char* dev_name;
+        bool is_eraser;
+    } x_tablet_device_names[] = { { "wacomdev1"                                   , false },
+                                  { "wacomdev2"                                   , true  },
+                                  { "Wacom Serial Penabled 2FG Touchscreen stylus", false },
+                                  { "Wacom Serial Penabled 2FG Touchscreen eraser", true  },
+                                  { "Wacom Serial Penabled 2FG Touchscreen touch" , false } };
+                                  
+    #endif
     
     // http://www.wacomeng.com/mac/Developers%20Guide.htm
     

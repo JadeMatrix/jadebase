@@ -16,8 +16,6 @@
 #include "bqt_gl.hpp"
 #include "bqt_preferences.hpp"
 
-#include <unistd.h>
-
 /******************************************************************************//******************************************************************************/
 
 namespace bqt
@@ -50,7 +48,7 @@ namespace bqt
                                                   position[ 1 ],
                                                   dimensions[ 0 ],
                                                   dimensions[ 1 ],
-                                                  0,
+                                                  0,                            // Window border width, unused
                                                   platform_window.x_visual_info -> depth,
                                                   InputOutput,
                                                   platform_window.x_visual_info -> visual,
@@ -60,15 +58,13 @@ namespace bqt
         XMapWindow( x_display, platform_window.x_window );
         XStoreName( x_display, platform_window.x_window, title.c_str() );
         
+        XFlush( x_display );                                                    // We need to flush X before creating the GLX Context
+        
         platform_window.glx_context = glXCreateContext( x_display,
                                                         platform_window.x_visual_info,
                                                         NULL,
                                                         GL_TRUE );
         glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
-        
-        ff::write( bqt_out, "got through create window\n" );
-        
-        sleep( 2 );
         
         #else
         
@@ -117,13 +113,9 @@ namespace bqt
         
         Display* x_display = getXDisplay();
         
-        ff::write( bqt_out, "starting destroy window\n" );
-        
         glXMakeCurrent( x_display, None, NULL );
         glXDestroyContext( x_display, platform_window.glx_context );
         XDestroyWindow( x_display, platform_window.x_window );
-        
-        ff::write( bqt_out, "got through destroy window\n" );
         
         #else
         
@@ -438,8 +430,10 @@ namespace bqt
             if( target.pending_redraws != 1 )                                   // Sanity check
                 throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
             
-            // if( SDL_GL_MakeCurrent( target.platform_window.sdl_window, target.platform_window.sdl_gl_context ) )
-            //     throw exception( "window::redraw::execute(): Could not make SDL GL context current" );
+            Display* x_display = getXDisplay();
+            // glXMakeCurrent( x_display,
+            //                 target.platform_window.x_window,
+            //                 target.platform_window.glx_context );
             
             // TODO: Implement
             {
@@ -452,7 +446,7 @@ namespace bqt
                 
             }
             
-            // SDL_GL_SwapWindow( target.platform_window.sdl_window );
+            glXSwapBuffers( x_display, target.platform_window.x_window );
         }
         
         target.pending_redraws--;

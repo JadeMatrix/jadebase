@@ -215,9 +215,9 @@ namespace bqt
     {
         return task_thread_limit;
     }
-    const std::vector< std::string >* getStartupFiles()
+    const std::vector< std::string >& getStartupFiles()
     {
-        return &startup_files;
+        return startup_files;
     }
 }
 
@@ -225,9 +225,9 @@ namespace bqt
 
 namespace bqt
 {
-    std::ostream* getLogStream()
+    std::ostream& getLogStream()
     {
-        return &log_stream;
+        return log_stream;
     }
     
     void closeLog()

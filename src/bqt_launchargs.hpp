@@ -27,7 +27,7 @@ namespace bqt
     bool          getDevMode();                                                 // Get whether developer mode is enabled
     std::string   getLogFileName();                                             // Get the path to the log file set at startup
     long          getTaskThreadLimit();                                         // Get the max number of threads available to the task system (>=1 or -1)
-    const std::vector< std::string >* getStartupFiles();                        // Get vector of file names to open on startup
+    const std::vector< std::string >& getStartupFiles();                        // Get vector of file names to open on startup
     std::string   getPreferenceFileName();                                      // Get the path to the preferences file set at startup
     
     // TODO: possibly allow -b flag for binary stream input

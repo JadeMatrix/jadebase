@@ -25,6 +25,7 @@
 // TODO: Debug, remove later?
 #include "bqt_window.hpp"
 #include <cstdlib>
+#include <unistd.h>
 
 /******************************************************************************//******************************************************************************/
 
@@ -61,15 +62,13 @@ namespace bqt
     public:
         bool execute( task_mask* caller_mask )
         {
-            const std::vector< std::string >* startup_files = getStartupFiles();
+            const std::vector< std::string >& startup_files = getStartupFiles();
             
             {
                 submitTask( new HandleEvents_task() );
                 
                 submitTask( new window::manipulate( NULL ) );
                 submitTask( new window::manipulate( NULL ) );
-                
-                
                 
                 // for( int i = 0; i < 4; ++i )
                 //     submitTask( new BusyWork_task() );
@@ -112,6 +111,12 @@ int bqt_main()
         
         bqt::window test_window;
         test_window.init();
+        
+        bqt::task_mask test_mask = bqt::TASK_SYSTEM | bqt::TASK_GPU;
+        bqt::window::redraw test_redraw( test_window );
+        test_redraw.execute( &test_mask );
+        
+        sleep( 5 );
         
         // if( bqt::initTaskSystem( true ) )
         // {
