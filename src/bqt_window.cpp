@@ -18,8 +18,6 @@
 
 /******************************************************************************//******************************************************************************/
 
-#define X_SCREEN    0           // TODO: this is lazy BS
-
 namespace bqt
 {
     // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +32,7 @@ namespace bqt
         Window x_root = DefaultRootWindow( x_display );
         
         platform_window.x_visual_info = glXChooseVisual( x_display,
-                                                         X_SCREEN,
+                                                         DefaultScreen( x_display ),
                                                          platform_window.glx_attr );
         
         if( platform_window.x_visual_info == NULL )
@@ -319,7 +317,7 @@ namespace bqt
                 {
                     XIconifyWindow( x_display,
                                     target -> platform_window.x_window,
-                                    X_SCREEN );
+                                    DefaultScreen( x_display ) );
                     
                     target -> updates.minimize = false;
                 }

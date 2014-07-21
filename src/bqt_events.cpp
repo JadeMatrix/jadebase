@@ -29,8 +29,6 @@
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
-#ifdef PLATFORM_XWS_GNUPOSIX
-
 namespace
 {
     // Accumulators for reinterpreting various events
@@ -40,16 +38,25 @@ namespace
     
     // INPUT DEVICES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    struct
+    #ifdef PLATFORM_XWS_GNUPOSIX
+
+    struct x_tablet_device_info
     {
         const char* dev_name;
         bool is_eraser;
-    } x_tablet_device_names[] = { { "wacomdev1"                                   , false },
-                                  { "wacomdev2"                                   , true  },
-                                  { "Wacom Serial Penabled 2FG Touchscreen stylus", false },
-                                  { "Wacom Serial Penabled 2FG Touchscreen eraser", true  },
-                                  { "Wacom Serial Penabled 2FG Touchscreen touch" , false } };
-                                  
+        XID x_devid;
+        XDevice* x_device;
+        int x_motioneventtype;
+    } x_tablet_device_storage[] = { { "wacomdev1"                                   , false, 0x00, NULL, 0x00 },
+                                    { "wacomdev2"                                   ,  true, 0x00, NULL, 0x00 },
+                                    { "Wacom Serial Penabled 2FG Touchscreen stylus", false, 0x00, NULL, 0x00 },
+                                    { "Wacom Serial Penabled 2FG Touchscreen eraser",  true, 0x00, NULL, 0x00 },
+                                    { "Wacom Serial Penabled 2FG Touchscreen touch" , false, 0x00, NULL, 0x00 } };
+    // XEventClass x_eventclass_list[ sizeof( x_tablet_device_storage ) / sizeof( x_tablet_device_info ) ];
+    
+    bqt::mutex x_tabletdev_mutex;
+    std::vector< int > x_tablet_devices;
+    
     #endif
     
     // http://www.wacomeng.com/mac/Developers%20Guide.htm
@@ -188,6 +195,41 @@ namespace
     //     }
     // }
     
+    void handleMotionEvent( XEvent& x_event )
+    {
+        switch( x_event.type )
+        {
+        case ButtonPress:
+            break;
+        case ButtonRelease:
+            break;
+        case MotionNotify:
+            break;
+        default:
+            {
+                bqt::scoped_lock slock( x_tabletdev_mutex );
+                
+                XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&x_event ) );
+                
+                for( int i = 0; i < x_tablet_devices.size(); ++i )
+                {
+                    if( x_tablet_device_storage[ x_tablet_devices[ i ] ].x_motioneventtype == x_event.type
+                        && x_tablet_device_storage[ x_tablet_devices[ i ] ].x_devid == x_dmevent.deviceid )
+                    {
+                        ff::write( bqt_out, "MotionEvent:  0:", x_dmevent.axis_data[ 0 ],
+                                                        "  1:", x_dmevent.axis_data[ 1 ],
+                                                        "  2:", x_dmevent.axis_data[ 2 ],
+                                                        "  3:", x_dmevent.axis_data[ 3 ],
+                                                        "  4:", x_dmevent.axis_data[ 4 ],
+                                                        "  5:", x_dmevent.axis_data[ 5 ],
+                                                        "  ", x_tablet_device_storage[ x_tablet_devices[ i ] ].dev_name, "\n" );
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+    }
     // void handleMouseEvent( SDL_Event& sdl_event )
     // {
     //     // https://wiki.libsdl.org/SDL_MouseButtonEvent#Remarks
@@ -270,6 +312,7 @@ namespace
                 }
             }
             break;
+        case MapNotify:
         case MapRequest:
             current_manip -> restore();
             break;
@@ -294,9 +337,13 @@ namespace
             break;
         }
     }
+    
+    #endif
 }
 
 /******************************************************************************//******************************************************************************/
+
+#if defined PLATFORM_XWS_GNUPOSIX
 
 void setQuitFlag()
 {
@@ -311,11 +358,72 @@ bool getQuitFlag()
 
 namespace bqt
 {
-    void eventsSetUp()
+    void eventSetUp()
     {
+        // for substroke collecting:
         // http://www.cplusplus.com/reference/vector/vector/reserve/
         
+        // TODO: clean this up
         
+        scoped_lock slock( x_tabletdev_mutex );
+        
+        Display* x_display = getXDisplay();
+        int x_screen = DefaultScreen( x_display );
+        
+        XEventClass x_eventclass_list[ sizeof( x_tablet_device_storage ) / sizeof( x_tablet_device_info ) ];
+        int x_eventclass_count = 0;
+        
+        int x_dev_count;
+        XDeviceInfo* x_dev_info = XListInputDevices( x_display, &x_dev_count );
+        
+        if( x_dev_info == NULL )
+            throw exception( "eventSetup(): Failed to get list of X devices" );
+        
+        for( int i = 0; i < sizeof( x_tablet_device_storage ) / sizeof( x_tablet_device_info ); ++i )
+        {
+            for( int j = 0; j < x_dev_count; ++j )
+            {
+                if( !strcmp( x_dev_info[ j ].name, x_tablet_device_storage[ i ].dev_name ) )
+                {
+                    ff::write( bqt_out, "Found tablet device\n" );
+                    
+                    ff::write( bqt_out, "x_eventclass_count = ", x_eventclass_count, "\n" );
+                    
+                    x_tablet_device_storage[ i ].x_device = XOpenDevice( x_display, x_dev_info[ j ].id );
+                    
+                    x_tablet_device_storage[ i ].x_devid = x_dev_info[ j ].id;
+                    DeviceMotionNotify( x_tablet_device_storage[ i ].x_device,
+                                        x_tablet_device_storage[ i ].x_motioneventtype,
+                                        x_eventclass_list[ x_eventclass_count ] );
+                    ++x_eventclass_count;                                       // DeviceMotionNotify() is a macro, so increment outside
+                    
+                    x_tablet_devices.push_back( i );
+                    break;
+                }
+            }
+        }
+        
+        ff::write( bqt_out, x_eventclass_count, " event classes registered\n" );
+        
+        XSelectExtensionEvent( x_display,
+                               RootWindow( x_display, x_screen ),
+                               x_eventclass_list,
+                               x_eventclass_count );
+        
+        XFreeDeviceList( x_dev_info );
+        
+        if( getDevMode() && x_tablet_devices.size() == 0 )
+            ff::write( bqt_out, "No tablet devices found\n" );
+    }
+    
+    void eventCloseDown()
+    {
+        scoped_lock slock( x_tabletdev_mutex );
+        
+        Display* x_display = getXDisplay();
+        
+        for( int i = 0; i < x_tablet_devices.size(); i++ )
+            XCloseDevice( x_display, x_tablet_device_storage[ x_tablet_devices[ i ] ].x_device );
     }
     
     bool HandleEvents_task::execute( task_mask* caller_mask )
@@ -340,12 +448,26 @@ namespace bqt
                 
                 switch( x_event.type )
                 {
-                    case Expose:
-                    case ConfigureRequest:
-                    case MapRequest:
-                    case ClientMessage:
-                        handleWindowEvent( x_event );
-                        break;
+                case KeyPress:
+                case KeyRelease:
+                    handleKeyEvent( x_event );
+                    break;
+                case ButtonPress:
+                case ButtonRelease:
+                case MotionNotify:
+                    handleMotionEvent( x_event );
+                    break;
+                case Expose:
+                case ConfigureRequest:
+                case MapNotify:
+                case MapRequest:
+                case ClientMessage:
+                // case PropertyNotify:
+                    handleWindowEvent( x_event );
+                    break;
+                default:
+                    handleMotionEvent( x_event );                               // DeviceMotion events have a dynamic type
+                    break;
                 }
             }
             

@@ -109,6 +109,8 @@ int bqt_main()
     {
         bqt::initFromLaunchArgs();
         
+        bqt::eventSetUp();                                                      // TODO: allow device setup during runtime
+        
         // #warning "Using test window"
         
         // bqt::window test_window;
@@ -131,6 +133,8 @@ int bqt_main()
         }
         else
             throw( bqt::exception( "bqt_main(): Failed to initialize task system" ) );
+        
+        bqt::eventCloseDown();
     }
     catch( bqt::exception& e )
     {
