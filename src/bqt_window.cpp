@@ -18,6 +18,8 @@
 
 /******************************************************************************//******************************************************************************/
 
+#define X_SCREEN    0           // TODO: this is lazy BS
+
 namespace bqt
 {
     // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,7 +33,9 @@ namespace bqt
         Display* x_display = getXDisplay();
         Window x_root = DefaultRootWindow( x_display );
         
-        platform_window.x_visual_info = glXChooseVisual( x_display, 0, platform_window.glx_attr );
+        platform_window.x_visual_info = glXChooseVisual( x_display,
+                                                         X_SCREEN,
+                                                         platform_window.glx_attr );
         
         if( platform_window.x_visual_info == NULL )
             throw exception( "window::init(): No appropriate X visual found" );
@@ -40,7 +44,32 @@ namespace bqt
                                                                       x_root,
                                                                       platform_window.x_visual_info -> visual,
                                                                       AllocNone );
-        platform_window.x_set_window_attr.event_mask = ExposureMask | KeyPressMask;
+        platform_window.x_set_window_attr.event_mask = KeyPressMask
+                                                       | KeyReleaseMask
+                                                       | ButtonPressMask
+                                                       | ButtonReleaseMask
+                                                       | EnterWindowMask
+                                                       | LeaveWindowMask
+                                                       | PointerMotionMask
+                                                       // | PointerMotionHintMask
+                                                       // | Button1MotionMask
+                                                       // | Button2MotionMask
+                                                       // | Button3MotionMask
+                                                       // | Button4MotionMask
+                                                       // | Button5MotionMask
+                                                       | ButtonMotionMask
+                                                       // | KeyMapStateMask
+                                                       | ExposureMask
+                                                       | VisibilityChangeMask
+                                                       | StructureNotifyMask
+                                                       | ResizeRedirectMask
+                                                       | SubstructureNotifyMask
+                                                       // | SubstructureRedirectMask
+                                                       | FocusChangeMask
+                                                       | PropertyChangeMask
+                                                       | ColormapChangeMask
+                                                       // | OwnerGrabButtonMask
+                                                       ;
         
         platform_window.x_window = XCreateWindow( x_display,
                                                   x_root,
@@ -58,6 +87,13 @@ namespace bqt
         XMapWindow( x_display, platform_window.x_window );
         XStoreName( x_display, platform_window.x_window, title.c_str() );
         
+        platform_window.x_protocols[ 0 ] = XInternAtom( getXDisplay(), "WM_DELETE_WINDOW", False );
+        if( !XSetWMProtocols( x_display,
+                              platform_window.x_window,
+                              platform_window.x_protocols,
+                              X_PROTOCOL_COUNT ) )
+            throw exception( "window::init(): Could not set X window protocols" );
+        
         XFlush( x_display );                                                    // We need to flush X before creating the GLX Context
         
         platform_window.glx_context = glXCreateContext( x_display,
@@ -72,11 +108,15 @@ namespace bqt
         
         #endif
         
+        platform_window.good = true;
+        
         registerWindow( *this );
     }
     
     window::window()
     {
+        platform_window.good = false;
+        
         platform_window.glx_attr[ 0 ] = GLX_RGBA;
         platform_window.glx_attr[ 1 ] = GLX_DEPTH_SIZE;
         platform_window.glx_attr[ 2 ] = 24;
@@ -95,7 +135,7 @@ namespace bqt
         position[ 1 ] = 0;
         
         fullscreen = false;
-        in_focus = false;
+        in_focus = true;
         
         updates.changed    = false;
         updates.close      = false;
@@ -111,23 +151,22 @@ namespace bqt
     {
         #if defined PLATFORM_XWS_GNUPOSIX
         
-        Display* x_display = getXDisplay();
-        
-        glXMakeCurrent( x_display, None, NULL );
-        glXDestroyContext( x_display, platform_window.glx_context );
-        XDestroyWindow( x_display, platform_window.x_window );
+        if( platform_window.good )
+        {
+            Display* x_display = getXDisplay();
+            
+            glXMakeCurrent( x_display, None, NULL );
+            glXDestroyContext( x_display, platform_window.glx_context );
+            XDestroyWindow( x_display, platform_window.x_window );
+            
+            platform_window.good = false;
+        }
         
         #else
         
         #error "Windows not implemented on non-X platforms"
         
         #endif
-        
-        // if( platform_window.sdl_window != NULL )
-        // {
-        //     SDL_GL_DeleteContext( platform_window.sdl_gl_context );
-        //     SDL_DestroyWindow( platform_window.sdl_window );
-        // }
     }
     
     void window::addCanvas( canvas* c, view_id v, int t )
@@ -161,10 +200,10 @@ namespace bqt
         scoped_lock slock( window_mutex );
         return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
     }
-    std::pair< unsigned int, unsigned int > window::getPosition()
+    std::pair< int, int > window::getPosition()
     {
         scoped_lock slock( window_mutex );
-        return std::pair< unsigned int, unsigned int >( position[ 0 ], position[ 1 ] );
+        return std::pair< int, int >( position[ 0 ], position[ 1 ] );
     }
     
     float window::getViewZoom( view_id v )
@@ -184,9 +223,9 @@ namespace bqt
     {
         scoped_lock slock( window_mutex );
         
-        // if( platform_window.sdl_window == NULL )
-        //     throw exception( "window::getPlatformWindow(): Window does not have a platform window yet" );
-        // else
+        if( !platform_window.good )
+            throw exception( "window::getPlatformWindow(): Window does not have a platform window yet" );
+        else
             return platform_window;
     }
     
@@ -195,9 +234,7 @@ namespace bqt
     window::manipulate::manipulate( window* t )
     {
         if( t == NULL )
-        {
-            target = new window();
-        }
+            target = new window();                                              // Useful for debugging, or if we just need a window no matter what dammit
         else
             target = t;
     }
@@ -206,111 +243,122 @@ namespace bqt
     {
         bool redraw_window = false;
         
-        // target -> window_mutex.lock();                                          // We need to explicitly lock/unlock this as the window can be destroyed
+        target -> window_mutex.lock();                                          // We need to explicitly lock/unlock this as the window can be destroyed
         
-        // SDL_Window*& sdl_window = target -> platform_window.sdl_window;
+        if( !( target -> platform_window.good ) )
+        {
+            target -> init();
+            redraw_window = true;
+        }
         
-        // if( sdl_window == NULL )
-        // {
-        //     target -> init();
-        //     redraw_window = true;
-        // }
-        
-        // if( target -> updates.close )
-        // {
-        //     deregisterWindow( *target );
-        //     target -> window_mutex.unlock();
-        //     delete target;
+        if( target -> updates.close )
+        {
+            ff::write( bqt_out, "Closing\n" );
             
-        //     if( getQuitOnNoWindows() && getRegisteredWindowCount() < 1 )
-        //     {
-        //         SDL_Event* sdl_event = new SDL_Event;
-        //         sdl_event -> type = SDL_QUIT;
+            deregisterWindow( *target );
+            target -> window_mutex.unlock();
+            delete target;
+            
+            if( getQuitOnNoWindows() && getRegisteredWindowCount() < 1 )
+                setQuitFlag();
+        }
+        else
+        {
+            if( target -> updates.changed )
+            {
+                Display* x_display = getXDisplay();
                 
-        //         if( SDL_PushEvent( sdl_event ) < 1 )
-        //         {
-        //             ff::write( bqt_out, "Warning: Failed to push a quit event internally\n" );
-        //             delete sdl_event;
-        //         }                                                               // If pushed, we let the allocated memory hang since it's not clear what SDL
-        //                                                                         // does with it.
-        //     }
-        // }
-        // else
-        // {
-        //     if( target -> updates.changed )
-        //     {
-        //         if( target -> updates.dimensions )
-        //         {
-        //             SDL_SetWindowSize( sdl_window,
-        //                                target -> dimensions[ 0 ],
-        //                                target -> dimensions[ 1 ] );
-        //             target -> updates.dimensions = false;
-        //         }
-                
-        //         if( target -> updates.position )
-        //         {
-        //             SDL_SetWindowPosition( sdl_window,
-        //                                    target -> dimensions[ 0 ],
-        //                                    target -> dimensions[ 1 ] );
-        //             target -> updates.position = false;
-        //         }
-                
-        //         if( target -> updates.fullscreen )
-        //         {
-        //             if( target -> fullscreen )
-        //                 SDL_SetWindowFullscreen( sdl_window, SDL_TRUE );
-        //             else
-        //                 SDL_SetWindowFullscreen( sdl_window, SDL_FALSE );
-        //             target -> updates.fullscreen = false;
-        //         }
-                
-        //         if( target -> updates.title )
-        //         {
-        //             SDL_SetWindowTitle( sdl_window, target -> title.c_str() );
-        //             target -> updates.title = false;
-        //         }
-                
-        //         if( target -> updates.center )
-        //         {
-        //             // Calculate center
+                if( target -> updates.dimensions )
+                {
+                    XResizeWindow( x_display,
+                                   target -> platform_window.x_window,
+                                   target -> dimensions[ 0 ],
+                                   target -> dimensions[ 1 ] );
                     
-        //             target -> updates.minimize = false;
-        //         }
+                    target -> updates.dimensions = false;
+                }
                 
-        //         if( target -> updates.minimize )
-        //         {
-        //             SDL_MinimizeWindow( sdl_window );
-        //             target -> updates.minimize = false;
-        //         }
+                if( target -> updates.position )
+                {
+                    XMoveWindow( x_display,
+                                 target -> platform_window.x_window,
+                                 target -> position[ 0 ],
+                                 target -> position[ 1 ] );
+                    
+                    target -> updates.position = false;
+                }
                 
-        //         if( target -> updates.maximize )
-        //         {
-        //             SDL_MaximizeWindow( sdl_window );
-        //             target -> updates.maximize = false;
-        //         }
+                if( target -> updates.fullscreen )
+                {
+                    ff::write( bqt_out, "window::manipulate::execute(): Fullscreen not implemented yet, ignoring\n" );
+                    // TODO: implement
+                    #warning "window::manipulate::execute(): Fullscreen not implemented"
+                    
+                    target -> updates.fullscreen = false;
+                }
                 
-        //         if( target -> updates.restore )
-        //         {
-        //             SDL_RestoreWindow( sdl_window );
-        //             target -> updates.restore = false;
-        //         }
+                if( target -> updates.title )
+                {
+                    XStoreName( x_display,
+                                target -> platform_window.x_window,
+                                target -> title.c_str() );
+                    
+                    target -> updates.title = false;
+                }
                 
-        //         target -> updates.changed = false;
+                if( target -> updates.center )
+                {
+                    ff::write( bqt_out, "window::manipulate::execute(): Centering not implemented yet, ignoring\n" );
+                    // TODO: implement
+                    #warning "window::manipulate::execute(): Centering not implemented"
+                    
+                    target -> updates.center = false;
+                }
                 
-        //         redraw_window = true;
-        //     }
+                if( target -> updates.minimize )
+                {
+                    XIconifyWindow( x_display,
+                                    target -> platform_window.x_window,
+                                    X_SCREEN );
+                    
+                    target -> updates.minimize = false;
+                }
+                
+                if( target -> updates.maximize )
+                {
+                    ff::write( bqt_out, "window::manipulate::execute(): Maximize not implemented yet, ignoring\n" );
+                    // TODO: implement
+                    #warning "window::manipulate::execute(): Maximize not implemented"
+                    
+                    target -> updates.maximize = false;
+                }
+                
+                if( target -> updates.restore )
+                {
+                    XMapWindow( x_display,
+                                target -> platform_window.x_window );
+                    
+                    target -> updates.restore = false;
+                }
+                
+                target -> updates.changed = false;
+                redraw_window = true;
+            }
             
-        //     target -> window_mutex.unlock();
-        // }
-        
-        if( redraw_window )
-            submitTask( new window::redraw( *target ) );
+            target -> window_mutex.unlock();
+            
+            if( redraw_window )
+                submitTask( new window::redraw( *target ) );
+        }
         
         return true;
     }
     
     void window::manipulate::setDimensions( unsigned int w, unsigned int h )
     {
+        if( w < 1 || h < 1 )
+            throw exception( "window::manipulate::setDimensions(): Width or height < 1" );
+        
         scoped_lock slock( target -> window_mutex );
         
         target -> dimensions[ 0 ] = w;
@@ -319,7 +367,7 @@ namespace bqt
         
         target -> updates.changed = true;
     }
-    void window::manipulate::setPosition( unsigned int x, unsigned int y )
+    void window::manipulate::setPosition( int x, int y )
     {
         scoped_lock slock( target -> window_mutex );
         
@@ -431,9 +479,9 @@ namespace bqt
                 throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
             
             Display* x_display = getXDisplay();
-            // glXMakeCurrent( x_display,
-            //                 target.platform_window.x_window,
-            //                 target.platform_window.glx_context );
+            glXMakeCurrent( x_display,
+                            target.platform_window.x_window,
+                            target.platform_window.glx_context );
             
             // TODO: Implement
             {

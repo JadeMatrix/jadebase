@@ -65,14 +65,17 @@ extern "C"
     #include <GL/glx.h>
     #include <X11/extensions/XInput.h>
     
+    #define X_PROTOCOL_COUNT 1
     typedef struct
     {
+        bool                   good;
         Window               x_window;
         XWindowAttributes    x_window_attr;
         GLXContext         glx_context;
         XVisualInfo*         x_visual_info;
         XSetWindowAttributes x_set_window_attr;
         GLint              glx_attr[ 5 ];
+        Atom                 x_protocols[ X_PROTOCOL_COUNT ];
     } bqt_platform_window_t;
     
     Display* getXDisplay();
@@ -80,6 +83,9 @@ extern "C"
     typedef XID bqt_platform_idevid_t;
     
     typedef unsigned int bqt_platform_keycode_t;
+    
+    void setQuitFlag();
+    bool getQuitFlag();
     
     /* Microsoft Windows ******************************************************//******************************************************************************/
     

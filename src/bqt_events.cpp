@@ -23,21 +23,22 @@
 #include "bqt_platform.h"
 #include "bqt_exception.hpp"
 #include "bqt_launchargs.hpp"
+#include "bqt_mutex.hpp"
 
 #include "bqt_log.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
+
+#ifdef PLATFORM_XWS_GNUPOSIX
 
 namespace
 {
     // Accumulators for reinterpreting various events
     // We don't need any thread safety here as events have to be single-threaded
     
-    std::map< Uint32, bqt::window::manipulate* > window_manipulates;            // Waiting room so we don't submit more than we need
+    std::map< Window, bqt::window::manipulate* > window_manipulates;            // Waiting room so we don't submit more than we need
     
     // INPUT DEVICES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    #ifdef PLATFORM_XWS_GNUPOSIX
     
     struct
     {
@@ -111,8 +112,23 @@ namespace
         int position[ 2 ];                                                      // Absolute position in-window
     };
     
+    // X QUIT HANDLING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    #ifdef PLATFORM_XWS_GNUPOSIX
+    
+    bqt::mutex quit_mutex;
+    bool quit_flag = false;
+    
+    #endif
+    
     // EVENT HANDLERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
+    #if defined PLATFORM_XWS_GNUPOSIX
+    
+    void handleKeyEvent( XEvent& x_event )
+    {
+        
+    }
     // void handleKeyEvent( SDL_Event& sdl_event )
     // {
     //     // https://wiki.libsdl.org/SDL_KeyboardEvent
@@ -129,6 +145,10 @@ namespace
     //     }
     // }
     
+    void handleTouchEvent( XEvent& x_event )
+    {
+        
+    }
     // void handleTouchEvent( SDL_Event& sdl_event )
     // {
     //     bqt::window* active_window = getActiveWindow();
@@ -187,6 +207,10 @@ namespace
     //     }
     // }
     
+    void handleTextEvent( XEvent& x_event )
+    {
+        // http://www.x.org/releases/X11R7.6/doc/libX11/specs/XIM/xim.html
+    }
     // void handleTextEvent( SDL_Event& sdl_event )
     // {
     //     switch( sdl_event.type )
@@ -200,79 +224,90 @@ namespace
     //     }
     // }
     
-    // void handleWindowEvent( SDL_Event& sdl_event )
-    // {
-    //     using namespace bqt;
+    void handleWindowEvent( XEvent& x_event )
+    {
+        using namespace bqt;
         
-    //     bqt_platform_window_t platform_window;
-    //     platform_window.sdl_window = SDL_GetWindowFromID( sdl_event.window.windowID );
+        bqt_platform_window_t platform_window;
+        platform_window.x_window = x_event.xany.window;
         
-    //     if( isRegisteredWindow( platform_window ) )                             // There's a problem with SDL sending events for phantom windows
-    //     {
-    //         if( !window_manipulates.count( sdl_event.window.windowID ) )        // Create a new manipulate task if necessary
-    //             window_manipulates[ sdl_event.window.windowID ] = new window::manipulate( &getWindow( platform_window ) );
-    //     }
-    //     else
-    //     {
-    //         if( getDevMode() )
-    //             ff::write( bqt_out, "SDL window event received for unregistered window, ignoring\n" );
+        if( isRegisteredWindow( platform_window ) )
+        {
+            if( !window_manipulates.count( platform_window.x_window ) )
+                window_manipulates[ platform_window.x_window ] = new window::manipulate( &getWindow( platform_window ) );
+        }
+        else
+        {
+            if( getDevMode() )
+                ff::write( bqt_out, "X window event received for unregistered window, ignoring\n" );
             
-    //         return;
-    //     }
+            return;
+        }
         
-    //     window::manipulate* current_manip = window_manipulates[ sdl_event.window.windowID ];
+        window::manipulate* current_manip = window_manipulates[ platform_window.x_window ];
         
-    //     switch( sdl_event.window.event )
-    //     {
-    //         case SDL_WINDOWEVENT_SHOWN:
-    //             current_manip -> redraw();
-    //             break;
-    //         case SDL_WINDOWEVENT_HIDDEN:
+        switch( x_event.type )
+        {
+        // case :  // Shown
+        //     break;
+        case Expose:
+            if( x_event.xexpose.count != 0 )
+                current_manip -> redraw();
+            break;
+        case ConfigureRequest:
+            {
+                XConfigureRequestEvent& x_cfg_event( x_event.xconfigurerequest );
                 
-    //             break;
-    //         case SDL_WINDOWEVENT_EXPOSED:
-    //             current_manip -> redraw();
-    //             break;
-    //         case SDL_WINDOWEVENT_MOVED:
-    //             // Don't need to actually change position (in fact breaks)
-    //             // current_manip -> setPosition( sdl_event.window.data1, sdl_event.window.data2 );
-    //             break;
-    //         case SDL_WINDOWEVENT_RESIZED:
-    //             current_manip -> setDimensions( sdl_event.window.data1, sdl_event.window.data2 );
-    //             break;
-    //         case SDL_WINDOWEVENT_SIZE_CHANGED:
-    //             // broken on Ubuntu 14.04?
-    //             break;
-    //         case SDL_WINDOWEVENT_MINIMIZED:
-    //             current_manip -> minimize();
-    //             break;
-    //         case SDL_WINDOWEVENT_MAXIMIZED:
-    //             current_manip -> maximize();
-    //             break;
-    //         case SDL_WINDOWEVENT_RESTORED:
-    //             current_manip -> restore();
-    //             break;
-    //         case SDL_WINDOWEVENT_ENTER:
+                if( x_cfg_event.value_mask & CWX || x_cfg_event.value_mask & CWY )
+                    current_manip -> setPosition( x_cfg_event.x, x_cfg_event.y );
                 
-    //             break;
-    //         case SDL_WINDOWEVENT_LEAVE:
-                
-    //             break;
-    //         case SDL_WINDOWEVENT_FOCUS_GAINED:
-    //             current_manip -> setFocus( true );
-    //             makeWindowActive( platform_window );
-    //             break;
-    //         case SDL_WINDOWEVENT_FOCUS_LOST:
-    //             current_manip -> setFocus( false );
-    //             break;
-    //         case SDL_WINDOWEVENT_CLOSE:
-    //             current_manip -> close();
-    //             break;
-    //     }
-    // }
+                if( x_cfg_event.value_mask & CWWidth || x_cfg_event.value_mask & CWHeight )
+                {
+                    if( x_cfg_event.width < 1 || x_cfg_event.height < 1 )       // Trust no one
+                        throw exception( "handleWindowEvent(): Width or height not within limits" );
+                    
+                    current_manip -> setDimensions( x_cfg_event.width, x_cfg_event.height );
+                }
+            }
+            break;
+        case MapRequest:
+            current_manip -> restore();
+            break;
+        case ClientMessage:
+            // http://tronche.com/gui/x/icccm/sec-4.html#s-4.2.8.1
+            if( x_event.xclient.data.l[ 0 ] == XInternAtom( getXDisplay(), "WM_DELETE_WINDOW", False ) )
+                current_manip -> close();
+            break;
+        // case :  // Minimize
+        //     current_manip -> minimize();
+        //     break;
+        // case :  // Maximize
+        //     current_manip -> maximize();
+        //     break;
+        // case :  // Mouse Focus
+        //     break;
+        // case :  // Keyboard Focus
+        //     break;
+        default:
+            if( getDevMode() )
+                ff::write( bqt_out, "Received unrecognized X window event, ignoring\n" );
+            break;
+        }
+    }
 }
 
 /******************************************************************************//******************************************************************************/
+
+void setQuitFlag()
+{
+    bqt::scoped_lock slock( quit_mutex );
+    quit_flag = true;
+}
+bool getQuitFlag()
+{
+    bqt::scoped_lock slock( quit_mutex );
+    return quit_flag;
+}
 
 namespace bqt
 {
@@ -285,80 +320,52 @@ namespace bqt
     
     bool HandleEvents_task::execute( task_mask* caller_mask )
     {
-        // {
-        //     SDL_Event sdl_event;
+        if( getQuitFlag() )
+        {
+            if( getDevMode() )
+                ff::write( bqt_out, "Quitting...\n" );
+            closeAllWindows();
+            submitTask( new StopTaskSystem_task() );
+        }
+        else
+        {
+            XEvent x_event;
+            Display* x_display = getXDisplay();
             
-        //     while( SDL_PollEvent( &sdl_event ) )                                // Ugh, unsafe: not guaranteed to terminate
-        //     {
-        //         switch( sdl_event.type )
-        //         {
-        //         case SDL_DOLLARGESTURE:
-        //             // Ignore
-        //             break;
-        //         case SDL_DROPFILE:
-        //             break;
-        //         case SDL_FINGERMOTION:
-        //         case SDL_FINGERDOWN:
-        //         case SDL_FINGERUP:
-        //             handleTouchEvent( sdl_event );
-        //             break;
-        //         case SDL_KEYDOWN:
-        //         case SDL_KEYUP:
-        //             handleKeyEvent( sdl_event );
-        //             break;
-        //         case SDL_JOYAXISMOTION:
-        //         case SDL_JOYBALLMOTION:
-        //         case SDL_JOYHATMOTION:
-        //         case SDL_JOYBUTTONDOWN:
-        //         case SDL_JOYBUTTONUP:
-        //             // Ignore
-        //             break;
-        //         case SDL_MOUSEMOTION:
-        //         case SDL_MOUSEBUTTONDOWN:
-        //         case SDL_MOUSEBUTTONUP:
-        //         case SDL_MOUSEWHEEL:
-        //             handleMouseEvent( sdl_event );
-        //             break;
-        //         case SDL_MULTIGESTURE:
-        //             handleTouchEvent( sdl_event );
-        //             break;
-        //         case SDL_QUIT:
-        //             {
-        //                 if( getDevMode() )
-        //                     ff::write( bqt_out, "Quitting...\n" );
-        //                 closeAllWindows();
-        //                 submitTask( new StopTaskSystem_task() );
-        //             }
-        //             break;
-        //         case SDL_SYSWMEVENT:
-        //             // Ignore
-        //             break;
-        //         case SDL_TEXTEDITING:
-        //         case SDL_TEXTINPUT:
-        //             handleTextEvent( sdl_event );
-        //             break;
-        //         case SDL_USEREVENT:
-        //             // Ignore
-        //             break;
-        //         case SDL_WINDOWEVENT:
-        //             handleWindowEvent( sdl_event );
-        //             break;
-        //         default:
-        //             NULL;
-        //         }
-        //     }
+            for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )
+                 queue_size > 0;
+                 --queue_size )                                                 // Yay we can guarantee termination
+            {
+                XNextEvent( x_display, &x_event );
+                
+                switch( x_event.type )
+                {
+                    case Expose:
+                    case ConfigureRequest:
+                    case MapRequest:
+                    case ClientMessage:
+                        handleWindowEvent( x_event );
+                        break;
+                }
+            }
             
-        //     for( std::map< Uint32, bqt::window::manipulate* >::iterator iter = window_manipulates.begin();
-        //          iter != window_manipulates.end();
-        //          ++iter )
-        //     {
-        //         submitTask( iter -> second );
-        //     }
-        //     window_manipulates.clear();
-        // }
+            for( std::map< Window, bqt::window::manipulate* >::iterator iter = window_manipulates.begin();
+                 iter != window_manipulates.end();
+                 ++iter )
+            {
+                submitTask( iter -> second );
+            }
+            window_manipulates.clear();
+        }
         
         return false;                                                           // Requeue instead of submitting a new copy
     }
 }
+
+#else
+
+#error "Events not implemented on non-X platforms"
+
+#endif
 
 

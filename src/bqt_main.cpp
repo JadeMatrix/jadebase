@@ -68,7 +68,7 @@ namespace bqt
                 submitTask( new HandleEvents_task() );
                 
                 submitTask( new window::manipulate( NULL ) );
-                submitTask( new window::manipulate( NULL ) );
+                // submitTask( new window::manipulate( NULL ) );
                 
                 // for( int i = 0; i < 4; ++i )
                 //     submitTask( new BusyWork_task() );
@@ -109,26 +109,28 @@ int bqt_main()
     {
         bqt::initFromLaunchArgs();
         
-        bqt::window test_window;
-        test_window.init();
+        // #warning "Using test window"
         
-        bqt::task_mask test_mask = bqt::TASK_SYSTEM | bqt::TASK_GPU;
-        bqt::window::redraw test_redraw( test_window );
-        test_redraw.execute( &test_mask );
+        // bqt::window test_window;
+        // test_window.init();
         
-        sleep( 5 );
+        // bqt::task_mask test_mask = bqt::TASK_SYSTEM | bqt::TASK_GPU;
+        // bqt::window::redraw test_redraw( test_window );
+        // test_redraw.execute( &test_mask );
         
-        // if( bqt::initTaskSystem( true ) )
-        // {
-        //     bqt::submitTask( new bqt::StartBQTDraw_task() );
+        // sleep( 5 );
+        
+        if( bqt::initTaskSystem( true ) )
+        {
+            bqt::submitTask( new bqt::StartBQTDraw_task() );
             
-        //     bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
-        //     bqt::becomeTaskThread( &main_mask );
+            bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
+            bqt::becomeTaskThread( &main_mask );
             
-        //     bqt::deInitTaskSystem();
-        // }
-        // else
-        //     throw( bqt::exception( "bqt_main(): Failed to initialize task system" ) );
+            bqt::deInitTaskSystem();
+        }
+        else
+            throw( bqt::exception( "bqt_main(): Failed to initialize task system" ) );
     }
     catch( bqt::exception& e )
     {

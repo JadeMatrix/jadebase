@@ -14,10 +14,10 @@
  * 
  */
 
-// https://wiki.libsdl.org/SDL_WindowEventID?highlight=%28\bCategoryEnum\b%29|%28CategoryEvents%29
-// https://wiki.libsdl.org/SDL_CreateSystemCursor
-// needed? http://rainwarrior.ca/dragon/sdl_glsl.html
 // http://www.opengl.org/wiki/Texture_Storage#Texture_copy
+
+// http://tronche.com/gui/x/xlib/pixmap-and-cursor/cursor.html
+// http://tronche.com/gui/x/xlib/window/XDefineCursor.html
 
 // Text input references:
 // https://wiki.libsdl.org/Tutorials/TextInput
@@ -55,7 +55,7 @@ namespace bqt
         unsigned int pending_redraws;
         
         std::string title;
-        int dimensions[2];
+        unsigned int dimensions[2];
         int position[2];
         bool fullscreen;
         bool in_focus;
@@ -116,7 +116,7 @@ namespace bqt
         window();
         
         std::pair< unsigned int, unsigned int > getDimensions();
-        std::pair< unsigned int, unsigned int > getPosition();
+        std::pair< int, int > getPosition();
         
         float getViewZoom( view_id v );
         
@@ -138,7 +138,7 @@ namespace bqt
             }
             
             void setDimensions( unsigned int w, unsigned int h );
-            void setPosition( unsigned int x, unsigned int y );
+            void setPosition( int x, int y );
             
             void setFullscreen( bool f );
             void setTitle( std::string t );
