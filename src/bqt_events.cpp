@@ -45,7 +45,8 @@ namespace
     {
         PEN_STYLUS,
         AIRBRUSH_STYLUS,
-        ERASER_STYLUS
+        ERASER_STYLUS,
+        TOUCH_STYLUS
     };
     
     struct x_tablet_device_name
@@ -56,7 +57,7 @@ namespace
                                   { "wacomdev2"                                   , ERASER_STYLUS },
                                   { "Wacom Serial Penabled 2FG Touchscreen stylus",    PEN_STYLUS },
                                   { "Wacom Serial Penabled 2FG Touchscreen eraser", ERASER_STYLUS },
-                                  { "Wacom Serial Penabled 2FG Touchscreen touch" ,    PEN_STYLUS } };
+                                  { "Wacom Serial Penabled 2FG Touchscreen touch" ,  TOUCH_STYLUS } };
     
     struct x_tablet_dev_detail
     {
@@ -220,7 +221,10 @@ namespace
                                                          / ( float )x_tablet_devices[ i ].axes[ 1 ].max_value )
                                                        * ( float )x_screen_px[ 1 ];
                         
-                        w_event.stroke.pressure = ( float )x_dmevent.axis_data[ 2 ] / ( float )x_tablet_devices[ i ].axes[ 2 ].max_value;
+                        if( x_tablet_devices[ i ].type == TOUCH_STYLUS )        // We assume no touch pressure right now
+                            w_event.stroke.pressure = 1.0f;
+                        else
+                            w_event.stroke.pressure = ( float )x_dmevent.axis_data[ 2 ] / ( float )x_tablet_devices[ i ].axes[ 2 ].max_value;
                         
                         // TODO: Account for | min_value | > | max_value |
                         
@@ -232,6 +236,7 @@ namespace
                         else
                             w_event.stroke.rotation = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
                         
+                        ff::write( bqt_out, w_event.stroke.position[ 0 ], " ", w_event.stroke.position[ 1 ], " ", w_event.stroke.pressure, "\n" );
                         break;
                     }
                 }
