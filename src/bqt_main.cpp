@@ -21,6 +21,7 @@
 #include "bqt_taskexec.hpp"
 #include "bqt_version.hpp"
 #include "bqt_events.hpp"
+#include "bqt_gl.hpp"
 
 // TODO: Debug, remove later?
 #include "bqt_window.hpp"
@@ -111,9 +112,11 @@ int bqt_main()
         
         if( bqt::initTaskSystem( true ) )
         {
+            bqt::initOpenGL();
+            
             bqt::submitTask( new bqt::StartBQTDraw_task() );
             
-            bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM | bqt::TASK_GPU;
+            bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;
             bqt::becomeTaskThread( &main_mask );
             
             bqt::deInitTaskSystem();

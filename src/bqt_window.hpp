@@ -110,8 +110,7 @@ namespace bqt
             }
             task_mask getMask()
             {
-                // return TASK_GPU;
-                return TASK_SYSTEM;
+                return TASK_GPU;
             }
         };
     public:

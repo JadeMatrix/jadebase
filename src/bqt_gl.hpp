@@ -28,7 +28,7 @@
 
 namespace bqt
 {
-    
+    void initOpenGL();                                                          // Any OpenGL initialization needed (mostly set some thread mask TASK_GPU)
 }
 
 /******************************************************************************//******************************************************************************/
