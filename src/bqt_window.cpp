@@ -61,7 +61,7 @@ namespace bqt
                                                        | ExposureMask
                                                        | VisibilityChangeMask
                                                        | StructureNotifyMask
-                                                       | ResizeRedirectMask
+                                                       // | ResizeRedirectMask
                                                        | SubstructureNotifyMask
                                                        // | SubstructureRedirectMask
                                                        | FocusChangeMask
@@ -273,20 +273,45 @@ namespace bqt
                 
                 if( target -> updates.dimensions )
                 {
-                    XResizeWindow( x_display,
-                                   target -> platform_window.x_window,
-                                   target -> dimensions[ 0 ],
-                                   target -> dimensions[ 1 ] );
+                    // Actual resizing handled by WM, this is just for bounds checking
+                    bool retry = false;
+                    unsigned int new_dimensions[ 2 ];
+                    new_dimensions[ 0 ] = target -> dimensions[ 0 ];
+                    new_dimensions[ 1 ] = target -> dimensions[ 1 ];
+                    
+                    if( target -> dimensions[ 0 ] < BQT_WINDOW_MIN_WIDTH )
+                    {
+                        new_dimensions[ 0 ] = BQT_WINDOW_MIN_WIDTH;
+                        retry = true;
+                    }
+                    if( target -> dimensions[ 1 ] < BQT_WINDOW_MIN_HEIGHT )
+                    {
+                        new_dimensions[ 1 ] = BQT_WINDOW_MIN_HEIGHT;
+                        retry = true;
+                    }
+                    
+                    if( retry )
+                    {
+                        XResizeWindow( x_display,
+                                       target -> platform_window.x_window,
+                                       new_dimensions[ 0 ],
+                                       new_dimensions[ 1 ] );                   // This will generate a new event that leads here agan; this is OK
+                        
+                        redraw_window = false;
+                    }
+                    else
+                        redraw_window = true;
                     
                     target -> updates.dimensions = false;
                 }
                 
                 if( target -> updates.position )
                 {
-                    XMoveWindow( x_display,
-                                 target -> platform_window.x_window,
-                                 target -> position[ 0 ],
-                                 target -> position[ 1 ] );
+                    // Actual moving handled by WM
+                    // XMoveWindow( x_display,
+                    //              target -> platform_window.x_window,
+                    //              target -> position[ 0 ],
+                    //              target -> position[ 1 ] );
                     
                     target -> updates.position = false;
                 }
@@ -298,6 +323,7 @@ namespace bqt
                     #warning "window::manipulate::execute(): Fullscreen not implemented"
                     
                     target -> updates.fullscreen = false;
+                    redraw_window = true;
                 }
                 
                 if( target -> updates.title )
@@ -336,6 +362,7 @@ namespace bqt
                     makeWindowActive( target -> getPlatformWindow() );
                     
                     target -> updates.maximize = false;
+                    redraw_window = true;
                 }
                 
                 if( target -> updates.restore )
@@ -346,10 +373,12 @@ namespace bqt
                     makeWindowActive( target -> getPlatformWindow() );
                     
                     target -> updates.restore = false;
+                    redraw_window = true;
                 }
                 
                 target -> updates.changed = false;
-                redraw_window = true;
+                
+                XFlush( x_display );
             }
             
             target -> window_mutex.unlock();
@@ -485,10 +514,14 @@ namespace bqt
             if( target.pending_redraws != 1 )                                   // Sanity check
                 throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
             
+            // ff::write( bqt_out, "Redrawing window\n" );
+            
             Display* x_display = getXDisplay();
             glXMakeCurrent( x_display,
                             target.platform_window.x_window,
                             target.platform_window.glx_context );
+            
+            XFlush( x_display );
             
             // TODO: Implement
             {

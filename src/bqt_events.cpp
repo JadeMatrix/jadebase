@@ -71,7 +71,6 @@ namespace
         int x_motioneventtype;
     };
     
-    bqt::mutex x_tabletdev_mutex;
     std::vector< x_tablet_dev_detail > x_tablet_devices;
     int x_device_count = 0;
     
@@ -161,12 +160,12 @@ namespace
         
         // bqt_platform_window_t platform_window;
         // platform_window.x_window = x_event.xany.window;
-        // bqt::window& target( bqt::getWindow( platform_window ) );            // XInput doesn't seem to be reporting the window with the event
+        // bqt::window* target = bqt::getWindow( platform_window );             // XInput doesn't report any individual window with the event
         bqt::window* target = bqt::getActiveWindow();
         if( target == NULL )
         {
-            if( bqt::getDevMode() )
-                ff::write( bqt_out, "Warning: Got motion event with no active window, ignoring\n" );
+            // if( bqt::getDevMode() )
+            //     ff::write( bqt_out, "Warning: Got motion event not matched to a known window, ignoring\n" );
             
             return;
         }
@@ -183,8 +182,6 @@ namespace
             {
                 // lol at least we want sub-pixel positions anyways
                 // https://bugs.freedesktop.org/show_bug.cgi?id=41757
-                
-                bqt::scoped_lock slock( x_tabletdev_mutex );
                 
                 XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&x_event ) );
                 
@@ -231,10 +228,16 @@ namespace
                         w_event.stroke.tilt[ 0 ] = ( float )x_dmevent.axis_data[ 3 ] / ( float )x_tablet_devices[ i ].axes[ 3 ].max_value;
                         w_event.stroke.tilt[ 1 ] = ( float )x_dmevent.axis_data[ 4 ] / ( float )x_tablet_devices[ i ].axes[ 4 ].max_value;
                         
-                        if( x_tablet_devices[ i ].type == AIRBRUSH_STYLUS )
+                        if( x_tablet_devices[ i ].type == AIRBRUSH_STYLUS )     // Wacom 6th axis' meaning depends on device
+                        {
                             w_event.stroke.wheel = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
+                            w_event.stroke.rotation = 0.0;
+                        }
                         else
+                        {
+                            w_event.stroke.wheel = 0.0;
                             w_event.stroke.rotation = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
+                        }
                         
                         ff::write( bqt_out, w_event.stroke.position[ 0 ], " ", w_event.stroke.position[ 1 ], " ", w_event.stroke.pressure, "\n" );
                         break;
@@ -259,11 +262,12 @@ namespace
         
         bqt_platform_window_t platform_window;
         platform_window.x_window = x_event.xany.window;
+        bqt::window& bqt_window( getWindow( platform_window ) );
         
         if( isRegisteredWindow( platform_window ) )
         {
             if( !window_manipulates.count( platform_window.x_window ) )
-                window_manipulates[ platform_window.x_window ] = new window::manipulate( &getWindow( platform_window ) );
+                window_manipulates[ platform_window.x_window ] = new window::manipulate( &bqt_window );
         }
         else
         {
@@ -284,21 +288,29 @@ namespace
                 current_manip -> redraw();
             break;
         case ConfigureRequest:
+            // ff::write( bqt_out, "ConfigureRequest\n" );
+            // XConfigureRequestEvent& x_cfg_event( x_event.xconfigurerequest );
+            break;
+        case ConfigureNotify:
             {
-                XConfigureRequestEvent& x_cfg_event( x_event.xconfigurerequest );
+                XConfigureEvent& x_cfg_event( x_event.xconfigure );
                 
-                if( x_cfg_event.value_mask & CWX || x_cfg_event.value_mask & CWY )
+                // if( x_cfg_event.value_mask & CWX || x_cfg_event.value_mask & CWY )
+                if( x_cfg_event.x !=bqt_window.getPosition().first || x_cfg_event.y !=bqt_window.getPosition().second )
                     current_manip -> setPosition( x_cfg_event.x, x_cfg_event.y );
                 
-                if( x_cfg_event.value_mask & CWWidth || x_cfg_event.value_mask & CWHeight )
+                // if( x_cfg_event.value_mask & CWWidth || x_cfg_event.value_mask & CWHeight )
+                if( x_cfg_event.width != bqt_window.getDimensions().first || x_cfg_event.height != bqt_window.getDimensions().second )
                 {
                     if( x_cfg_event.width < 1 || x_cfg_event.height < 1 )       // Trust no one
                         throw exception( "handleWindowEvent(): Width or height not within limits" );
                     
+                    // ff::write( bqt_out, "Setting dimensions\n" );
                     current_manip -> setDimensions( x_cfg_event.width, x_cfg_event.height );
                 }
             }
             break;
+        case VisibilityNotify:
         case MapNotify:
         case MapRequest:
             current_manip -> restore();
@@ -350,13 +362,11 @@ namespace bqt
         // for stroke_waypoint collecting:
         // http://www.cplusplus.com/reference/vector/vector/reserve/
         
-        scoped_lock slock( x_tabletdev_mutex );
-        
         Display* x_display = getXDisplay();
         int x_screen = DefaultScreen( x_display );
         
-        int x_tablet_name_count =   sizeof( x_tablet_device_names )
-                                  / sizeof( x_tablet_device_name );
+        int x_tablet_name_count = sizeof( x_tablet_device_names )               // Array x_tablet_device_names
+                                  / sizeof( x_tablet_device_name );             // Type x_tablet_device_name
         XEventClass x_eventclass_list[ x_tablet_name_count ];                   // We only need it as big as the most tablets we can have
         int x_eventclass_count = 0;
         
@@ -399,7 +409,7 @@ namespace bqt
                         XAnyClassPtr x_any = ( XAnyClassPtr )x_dev_info[ i ].inputclassinfo;
                         for( int k = 0; k < x_dev_info[ i ].num_classes; ++k )
                         {
-                            if( sizeof( XID ) != sizeof( long ) )               // Just in case
+                            if( sizeof( XID ) != sizeof( long ) )               // TODO: Find a way to make this a compile-time error
                                 throw exception( "openTabletDevices(): X class 'class' member hack does not work" );
                             // switch( x_any -> class )                         // OH NO YOU CAN'T DO THIS IS C++ BABY
                             switch( *( ( long* )x_any  ) )                      // 'class' should be sizeof( long ) & the first element of XAnyClass
@@ -419,8 +429,6 @@ namespace bqt
                                     
                                     if( xval_info -> num_axes != 6 )            // Throw exception until its supported (if necessary)
                                         throw exception( "openTabletDevices(): Tablet device with axis count != 6 found\n" );
-                                    
-                                    // XAxisInfoPtr xaxis_info = ( XAxisInfoPtr )( ( char* )( ( XValuatorInfoPtr )any_class ) + sizeof( XValuatorInfo ) );
                                     
                                     for( int axis = 0; axis < xval_info -> num_axes; ++axis )
                                         detail.axes[ axis ] = xval_info -> axes[ axis ];
@@ -465,8 +473,6 @@ namespace bqt
     
     void closeTabletDevices()
     {
-        scoped_lock slock( x_tabletdev_mutex );
-        
         Display* x_display = getXDisplay();
         
         for( int i = 0; i < x_tablet_devices.size(); i++ )
@@ -488,8 +494,6 @@ namespace bqt
             Display* x_display = getXDisplay();
             
             {                                                                   // Check to see if we want to refresh device list
-                scoped_lock slock( x_tabletdev_mutex );
-                
                 int new_device_count;
                 XFreeDeviceList( XListInputDevices( x_display, &new_device_count ) );   // No clear way of getting just the count
                 
@@ -519,12 +523,32 @@ namespace bqt
                     break;
                 case Expose:
                 case ConfigureRequest:
+                case ConfigureNotify:
                 case MapNotify:
                 case MapRequest:
                 case ClientMessage:
-                // case PropertyNotify:
+                case VisibilityNotify:
                     handleWindowEvent( x_event );
                     break;
+                case DestroyNotify:
+                case CreateNotify:
+                case UnmapNotify:
+                case ReparentNotify:
+                case GravityNotify:
+                case EnterNotify:
+                case LeaveNotify:
+                case FocusIn:
+                case FocusOut:
+                case GraphicsExpose:
+                case NoExpose:
+                case CirculateNotify:
+                case CirculateRequest:
+                case SelectionClear:
+                case SelectionRequest:
+                case SelectionNotify:
+                case ColormapNotify:
+                case PropertyNotify:
+                    break;                                                      // Ignore
                 default:
                     handleMotionEvent( x_event );                               // DeviceMotion events have a dynamic type
                     break;

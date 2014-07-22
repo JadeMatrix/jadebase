@@ -44,8 +44,8 @@ namespace bqt
         else
             id_window_map[ window_id ] = &w;
         
-        // if( getDevMode() )
-        //     ff::write( bqt_out, "Registered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
+        if( getDevMode() )
+            ff::write( bqt_out, "Registered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
     }
     void deregisterWindow( window& w )
     {
@@ -57,8 +57,8 @@ namespace bqt
         if( id_window_map.erase( window_id ) < 1 )
             throw exception( "deregisterWindow(): No window associated with platform window" );
         
-        // if( getDevMode() )
-        //     ff::write( bqt_out, "Deregistered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
+        if( getDevMode() )
+            ff::write( bqt_out, "Deregistered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );
     }
     
     bool isRegisteredWindow( bqt_platform_window_t& w )
@@ -105,7 +105,7 @@ namespace bqt
             return *( id_window_map[ window_id ] );
         else
         {
-            // ff::write( bqt_out, "No window associated with id ", window_id, "\n" );
+            ff::write( bqt_out, "No window associated with id ", window_id, "\n" );
             throw exception( "getWindow(): No window associated with platform window" );
         }
     }
