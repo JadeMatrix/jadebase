@@ -20,6 +20,7 @@
 #include "bqt_taskexec.hpp"
 #include "bqt_windowmanagement.hpp"
 #include "bqt_window.hpp"
+#include "bqt_windowevent.hpp"
 #include "bqt_platform.h"
 #include "bqt_exception.hpp"
 #include "bqt_launchargs.hpp"
@@ -40,84 +41,40 @@ namespace
     
     #ifdef PLATFORM_XWS_GNUPOSIX
 
-    struct x_tablet_device_info
+    enum pen_type
     {
-        const char* dev_name;
-        bool is_eraser;
+        PEN_STYLUS,
+        AIRBRUSH_STYLUS,
+        ERASER_STYLUS
+    };
+    
+    struct x_tablet_device_name
+    {
+        const char* name;
+        pen_type type;
+    } x_tablet_device_names[] = { { "wacomdev1"                                   ,    PEN_STYLUS },
+                                  { "wacomdev2"                                   , ERASER_STYLUS },
+                                  { "Wacom Serial Penabled 2FG Touchscreen stylus",    PEN_STYLUS },
+                                  { "Wacom Serial Penabled 2FG Touchscreen eraser", ERASER_STYLUS },
+                                  { "Wacom Serial Penabled 2FG Touchscreen touch" ,    PEN_STYLUS } };
+    
+    struct x_tablet_dev_detail
+    {
+        const char* name;
+        pen_type type;
+        
+        XAxisInfo axes[ 6 ];
+        
         XID x_devid;
         XDevice* x_device;
         int x_motioneventtype;
-    } x_tablet_device_storage[] = { { "wacomdev1"                                   , false, 0x00, NULL, 0x00 },
-                                    { "wacomdev2"                                   ,  true, 0x00, NULL, 0x00 },
-                                    { "Wacom Serial Penabled 2FG Touchscreen stylus", false, 0x00, NULL, 0x00 },
-                                    { "Wacom Serial Penabled 2FG Touchscreen eraser",  true, 0x00, NULL, 0x00 },
-                                    { "Wacom Serial Penabled 2FG Touchscreen touch" , false, 0x00, NULL, 0x00 } };
-    // XEventClass x_eventclass_list[ sizeof( x_tablet_device_storage ) / sizeof( x_tablet_device_info ) ];
+    };
     
     bqt::mutex x_tabletdev_mutex;
-    std::vector< int > x_tablet_devices;
+    std::vector< x_tablet_dev_detail > x_tablet_devices;
+    int x_device_count = 0;
     
     #endif
-    
-    // http://www.wacomeng.com/mac/Developers%20Guide.htm
-    
-    typedef unsigned short click_type;
-    #define CLICK_PRIMARY   0x0001      // 0000 0001
-    #define CLICK_SECONDARY 0x0002      // 0000 0010
-    #define CLICK_ALT       0x0004      // 0000 0100
-    #define CLICK_ERASE     0x0008      // 0000 1000
-    #define CLICK_LENS      0x0010      // 0001 0000
-    
-    struct substroke
-    {
-        click_type click;
-        
-        bool shift : 1;
-        bool ctrl  : 1;
-        bool alt   : 1;                                                         // Apple Option/Alt or Windows Alt
-        bool meta  : 1;                                                         // Apple Command or Windows key
-        
-        float start_pos[ 2 ];                                                   // Position [ x, y ] relative to screen (fractional if supported)
-        float   end_pos[ 2 ];
-        float start_pres;                                                       // Pressure
-        float   end_pres;
-        int   start_tilt[ 2 ];                                                  // Tilt [ x, y ]
-        int     end_tilt[ 2 ];
-        float start_rot;                                                        // Rotation (0.0 up to but not including 1.0 is a full rotation, can contain
-        float   end_rot;                                                        // multiple rotations)
-        float start_tang;                                                       // Tangential pressure -1.0 through 1.0
-        float   end_tang;
-    };
-    
-    struct linear_input
-    {
-        std::vector< substroke > substrokes;                                    // All substrokes in the current stroke
-        int prev_subsroke_set_end;                                              // Position of last substroke from previous event handling
-        
-        linear_input()
-        {
-            prev_subsroke_set_end = -1;
-        }
-    };
-    
-    std::map< bqt_platform_idevid_t, linear_input > linear_inputs;
-    
-    struct key_input
-    {
-        bqt_platform_keycode_t key;
-        
-        bool shift : 1;
-        bool ctrl  : 1;
-        bool alt   : 1;
-        bool meta  : 1;
-    };
-    
-    struct pinch_input
-    {
-        float distance;                                                         // Relative change in distance
-        float rotation;                                                         // Relative change, 0.0 through 1.0 for a full rotation, repeating
-        int position[ 2 ];                                                      // Absolute position in-window
-    };
     
     // X QUIT HANDLING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -134,7 +91,7 @@ namespace
     
     void handleKeyEvent( XEvent& x_event )
     {
-        
+        ff::write( bqt_out, "Key event\n" );
     }
     // void handleKeyEvent( SDL_Event& sdl_event )
     // {
@@ -154,7 +111,7 @@ namespace
     
     void handleTouchEvent( XEvent& x_event )
     {
-        
+        ff::write( bqt_out, "Touch event\n" );
     }
     // void handleTouchEvent( SDL_Event& sdl_event )
     // {
@@ -197,6 +154,22 @@ namespace
     
     void handleMotionEvent( XEvent& x_event )
     {
+        bqt::window_event w_event;
+        w_event.id = bqt::NONE;
+        w_event.id = bqt::COMMAND;
+        
+        // bqt_platform_window_t platform_window;
+        // platform_window.x_window = x_event.xany.window;
+        // bqt::window& target( bqt::getWindow( platform_window ) );            // XInput doesn't seem to be reporting the window with the event
+        bqt::window* target = bqt::getActiveWindow();
+        if( target == NULL )
+        {
+            if( bqt::getDevMode() )
+                ff::write( bqt_out, "Warning: Got motion event with no active window, ignoring\n" );
+            
+            return;
+        }
+        
         switch( x_event.type )
         {
         case ButtonPress:
@@ -207,64 +180,73 @@ namespace
             break;
         default:
             {
+                // lol at least we want sub-pixel positions anyways
+                // https://bugs.freedesktop.org/show_bug.cgi?id=41757
+                
                 bqt::scoped_lock slock( x_tabletdev_mutex );
                 
                 XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&x_event ) );
                 
+                Screen* x_screen = DefaultScreenOfDisplay( x_event.xany.display );
+                
+                int x_screen_px[ 2 ];
+                float x_screen_mm[ 2 ];
+                float x_screen_res[ 2 ];
+                
+                x_screen_px[ 0 ] = WidthOfScreen( x_screen );
+                x_screen_px[ 1 ] = HeightOfScreen( x_screen );
+                x_screen_mm[ 0 ] = WidthMMOfScreen( x_screen );
+                x_screen_mm[ 1 ] = HeightMMOfScreen( x_screen );
+                x_screen_res[ 0 ] = x_screen_mm[ 0 ] / x_screen_px[ 0 ];
+                x_screen_res[ 1 ] = x_screen_mm[ 1 ] / x_screen_px[ 1 ];
+                
                 for( int i = 0; i < x_tablet_devices.size(); ++i )
                 {
-                    if( x_tablet_device_storage[ x_tablet_devices[ i ] ].x_motioneventtype == x_event.type
-                        && x_tablet_device_storage[ x_tablet_devices[ i ] ].x_devid == x_dmevent.deviceid )
+                    if( x_tablet_devices[ i ].x_motioneventtype == x_event.type
+                        && x_tablet_devices[ i ].x_devid == x_dmevent.deviceid )
                     {
-                        ff::write( bqt_out, "MotionEvent:  0:", x_dmevent.axis_data[ 0 ],
-                                                        "  1:", x_dmevent.axis_data[ 1 ],
-                                                        "  2:", x_dmevent.axis_data[ 2 ],
-                                                        "  3:", x_dmevent.axis_data[ 3 ],
-                                                        "  4:", x_dmevent.axis_data[ 4 ],
-                                                        "  5:", x_dmevent.axis_data[ 5 ],
-                                                        "  ", x_tablet_device_storage[ x_tablet_devices[ i ] ].dev_name, "\n" );
+                        w_event.id = bqt::STROKE;
+                        
+                        if( x_tablet_devices[ i ].type == ERASER_STYLUS )
+                            w_event.stroke.click = CLICK_ERASE;
+                        else
+                            w_event.stroke.click = CLICK_PRIMARY;               // TODO: Figure out other click types from modifier keys
+                        
+                        // TODO: support less-than-fullscreen surfaces
+                        w_event.stroke.position[ 0 ] = ( ( float )x_dmevent.axis_data[ 0 ]
+                                                         / ( float )x_tablet_devices[ i ].axes[ 0 ].max_value )
+                                                       * ( float )x_screen_px[ 0 ];
+                        w_event.stroke.position[ 1 ] = ( ( float )x_dmevent.axis_data[ 1 ]
+                                                         / ( float )x_tablet_devices[ i ].axes[ 1 ].max_value )
+                                                       * ( float )x_screen_px[ 1 ];
+                        
+                        w_event.stroke.pressure = ( float )x_dmevent.axis_data[ 2 ] / ( float )x_tablet_devices[ i ].axes[ 2 ].max_value;
+                        
+                        // TODO: Account for | min_value | > | max_value |
+                        
+                        w_event.stroke.tilt[ 0 ] = ( float )x_dmevent.axis_data[ 3 ] / ( float )x_tablet_devices[ i ].axes[ 3 ].max_value;
+                        w_event.stroke.tilt[ 1 ] = ( float )x_dmevent.axis_data[ 4 ] / ( float )x_tablet_devices[ i ].axes[ 4 ].max_value;
+                        
+                        if( x_tablet_devices[ i ].type == AIRBRUSH_STYLUS )
+                            w_event.stroke.wheel = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
+                        else
+                            w_event.stroke.rotation = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
+                        
                         break;
                     }
                 }
             }
             break;
         }
+        
+        if( w_event.id != bqt::NONE )
+            target -> acceptEvent( w_event );
     }
-    // void handleMouseEvent( SDL_Event& sdl_event )
-    // {
-    //     // https://wiki.libsdl.org/SDL_MouseButtonEvent#Remarks
-    //     // ignore SDL_TOUCH_MOUSEID
-    //     switch( sdl_event.type )
-    //     {
-    //     case SDL_MOUSEMOTION:
-    //         break;
-    //     case SDL_MOUSEBUTTONDOWN:
-    //         break;
-    //     case SDL_MOUSEBUTTONUP:
-    //         break;
-    //     case SDL_MOUSEWHEEL:
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
     
     void handleTextEvent( XEvent& x_event )
     {
         // http://www.x.org/releases/X11R7.6/doc/libX11/specs/XIM/xim.html
     }
-    // void handleTextEvent( SDL_Event& sdl_event )
-    // {
-    //     switch( sdl_event.type )
-    //     {
-    //     case SDL_TEXTEDITING:
-    //         break;
-    //     case SDL_TEXTINPUT:
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
     
     void handleWindowEvent( XEvent& x_event )
     {
@@ -358,72 +340,132 @@ bool getQuitFlag()
 
 namespace bqt
 {
-    void eventSetUp()
+    void openTabletDevices()
     {
-        // for substroke collecting:
+        // for stroke_waypoint collecting:
         // http://www.cplusplus.com/reference/vector/vector/reserve/
-        
-        // TODO: clean this up
         
         scoped_lock slock( x_tabletdev_mutex );
         
         Display* x_display = getXDisplay();
         int x_screen = DefaultScreen( x_display );
         
-        XEventClass x_eventclass_list[ sizeof( x_tablet_device_storage ) / sizeof( x_tablet_device_info ) ];
+        int x_tablet_name_count =   sizeof( x_tablet_device_names )
+                                  / sizeof( x_tablet_device_name );
+        XEventClass x_eventclass_list[ x_tablet_name_count ];                   // We only need it as big as the most tablets we can have
         int x_eventclass_count = 0;
         
-        int x_dev_count;
-        XDeviceInfo* x_dev_info = XListInputDevices( x_display, &x_dev_count );
-        
-        if( x_dev_info == NULL )
-            throw exception( "eventSetup(): Failed to get list of X devices" );
-        
-        for( int i = 0; i < sizeof( x_tablet_device_storage ) / sizeof( x_tablet_device_info ); ++i )
+        float x_screen_res[ 2 ];
         {
-            for( int j = 0; j < x_dev_count; ++j )
-            {
-                if( !strcmp( x_dev_info[ j ].name, x_tablet_device_storage[ i ].dev_name ) )
-                {
-                    ff::write( bqt_out, "Found tablet device\n" );
-                    
-                    ff::write( bqt_out, "x_eventclass_count = ", x_eventclass_count, "\n" );
-                    
-                    x_tablet_device_storage[ i ].x_device = XOpenDevice( x_display, x_dev_info[ j ].id );
-                    
-                    x_tablet_device_storage[ i ].x_devid = x_dev_info[ j ].id;
-                    DeviceMotionNotify( x_tablet_device_storage[ i ].x_device,
-                                        x_tablet_device_storage[ i ].x_motioneventtype,
-                                        x_eventclass_list[ x_eventclass_count ] );
-                    ++x_eventclass_count;                                       // DeviceMotionNotify() is a macro, so increment outside
-                    
-                    x_tablet_devices.push_back( i );
-                    break;
-                }
-            }
+            Screen* x_screen_ptr = DefaultScreenOfDisplay( x_display );
+            x_screen_res[ 0 ] = WidthMMOfScreen( x_screen_ptr ) / WidthOfScreen( x_screen_ptr );
+            x_screen_res[ 1 ] = HeightMMOfScreen( x_screen_ptr ) / HeightOfScreen( x_screen_ptr );
         }
         
-        ff::write( bqt_out, x_eventclass_count, " event classes registered\n" );
+        // Much thanks to
+        // http://mobileim.googlecode.com/svn/MeeGo/meegoTraning/MeeGo_Traing_Doc_0119/meego_trn/meego-quality-assurance-mcts/mcts-blts/blts-x11/src/xinput_tests.c
+        // for demonstrating how to use XDeviceInfo.
         
-        XSelectExtensionEvent( x_display,
-                               RootWindow( x_display, x_screen ),
-                               x_eventclass_list,
-                               x_eventclass_count );
-        
+        XDeviceInfo* x_dev_info = XListInputDevices( x_display, &x_device_count );
+        {    
+            if( x_dev_info == NULL )
+                throw exception( "openTabletDevices(): Failed to get list of X devices" );
+            
+            for( int i = 0; i < x_device_count; i++ )
+            {
+                for( int j = 0; j < x_tablet_name_count; ++j )
+                {
+                    if( !strcmp( x_dev_info[ i ].name,
+                                 x_tablet_device_names[ j ].name ) )
+                    {
+                        x_tablet_dev_detail detail;                             // I give up, these names are getting too long
+                        
+                        detail.name = x_tablet_device_names[ j ].name;
+                        detail.type = x_tablet_device_names[ j ].type;
+                        detail.x_devid = x_dev_info[ i ].id;
+                        detail.x_device = XOpenDevice( x_display, detail.x_devid  );
+                        
+                        if( detail.x_device == NULL )
+                            ff::write( bqt_out, "Warning: Found device \"", detail.name, "\" but could not open\n" );
+                        else
+                            if( getDevMode() )
+                                ff::write( bqt_out, "Opened device \"", detail.name, "\"\n" );
+                        
+                        XAnyClassPtr x_any = ( XAnyClassPtr )x_dev_info[ i ].inputclassinfo;
+                        for( int k = 0; k < x_dev_info[ i ].num_classes; ++k )
+                        {
+                            if( sizeof( XID ) != sizeof( long ) )               // Just in case
+                                throw exception( "openTabletDevices(): X class 'class' member hack does not work" );
+                            // switch( x_any -> class )                         // OH NO YOU CAN'T DO THIS IS C++ BABY
+                            switch( *( ( long* )x_any  ) )                      // 'class' should be sizeof( long ) & the first element of XAnyClass
+                            {
+                            case KeyClass:
+                            case ButtonClass:
+                                break;                                          // Ignore here
+                            case ValuatorClass:
+                                {
+                                    XValuatorInfo* xval_info = ( XValuatorInfo* )x_any;
+                                    
+                                    if( xval_info -> mode != Absolute )
+                                    {
+                                        ff::write( bqt_out, "Warning: Tablet device found in relative mode, ignoring\n" );
+                                        goto next_device;
+                                    }
+                                    
+                                    if( xval_info -> num_axes != 6 )            // Throw exception until its supported (if necessary)
+                                        throw exception( "openTabletDevices(): Tablet device with axis count != 6 found\n" );
+                                    
+                                    // XAxisInfoPtr xaxis_info = ( XAxisInfoPtr )( ( char* )( ( XValuatorInfoPtr )any_class ) + sizeof( XValuatorInfo ) );
+                                    
+                                    for( int axis = 0; axis < xval_info -> num_axes; ++axis )
+                                        detail.axes[ axis ] = xval_info -> axes[ axis ];
+                                }
+                                break;
+                            default:
+                                ff::write( bqt_out, "unknown class\n" );
+                                break;                                          // Ignore default
+                            }
+                            x_any = ( XAnyClassPtr )( ( char* )x_any + x_any -> length );   // THIS IS HOW YOU'RE SUPPOSED TO DO IT?
+                        }
+                        
+                        DeviceMotionNotify( detail.x_device,
+                                            detail.x_motioneventtype,
+                                            x_eventclass_list[ x_eventclass_count ] );
+                        ++x_eventclass_count;                                   // DeviceMotionNotify() is a macro, so increment outside
+                        
+                        if( 1000 / detail.axes[ 0 ].resolution                  // If the device l/mm is larger than the smallest screen l/mm
+                            > ( x_screen_res[ 0 ] < x_screen_res[ 1 ] ? x_screen_res[ 0 ] : x_screen_res[ 1 ] ) )
+                        {
+                            ff::write( bqt_out, "Warning: Device \"", detail.name, "\" has a larger resolution than the screen\n" );
+                        }
+                        
+                        x_tablet_devices.push_back( detail );
+                        
+                    next_device:
+                        break;
+                    }
+                }
+            }
+            
+            XSelectExtensionEvent( x_display,
+                                   RootWindow( x_display, x_screen ),
+                                   x_eventclass_list,
+                                   x_eventclass_count );
+        }
         XFreeDeviceList( x_dev_info );
         
         if( getDevMode() && x_tablet_devices.size() == 0 )
             ff::write( bqt_out, "No tablet devices found\n" );
     }
     
-    void eventCloseDown()
+    void closeTabletDevices()
     {
         scoped_lock slock( x_tabletdev_mutex );
         
         Display* x_display = getXDisplay();
         
         for( int i = 0; i < x_tablet_devices.size(); i++ )
-            XCloseDevice( x_display, x_tablet_device_storage[ x_tablet_devices[ i ] ].x_device );
+            XCloseDevice( x_display, x_tablet_devices[ i ].x_device );
     }
     
     bool HandleEvents_task::execute( task_mask* caller_mask )
@@ -439,6 +481,19 @@ namespace bqt
         {
             XEvent x_event;
             Display* x_display = getXDisplay();
+            
+            {                                                                   // Check to see if we want to refresh device list
+                scoped_lock slock( x_tabletdev_mutex );
+                
+                int new_device_count;
+                XFreeDeviceList( XListInputDevices( x_display, &new_device_count ) );   // No clear way of getting just the count
+                
+                if( new_device_count != x_device_count )
+                {
+                    closeTabletDevices();
+                    openTabletDevices();
+                }
+            }
             
             for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )
                  queue_size > 0;

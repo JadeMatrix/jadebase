@@ -15,6 +15,7 @@
 #include "bqt_taskexec.hpp"
 #include "bqt_gl.hpp"
 #include "bqt_preferences.hpp"
+#include "bqt_launchargs.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -212,9 +213,10 @@ namespace bqt
     
     void window::acceptEvent( window_event& e )
     {
-        scoped_lock slock( window_mutex );
+        // scoped_lock slock( window_mutex );
         // TODO: implement
-        throw exception( "window::acceptEvent(): Not implemented" );
+        // throw exception( "window::acceptEvent(): Not implemented" );
+        // ff::write( bqt_out, "window::acceptEvent(): Not implemented, skipping\n" );
     }
     
     bqt_platform_window_t& window::getPlatformWindow()
@@ -251,14 +253,17 @@ namespace bqt
         
         if( target -> updates.close )
         {
-            ff::write( bqt_out, "Closing\n" );
-            
             deregisterWindow( *target );
             target -> window_mutex.unlock();
             delete target;
             
             if( getQuitOnNoWindows() && getRegisteredWindowCount() < 1 )
+            {
+                if( getDevMode() )
+                    ff::write( bqt_out, "All windows closed, quitting\n" );
+                
                 setQuitFlag();
+            }
         }
         else
         {
@@ -328,6 +333,8 @@ namespace bqt
                     // TODO: implement
                     #warning "window::manipulate::execute(): Maximize not implemented"
                     
+                    makeWindowActive( target -> getPlatformWindow() );
+                    
                     target -> updates.maximize = false;
                 }
                 
@@ -335,6 +342,8 @@ namespace bqt
                 {
                     XMapWindow( x_display,
                                 target -> platform_window.x_window );
+                    
+                    makeWindowActive( target -> getPlatformWindow() );
                     
                     target -> updates.restore = false;
                 }

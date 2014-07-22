@@ -126,6 +126,8 @@ namespace bqt
         
         class manipulate : public task
         {
+            // TODO: Consider overriding new/delete for manipulates so we only
+            // have one per window at any given time
         protected:
             window* target;
         public:
