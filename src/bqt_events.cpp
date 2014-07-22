@@ -57,7 +57,19 @@ namespace
                                   { "wacomdev2"                                   , ERASER_STYLUS },
                                   { "Wacom Serial Penabled 2FG Touchscreen stylus",    PEN_STYLUS },
                                   { "Wacom Serial Penabled 2FG Touchscreen eraser", ERASER_STYLUS },
-                                  { "Wacom Serial Penabled 2FG Touchscreen touch" ,  TOUCH_STYLUS } };
+                                  { "Wacom Serial Penabled 2FG Touchscreen touch" ,  TOUCH_STYLUS },
+                                  { "Wacom Bamboo stylus"                         ,    PEN_STYLUS },
+                                  { "Wacom Bamboo eraser"                         , ERASER_STYLUS },
+                                  // { "Wacom Bamboo cursor"                         , _STYLUS },       // Unclear what this is
+                                  // { "Wacom Bamboo pad"                            , _STYLUS },       // No support for pads yet
+                                  { "Wacom Bamboo 2FG 4x5 Pen stylus"             ,    PEN_STYLUS },
+                                  { "Wacom Bamboo 2FG 4x5 Pen eraser"             , ERASER_STYLUS },
+                                  { "Wacom Bamboo 2FG 4x5 Touch touch"            ,  TOUCH_STYLUS },
+                                  // { "Wacom Bamboo 2FG 4x5 Touch pad"              , _STYLUS },       // No support for pads yet
+                                  { "Wacom Bamboo 16FG 4x5 Finger touch"          ,  TOUCH_STYLUS },
+                                  // { "Wacom Bamboo 16FG 4x5 Finger pad"            , _STYLUS },       // No support for pads yet
+                                  { "Wacom Bamboo 16FG 4x5 Pen stylus"            ,    PEN_STYLUS },
+                                  { "Wacom Bamboo 16FG 4x5 Pen eraser"            , ERASER_STYLUS } };
     
     struct x_tablet_dev_detail
     {
@@ -365,6 +377,8 @@ namespace bqt
         Display* x_display = getXDisplay();
         int x_screen = DefaultScreen( x_display );
         
+        std::vector< x_tablet_dev_detail > new_devices;                         // For swapping with global list
+        
         int x_tablet_name_count = sizeof( x_tablet_device_names )               // Array x_tablet_device_names
                                   / sizeof( x_tablet_device_name );             // Type x_tablet_device_name
         XEventClass x_eventclass_list[ x_tablet_name_count ];                   // We only need it as big as the most tablets we can have
@@ -390,10 +404,27 @@ namespace bqt
             {
                 for( int j = 0; j < x_tablet_name_count; ++j )
                 {
+                    // ff::write( bqt_out, "Checking for device \"", x_tablet_device_names[ j ].name, "\"\n" );
+                    
                     if( !strcmp( x_dev_info[ i ].name,
                                  x_tablet_device_names[ j ].name ) )
                     {
+                        // Declare up here because of gotos
                         x_tablet_dev_detail detail;                             // I give up, these names are getting too long
+                        XAnyClassPtr x_any;
+                        
+                        for( std::vector< x_tablet_dev_detail >::iterator iter = x_tablet_devices.begin();
+                             iter != x_tablet_devices.end();
+                             ++iter )
+                        {
+                            if( iter -> x_devid == x_dev_info[ i ].id )         // Already open
+                            {
+                                new_devices.push_back( *iter );
+                                x_tablet_devices.erase( iter );
+                                
+                                goto next_device;
+                            }
+                        }
                         
                         detail.name = x_tablet_device_names[ j ].name;
                         detail.type = x_tablet_device_names[ j ].type;
@@ -404,9 +435,9 @@ namespace bqt
                             ff::write( bqt_out, "Warning: Found device \"", detail.name, "\" but could not open\n" );
                         else
                             if( getDevMode() )
-                                ff::write( bqt_out, "Opened device \"", detail.name, "\"\n" );
+                                ff::write( bqt_out, "Opened device \"", detail.name, "\" as id ", detail.x_devid, ", loc ", ( void* )detail.x_device, "\n" );
                         
-                        XAnyClassPtr x_any = ( XAnyClassPtr )x_dev_info[ i ].inputclassinfo;
+                        x_any = ( XAnyClassPtr )x_dev_info[ i ].inputclassinfo;
                         for( int k = 0; k < x_dev_info[ i ].num_classes; ++k )
                         {
                             if( sizeof( XID ) != sizeof( long ) )               // TODO: Find a way to make this a compile-time error
@@ -452,7 +483,7 @@ namespace bqt
                             ff::write( bqt_out, "Warning: Device \"", detail.name, "\" has a larger resolution than the screen\n" );
                         }
                         
-                        x_tablet_devices.push_back( detail );
+                        new_devices.push_back( detail );
                         
                     next_device:
                         break;
@@ -467,8 +498,16 @@ namespace bqt
         }
         XFreeDeviceList( x_dev_info );
         
-        if( getDevMode() && x_tablet_devices.size() == 0 )
+        if( getDevMode() && new_devices.size() == 0 )
             ff::write( bqt_out, "No tablet devices found\n" );
+        
+        x_tablet_devices.swap( new_devices );                                   // We have to jump through this hoop because if a device was unplugged while
+                                                                                // open, trying to close it will result in an error.  The only option is to leak
+                                                                                // the memory.  This project concurs:
+                                                                                // https://github.com/Alcaro/minir/blob/master/inputraw-x11-xinput2.c
+        if( getDevMode() )
+            for( int i = 0; i < new_devices.size(); ++i )
+                ff::write( bqt_out, "Closed device \"", new_devices[ i ].name, "\" (unplugged)\n" );
     }
     
     void closeTabletDevices()
@@ -477,6 +516,10 @@ namespace bqt
         
         for( int i = 0; i < x_tablet_devices.size(); i++ )
             XCloseDevice( x_display, x_tablet_devices[ i ].x_device );
+        
+        x_tablet_devices.clear();
+        
+        ff::write( bqt_out, "All devices closed\n" );
     }
     
     bool HandleEvents_task::execute( task_mask* caller_mask )
@@ -485,6 +528,7 @@ namespace bqt
         {
             if( getDevMode() )
                 ff::write( bqt_out, "Quitting...\n" );
+            closeTabletDevices();
             closeAllWindows();
             submitTask( new StopTaskSystem_task() );
         }
@@ -499,7 +543,6 @@ namespace bqt
                 
                 if( new_device_count != x_device_count )
                 {
-                    closeTabletDevices();
                     openTabletDevices();
                 }
             }
