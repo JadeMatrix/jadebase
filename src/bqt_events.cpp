@@ -397,6 +397,7 @@ namespace bqt
         
         int x_eventclass_size = DEVICE_CLASS_LIST_START_LENGTH;                 // Max devices is 128 so int is OK
         XEventClass* x_eventclass_list = new XEventClass[ x_eventclass_size ];  // memcpy() if we need more
+        // XEventClass* x_eventclass_list = ( XEventClass* )calloc( x_eventclass_size, sizeof( XEventClass ) );
         int x_eventclass_count = 0;
         
         float x_screen_res[ 2 ];
@@ -489,15 +490,29 @@ namespace bqt
                                         x_eventclass_list[ x_eventclass_count ] );
                     ++x_eventclass_count;                                       // DeviceMotionNotify() is a macro, so increment outside
                     
-                    if( x_eventclass_count > x_eventclass_size )
+                    if( x_eventclass_count >= x_eventclass_size )
                     {
-                        XEventClass* old = x_eventclass_list;
-                        x_eventclass_list = ( XEventClass* )memcpy( x_eventclass_list,
-                                                                    new XDeviceInfo[ x_eventclass_size * 2 ],
-                                                                    x_eventclass_size );    // Reallocate double the space * copy
-                        x_eventclass_size *= 2;
-                        delete old;
+                        ff::write( bqt_out, "Warning: Max tablet devices opened, ignoring rest\n" );
+                        break;
+                        
+                        // Tried using memcpy to expand x_eventclass_list, but
+                        // XLib (actually XCB) just errored out.  Considered
+                        // using std::vector::data(), but that might get a bit
+                        // messy.
                     }
+                    // {
+                    //     XEventClass* old = x_eventclass_list;
+                    //     x_eventclass_list = ( XEventClass* )memcpy( new XDeviceInfo[ x_eventclass_size * 2 ],
+                    //                                                 x_eventclass_list,
+                    //                                                 x_eventclass_size );    // Reallocate double the space * copy
+                    //     // x_eventclass_list = ( XEventClass* )memcpy( ( XEventClass* )calloc( x_eventclass_size * 2, sizeof( XEventClass ) ),
+                    //     //                                             x_eventclass_list,
+                    //     //                                             x_eventclass_size );
+                    //     x_eventclass_size *= 2;
+                    //     delete[] old;
+                    //     // free( old );
+                    //     ff::write( bqt_out, "successfully copied x_eventclass_list, expanded to ", x_eventclass_size, "\n" );
+                    // }
                     
                     if( 1000 / detail.axes[ 0 ].resolution                      // If the device l/mm is larger than the smallest screen l/mm
                         > ( x_screen_res[ 0 ] < x_screen_res[ 1 ] ? x_screen_res[ 0 ] : x_screen_res[ 1 ] ) )
@@ -516,6 +531,8 @@ namespace bqt
                                    RootWindow( x_display, x_screen ),
                                    x_eventclass_list,
                                    x_eventclass_count );
+            
+            ff::write( bqt_out, "got here\n" );
         }
         XFreeDeviceList( x_dev_info );
         
