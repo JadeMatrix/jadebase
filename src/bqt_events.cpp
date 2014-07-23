@@ -41,39 +41,54 @@ namespace
     
     #ifdef PLATFORM_XWS_GNUPOSIX
 
+    #define DEVICE_CLASS_LIST_START_LENGTH  16
+
     enum pen_type
     {
+        INVALID,
         PEN_STYLUS,
         AIRBRUSH_STYLUS,
         ERASER_STYLUS,
         TOUCH_STYLUS
     };
     
-    struct x_tablet_device_name
+    pen_type getWacomTabletType( const char* name )                             // The Linux Wacom driver reports names as "Wacom... *type*"
     {
-        const char* name;
-        pen_type type;
-    } x_tablet_device_names[] = { { "wacomdev1"                                   ,    PEN_STYLUS },
-                                  { "wacomdev2"                                   , ERASER_STYLUS },
-                                  { "Wacom Serial Penabled 2FG Touchscreen stylus",    PEN_STYLUS },
-                                  { "Wacom Serial Penabled 2FG Touchscreen eraser", ERASER_STYLUS },
-                                  { "Wacom Serial Penabled 2FG Touchscreen touch" ,  TOUCH_STYLUS },
-                                  { "Wacom Bamboo stylus"                         ,    PEN_STYLUS },
-                                  { "Wacom Bamboo eraser"                         , ERASER_STYLUS },
-                                  // { "Wacom Bamboo cursor"                         , _STYLUS },       // Unclear what this is
-                                  // { "Wacom Bamboo pad"                            , _STYLUS },       // No support for pads yet
-                                  { "Wacom Bamboo 2FG 4x5 Pen stylus"             ,    PEN_STYLUS },
-                                  { "Wacom Bamboo 2FG 4x5 Pen eraser"             , ERASER_STYLUS },
-                                  { "Wacom Bamboo 2FG 4x5 Touch touch"            ,  TOUCH_STYLUS },
-                                  // { "Wacom Bamboo 2FG 4x5 Touch pad"              , _STYLUS },       // No support for pads yet
-                                  { "Wacom Bamboo 16FG 4x5 Finger touch"          ,  TOUCH_STYLUS },
-                                  // { "Wacom Bamboo 16FG 4x5 Finger pad"            , _STYLUS },       // No support for pads yet
-                                  { "Wacom Bamboo 16FG 4x5 Pen stylus"            ,    PEN_STYLUS },
-                                  { "Wacom Bamboo 16FG 4x5 Pen eraser"            , ERASER_STYLUS } };
+        std::string name_str( name );
+        
+        for( int i = 0; i < 5; ++i )
+        {
+            if( name_str[ i ] != "Wacom"[ i ] )
+                return INVALID;
+        }
+        
+        for( int i = name_str.length() - 1; i >= 0; --i )
+        {
+            if( name_str[ i ] == ' ' )
+            {
+                std::string type_str = name_str.substr( i + 1 );                // i + 1 so we discard the space
+                
+                if( type_str == "stylus" )
+                    return PEN_STYLUS;
+                if( type_str == "eraser" )
+                    return ERASER_STYLUS;
+                if( type_str == "touch" )
+                    return TOUCH_STYLUS;
+                // if( type_str == "" )
+                //     return AIRBRUSH_STYLUS;
+                // if( type_str == "pad" )
+                //     return _STYLUS;
+                
+                break;
+            }
+        }
+        
+        return INVALID;
+    }
     
     struct x_tablet_dev_detail
     {
-        const char* name;
+        std::string name;                                                       // std::string instead of const char* so we copy the string easily
         pen_type type;
         
         XAxisInfo axes[ 6 ];
@@ -322,9 +337,10 @@ namespace
                 }
             }
             break;
-        case VisibilityNotify:
         case MapNotify:
         case MapRequest:
+            current_manip -> makeActive();
+        case VisibilityNotify:
             current_manip -> restore();
             break;
         case ClientMessage:
@@ -379,9 +395,8 @@ namespace bqt
         
         std::vector< x_tablet_dev_detail > new_devices;                         // For swapping with global list
         
-        int x_tablet_name_count = sizeof( x_tablet_device_names )               // Array x_tablet_device_names
-                                  / sizeof( x_tablet_device_name );             // Type x_tablet_device_name
-        XEventClass x_eventclass_list[ x_tablet_name_count ];                   // We only need it as big as the most tablets we can have
+        int x_eventclass_size = DEVICE_CLASS_LIST_START_LENGTH;                 // Max devices is 128 so int is OK
+        XEventClass* x_eventclass_list = new XEventClass[ x_eventclass_size ];  // memcpy() if we need more
         int x_eventclass_count = 0;
         
         float x_screen_res[ 2 ];
@@ -402,92 +417,98 @@ namespace bqt
             
             for( int i = 0; i < x_device_count; i++ )
             {
-                for( int j = 0; j < x_tablet_name_count; ++j )
+                pen_type dev_pen_type = getWacomTabletType( x_dev_info[ i ].name );
+                
+                if( dev_pen_type != INVALID )
                 {
-                    // ff::write( bqt_out, "Checking for device \"", x_tablet_device_names[ j ].name, "\"\n" );
+                    // Declare up here because of gotos
+                    x_tablet_dev_detail detail;                                 // I give up, these names are getting too long
+                    XAnyClassPtr x_any;
                     
-                    if( !strcmp( x_dev_info[ i ].name,
-                                 x_tablet_device_names[ j ].name ) )
+                    for( std::vector< x_tablet_dev_detail >::iterator iter = x_tablet_devices.begin();
+                         iter != x_tablet_devices.end();
+                         ++iter )
                     {
-                        // Declare up here because of gotos
-                        x_tablet_dev_detail detail;                             // I give up, these names are getting too long
-                        XAnyClassPtr x_any;
-                        
-                        for( std::vector< x_tablet_dev_detail >::iterator iter = x_tablet_devices.begin();
-                             iter != x_tablet_devices.end();
-                             ++iter )
+                        if( iter -> x_devid == x_dev_info[ i ].id )             // Already open
                         {
-                            if( iter -> x_devid == x_dev_info[ i ].id )         // Already open
-                            {
-                                new_devices.push_back( *iter );
-                                x_tablet_devices.erase( iter );
-                                
-                                goto next_device;
-                            }
+                            new_devices.push_back( *iter );
+                            x_tablet_devices.erase( iter );
+                            
+                            goto next_device;
                         }
-                        
-                        detail.name = x_tablet_device_names[ j ].name;
-                        detail.type = x_tablet_device_names[ j ].type;
-                        detail.x_devid = x_dev_info[ i ].id;
-                        detail.x_device = XOpenDevice( x_display, detail.x_devid  );
-                        
-                        if( detail.x_device == NULL )
-                            ff::write( bqt_out, "Warning: Found device \"", detail.name, "\" but could not open\n" );
-                        else
-                            if( getDevMode() )
-                                ff::write( bqt_out, "Opened device \"", detail.name, "\" as id ", detail.x_devid, ", loc ", ( void* )detail.x_device, "\n" );
-                        
-                        x_any = ( XAnyClassPtr )x_dev_info[ i ].inputclassinfo;
-                        for( int k = 0; k < x_dev_info[ i ].num_classes; ++k )
-                        {
-                            if( sizeof( XID ) != sizeof( long ) )               // TODO: Find a way to make this a compile-time error
-                                throw exception( "openTabletDevices(): X class 'class' member hack does not work" );
-                            // switch( x_any -> class )                         // OH NO YOU CAN'T DO THIS IS C++ BABY
-                            switch( *( ( long* )x_any  ) )                      // 'class' should be sizeof( long ) & the first element of XAnyClass
-                            {
-                            case KeyClass:
-                            case ButtonClass:
-                                break;                                          // Ignore here
-                            case ValuatorClass:
-                                {
-                                    XValuatorInfo* xval_info = ( XValuatorInfo* )x_any;
-                                    
-                                    if( xval_info -> mode != Absolute )
-                                    {
-                                        ff::write( bqt_out, "Warning: Tablet device found in relative mode, ignoring\n" );
-                                        goto next_device;
-                                    }
-                                    
-                                    if( xval_info -> num_axes != 6 )            // Throw exception until its supported (if necessary)
-                                        throw exception( "openTabletDevices(): Tablet device with axis count != 6 found\n" );
-                                    
-                                    for( int axis = 0; axis < xval_info -> num_axes; ++axis )
-                                        detail.axes[ axis ] = xval_info -> axes[ axis ];
-                                }
-                                break;
-                            default:
-                                ff::write( bqt_out, "unknown class\n" );
-                                break;                                          // Ignore default
-                            }
-                            x_any = ( XAnyClassPtr )( ( char* )x_any + x_any -> length );   // THIS IS HOW YOU'RE SUPPOSED TO DO IT?
-                        }
-                        
-                        DeviceMotionNotify( detail.x_device,
-                                            detail.x_motioneventtype,
-                                            x_eventclass_list[ x_eventclass_count ] );
-                        ++x_eventclass_count;                                   // DeviceMotionNotify() is a macro, so increment outside
-                        
-                        if( 1000 / detail.axes[ 0 ].resolution                  // If the device l/mm is larger than the smallest screen l/mm
-                            > ( x_screen_res[ 0 ] < x_screen_res[ 1 ] ? x_screen_res[ 0 ] : x_screen_res[ 1 ] ) )
-                        {
-                            ff::write( bqt_out, "Warning: Device \"", detail.name, "\" has a larger resolution than the screen\n" );
-                        }
-                        
-                        new_devices.push_back( detail );
-                        
-                    next_device:
-                        break;
                     }
+                    
+                    detail.name = x_dev_info[ i ].name;
+                    detail.type = dev_pen_type;
+                    detail.x_devid = x_dev_info[ i ].id;
+                    detail.x_device = XOpenDevice( x_display, detail.x_devid  );
+                    
+                    if( detail.x_device == NULL )
+                        ff::write( bqt_out, "Warning: Found device \"", detail.name, "\" but could not open\n" );
+                    else
+                        if( getDevMode() )
+                            ff::write( bqt_out, "Opened device \"", detail.name, "\" as id ", detail.x_devid, ", loc ", ( void* )detail.x_device, "\n" );
+                    
+                    x_any = ( XAnyClassPtr )x_dev_info[ i ].inputclassinfo;
+                    for( int k = 0; k < x_dev_info[ i ].num_classes; ++k )
+                    {
+                        if( sizeof( XID ) != sizeof( long ) )                   // TODO: Find a way to make this a compile-time error
+                            throw exception( "openTabletDevices(): X class 'class' member hack does not work" );
+                        // switch( x_any -> class )                             // OH NO YOU CAN'T DO THIS IS C++ BABY
+                        switch( *( ( long* )x_any  ) )                          // 'class' should be sizeof( long ) & the first element of XAnyClass
+                        {
+                        case KeyClass:
+                        case ButtonClass:
+                            break;                                              // Ignore here
+                        case ValuatorClass:
+                            {
+                                XValuatorInfo* xval_info = ( XValuatorInfo* )x_any;
+                                
+                                if( xval_info -> mode != Absolute )
+                                {
+                                    ff::write( bqt_out, "Warning: Tablet device found in relative mode, ignoring\n" );
+                                    goto next_device;
+                                }
+                                
+                                if( xval_info -> num_axes != 6 )                // Throw exception until its supported (if necessary)
+                                    throw exception( "openTabletDevices(): Tablet device with axis count != 6 found\n" );
+                                
+                                for( int axis = 0; axis < xval_info -> num_axes; ++axis )
+                                    detail.axes[ axis ] = xval_info -> axes[ axis ];
+                            }
+                            break;
+                        default:
+                            ff::write( bqt_out, "unknown class\n" );
+                            break;                                              // Ignore default
+                        }
+                        x_any = ( XAnyClassPtr )( ( char* )x_any + x_any -> length );   // THIS IS HOW YOU'RE SUPPOSED TO DO IT?
+                    }
+                    
+                    DeviceMotionNotify( detail.x_device,
+                                        detail.x_motioneventtype,
+                                        x_eventclass_list[ x_eventclass_count ] );
+                    ++x_eventclass_count;                                       // DeviceMotionNotify() is a macro, so increment outside
+                    
+                    if( x_eventclass_count > x_eventclass_size )
+                    {
+                        XEventClass* old = x_eventclass_list;
+                        x_eventclass_list = ( XEventClass* )memcpy( x_eventclass_list,
+                                                                    new XDeviceInfo[ x_eventclass_size * 2 ],
+                                                                    x_eventclass_size );    // Reallocate double the space * copy
+                        x_eventclass_size *= 2;
+                        delete old;
+                    }
+                    
+                    if( 1000 / detail.axes[ 0 ].resolution                      // If the device l/mm is larger than the smallest screen l/mm
+                        > ( x_screen_res[ 0 ] < x_screen_res[ 1 ] ? x_screen_res[ 0 ] : x_screen_res[ 1 ] ) )
+                    {
+                        ff::write( bqt_out, "Warning: Device \"", detail.name, "\" has a larger resolution than the screen\n" );
+                    }
+                    
+                    new_devices.push_back( detail );
+                    
+                next_device:
+                    NULL;
                 }
             }
             
@@ -507,7 +528,11 @@ namespace bqt
                                                                                 // https://github.com/Alcaro/minir/blob/master/inputraw-x11-xinput2.c
         if( getDevMode() )
             for( int i = 0; i < new_devices.size(); ++i )
-                ff::write( bqt_out, "Closed device \"", new_devices[ i ].name, "\" (unplugged)\n" );
+            {
+                // ff::write( bqt_out, "Testing XCloseDevice\n" );
+                // XCloseDevice( x_display, new_devices[ i ].x_device );
+                ff::write( bqt_out, "Leaking device \"", new_devices[ i ].name, "\" (unplugged)\n" );
+            }
     }
     
     void closeTabletDevices()
@@ -515,11 +540,14 @@ namespace bqt
         Display* x_display = getXDisplay();
         
         for( int i = 0; i < x_tablet_devices.size(); i++ )
+        {
             XCloseDevice( x_display, x_tablet_devices[ i ].x_device );
+            
+            if( getDevMode() )
+                ff::write( bqt_out, "Closed device \"", x_tablet_devices[ i ].name, "\"\n" );
+        }
         
         x_tablet_devices.clear();
-        
-        ff::write( bqt_out, "All devices closed\n" );
     }
     
     bool HandleEvents_task::execute( task_mask* caller_mask )
@@ -555,6 +583,8 @@ namespace bqt
                 
                 switch( x_event.type )
                 {
+                // case DevicePresenceNotify:
+                //     ff::write( bqt_out, "DevicePresenceNotify\n" );
                 case KeyPress:
                 case KeyRelease:
                     handleKeyEvent( x_event );

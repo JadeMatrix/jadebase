@@ -1,0 +1,154 @@
+http://sourceforge.net/p/linuxwacom/code/ci/master/tree/src/util/wacserial.c
+
+ArtPadII
+"KT-0405-R", "Wacom ArtPadII 4x5"
+
+DigitizerII
+    WACOM_SUBTYPE("UD-0608-R", "Wacom DigitizerII 6x8", 1),
+WACOM_SUBTYPE("UD-1212-R", "Wacom DigitizerII 12x12", 2),
+WACOM_SUBTYPE("UD-1218-R", "Wacom DigitizerII 12x18", 3),
+WACOM_SUBTYPE("UD-1825-R", "Wacom DigitizerII 18x25", 4), 
+
+PenPartner
+WACOM_SUBTYPE("CT-0405-R", "Wacom PenPartner", 1),
+
+Graphire
+WACOM_SUBTYPE("ET-0405-R", "Wacom Graphire", 1),
+
+Intuos
+    WACOM_SUBTYPE("GD-0405-R", "Wacom Intuos 4x5", 1),
+WACOM_SUBTYPE("GD-0608-R", "Wacom Intuos 6x8", 2),
+WACOM_SUBTYPE("GD-0912-R", "Wacom Intuos 9x12", 3),
+WACOM_SUBTYPE("GD-1212-R", "Wacom Intuos 12x12", 4),
+WACOM_SUBTYPE("GD-1218-R", "Wacom Intuos 12x18", 5), 
+
+Intuos2
+    WACOM_SUBTYPE("XD-0405-R", "Wacom Intuos2 4x5", 1),
+WACOM_SUBTYPE("XD-0608-R", "Wacom Intuos2 6x8", 2),
+WACOM_SUBTYPE("XD-0912-R", "Wacom Intuos2 9x12", 3),
+WACOM_SUBTYPE("XD-1212-R", "Wacom Intuos2 12x12", 4),
+WACOM_SUBTYPE("XD-1218-R", "Wacom Intuos2 12x18", 5), 
+
+Cintiq (PL)
+    WACOM_SUBTYPE("PL-250", "Wacom PL-250", 1),
+WACOM_SUBTYPE("PL-270", "Wacom PL-270", 2),
+WACOM_SUBTYPE("PL-400", "Wacom PL-400", 3),
+WACOM_SUBTYPE("PL-500", "Wacom PL-500", 4),
+WACOM_SUBTYPE("PL-550", "Wacom PL-550", 5),
+WACOM_SUBTYPE("PL-600", "Wacom PL-600", 6),
+WACOM_SUBTYPE("PL-600SX", "Wacom PL-600SX", 7),
+WACOM_SUBTYPE("PL-800", "Wacom PL-800", 8), 
+
+
+http://sourceforge.net/p/linuxwacom/code/ci/master/tree/src/util/wacusb.c
+
+PenPartner
+{ "MODEL_PP_0405", "Wacom PenPartner", 1, 0x00 },
+
+Graphire
+{ "ET_0405", "Wacom Graphire", 1, 0x10 }
+
+Graphire2
+    { "ET_0405", "Wacom Graphire2 4x5", 1, 0x11 },
+{ "ET_0507", "Wacom Graphire2 5x7", 2, 0x12 }, 
+
+Graphire3
+    { "ET_0405", "Wacom Graphire3 4x5", 1, 0x13 },
+{ "ET_0608", "Wacom Graphire3 6x8", 2, 0x14 }, 
+
+Graphire4
+    { "CTE_440", "Wacom Graphire4 4x5", 1, 0x15 },
+{ "CTE_640", "Wacom Graphire4 6x8", 2, 0x16 }, 
+
+Intuos
+    { "GD_0405-U", "Wacom Intuos 4x5", 1, 0x20 },
+{ "GD_0608-U", "Wacom Intuos 6x8", 2, 0x21 },
+{ "GD_0912-U", "Wacom Intuos 9x12", 3, 0x22 },
+{ "GD_1212-U", "Wacom Intuos 12x12", 4, 0x23 },
+{ "GD_1218-U", "Wacom Intuos 12x18", 5, 0x24 }, 
+
+Cintiq
+    { "PL400", "Wacom PL400", 1, 0x30 },
+{ "PL500", "Wacom PL500", 2, 0x31 },
+{ "PL600", "Wacom PL600", 3, 0x32 },
+{ "PL600SX", "Wacom PL600SX", 4, 0x33 },
+{ "PL550", "Wacom PL550", 5, 0x34 },
+{ "PL800", "Wacom PL800", 6, 0x35 },
+{ "PL700", "Wacom PL700", 7, 0x37 },
+{ "PL510", "Wacom PL510", 8, 0x38 },
+{ "DTU710", "Wacom PL710", 9, 0x39 },
+{ "DTF720", "Wacom DTF720", 10, 0xC0 },
+{ "DTF521", "Wacom DTF521", 11, 0xC4 },
+{ "DTU1931", "Wacom DTU1931", 12, 0xC7 },
+{ "DTU2231", "Wacom DTU2231", 13, 0xCE },
+{ "DTU1631", "Wacom DTU1631", 14, 0xF0 },
+{ "DTU1031", "Wacom DTU1031", 15, 0xFB }, 
+
+Intuos2
+    { "XD-0405-U", "Wacom Intuos2 4x5", 1, 0x41 },
+{ "XD-0608-U", "Wacom Intuos2 6x8", 2, 0x42 },
+{ "XD-0912-U", "Wacom Intuos2 9x12", 3, 0x43 },
+{ "XD-1212-U", "Wacom Intuos2 12x12", 4, 0x44 },
+{ "XD-1218-U", "Wacom Intuos2 12x18", 5, 0x45 },
+/* fix for I2 6x8's reporting as 0x47 */
+{ "XD-0608-U", "Wacom Intuos2 6x8", 2, 0x47 }, 
+
+Volito
+{ "MODEL-VOL", "Wacom Volito", 1, 0x60 },
+
+Volito2
+    { "FT-0203-U", "Wacom PenStation", 1, 0x61 },
+{ "CTF-420-U", "Wacom Volito2 4x5", 2, 0x62 },
+{ "CTF-220-U", "Wacom Volito2 2x3", 3, 0x63 },
+{ "CTF-421-U", "Wacom PenPartner2", 4, 0x64 },
+{ "CTF_430-U", "Wacom Bamboo1", 5, 0x69 }, 
+
+Bamboo
+    { "MTE_450", "Wacom Bamboo", 1, 0x65 },
+{ "CTE_450", "Wacom BambooFun 4x5", 2, 0x17 },
+{ "CTE_650", "Wacom BambooFun 6x8", 3, 0x18 },
+{ "CTE_631", "Wacom Bamboo1 Medium", 4, 0x19 }, 
+
+Cintiq Partner
+{ "PTU-600", "Wacom Cintiq Partner", 1, 0x03 },
+
+TabletPC
+    { "TPC-090", "Wacom Tablet PC90", 1, 0x90 },
+{ "TPC-093", "Wacom Tablet PC93", 2, 0x93 },
+{ "TPC-09A", "Wacom Tablet PC9A", 3, 0x9A }, 
+
+CintiqV5
+    { "DTZ-21ux", "Wacom Cintiq 21UX", 1, 0x3F },
+{ "DTZ-20wsx", "Wacom Cintiq 20WSX", 2, 0xC5 },
+{ "DTZ-12wx", "Wacom Cintiq 12WX", 3, 0xC6 },
+{ "DTZ-21ux2", "Wacom Cintiq 21UX2", 4, 0xCC },
+{ "DTK-22hd", "Wacom Cintiq 22HD", 5, 0xFA },
+{ "DTK-2241", "Wacom DTK 2241", 6, 0x57 },
+{ "DTK-13HD", "Wacom Cintiq 13HD", 7, 0x304 }, 
+
+Intuos3
+    { "PTZ-430", "Wacom Intuos3 4x5", 1, 0xB0 },
+{ "PTZ-630", "Wacom Intuos3 6x8", 2, 0xB1 },
+{ "PTZ-930", "Wacom Intuos3 9x12", 3, 0xB2 },
+{ "PTZ-1230", "Wacom Intuos3 12x12", 4, 0xB3 },
+{ "PTZ-1231W", "Wacom Intuos3 12x19", 5, 0xB4 },
+{ "PTZ-631W", "Wacom Intuos3 6x11", 6, 0xB5 },
+{ "PTZ-431W", "Wacom Intuos3 4x6", 7, 0xB7 }, 
+
+Intuos4
+    { "PTK-440", "Wacom Intuos4 4x6", 1, 0xB8 },
+{ "PTK-640", "Wacom Intuos4 6x9", 2, 0xB9 },
+{ "PTK-840", "Wacom Intuos4 8x13", 3, 0xBA },
+{ "PTK-1240", "Wacom Intuos4 12x19", 4, 0xBB },
+{ "PTK-540WL", "Wacom Intuos4 WLUSB", 5, 0xBC },
+{ "PTK-540WL", "Wacom Intuos4 WLBT", 6, 0xBD }, 
+
+Intuos5
+    { "PTH-450", "Wacom Intuos5 touch S", 1, 0x26 },
+{ "PTH-650", "Wacom Intuos5 touch M", 2, 0x27 },
+{ "PTH-850", "Wacom Intuos5 touch L", 3, 0x28 },
+{ "PTK-450", "Wacom Intuos5 S", 4, 0x29 },
+{ "PTK-650", "Wacom Intuos5 M", 5, 0x2A },
+{ "PTH-451", "Wacom Intuos Pro S", 6, 0x314 },
+{ "PTH-651", "Wacom Intuos Pro M", 7, 0x315 },
+{ "PTH-851", "Wacom Intuos Pro L", 8, 0x317 }, 

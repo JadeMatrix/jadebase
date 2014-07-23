@@ -54,8 +54,25 @@ namespace bqt
         // Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().sdl_window );
         Window window_id = w.getPlatformWindow().x_window;
         
+        bqt::window* erased_window = id_window_map[ window_id ];
+        
         if( id_window_map.erase( window_id ) < 1 )
             throw exception( "deregisterWindow(): No window associated with platform window" );
+        
+        if( erased_window == active_window )
+        {
+            if( id_window_map.size() )
+            {
+                active_window = id_window_map.begin() -> second;
+                
+                window::manipulate* active_manip = new window::manipulate( active_window );
+                active_manip -> makeActive();
+                
+                submitTask( active_manip );
+            }
+            else
+                active_window = NULL;
+        }
         
         if( getDevMode() )
             ff::write( bqt_out, "Deregistered a window (", window_id, "), currently ", id_window_map.size(), " windows registered\n" );

@@ -32,6 +32,10 @@ namespace bqt
         Display* x_display = getXDisplay();
         Window x_root = DefaultRootWindow( x_display );
         
+        XMapWindow( x_display, x_root );
+        
+        XFlush( x_display );
+        
         platform_window.x_visual_info = glXChooseVisual( x_display,
                                                          DefaultScreen( x_display ),
                                                          platform_window.glx_attr );
@@ -39,6 +43,7 @@ namespace bqt
         if( platform_window.x_visual_info == NULL )
             throw exception( "window::init(): No appropriate X visual found" );
         
+        // TODO: Do we need to initialize platform_window.x_set_window_att?
         platform_window.x_set_window_attr.colormap = XCreateColormap( x_display,
                                                                       x_root,
                                                                       platform_window.x_visual_info -> visual,
@@ -305,6 +310,13 @@ namespace bqt
                     target -> updates.dimensions = false;
                 }
                 
+                if( target -> updates.active )
+                {
+                    target -> updates.restore = true;
+                    
+                    makeWindowActive( target -> getPlatformWindow() );
+                }
+                
                 if( target -> updates.position )
                 {
                     // Actual moving handled by WM
@@ -433,11 +445,19 @@ namespace bqt
         target -> updates.changed = true;
     }
     
-    void window::manipulate::setFocus( bool f )
+    // void window::manipulate::setFocus( bool f )
+    // {
+    //     scoped_lock slock( target -> window_mutex );
+        
+    //     target -> in_focus = true;
+    // }
+    void window::manipulate::makeActive()
     {
         scoped_lock slock( target -> window_mutex );
         
-        target -> in_focus = true;
+        target -> updates.active = true;
+        
+        target -> updates.changed = true;
     }
     
     void window::manipulate::center()

@@ -68,6 +68,8 @@ namespace bqt
             
             bool close      : 1;
             
+            bool active     : 1;
+            
             bool dimensions : 1;
             bool position   : 1;
             bool fullscreen : 1;
@@ -146,7 +148,8 @@ namespace bqt
             void setFullscreen( bool f );
             void setTitle( std::string t );
             
-            void setFocus( bool f );                                            // Change any window styles to fit in- or out-of-focus
+            // void setFocus( bool f );                                            // Change any window styles to fit in- or out-of-focus
+            void makeActive();
             
             void center();
             void minimize();
