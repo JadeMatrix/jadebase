@@ -266,7 +266,6 @@ namespace
                             w_event.stroke.rotation = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
                         }
                         
-                        ff::write( bqt_out, w_event.stroke.position[ 0 ], " ", w_event.stroke.position[ 1 ], " ", w_event.stroke.pressure, "\n" );
                         break;
                     }
                 }
@@ -531,8 +530,6 @@ namespace bqt
                                    RootWindow( x_display, x_screen ),
                                    x_eventclass_list,
                                    x_eventclass_count );
-            
-            ff::write( bqt_out, "got here\n" );
         }
         XFreeDeviceList( x_dev_info );
         
@@ -602,6 +599,7 @@ namespace bqt
                 {
                 // case DevicePresenceNotify:
                 //     ff::write( bqt_out, "DevicePresenceNotify\n" );
+                    // XDeviceListChangeEvent: http://www.x.org/wiki/XInputSpec/
                 case KeyPress:
                 case KeyRelease:
                     handleKeyEvent( x_event );

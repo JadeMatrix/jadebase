@@ -7,13 +7,15 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <GL/glew.h>
+#include "bqt_gl.hpp"
+
 #include "bqt_window.hpp"
 
 #include "bqt_exception.hpp"
 #include "bqt_log.hpp"
 #include "bqt_windowmanagement.hpp"
 #include "bqt_taskexec.hpp"
-#include "bqt_gl.hpp"
 #include "bqt_preferences.hpp"
 #include "bqt_launchargs.hpp"
 
@@ -114,6 +116,14 @@ namespace bqt
         
         platform_window.good = true;
         
+        // TODO: remove
+        GLenum err = glewInit();
+        if( err != GLEW_OK )
+        {
+            ff::write( bqt_out, "Failed to initialize GLEW: ", std::string( ( const char* )glewGetErrorString( err ) ), "\n" );
+            throw bqt::exception( "InitOpenGL_task::execute(): Failed to initialize GLEW" );
+        }
+        
         registerWindow( *this );
     }
     
@@ -150,6 +160,11 @@ namespace bqt
         updates.minimize   = false;
         updates.maximize   = false;
         updates.restore    = false;
+        
+        // Drawing testing
+        init_gl = true;
+        texture = 0x00;
+        text_fbo = 0x00;
     }
     window::~window()
     {
@@ -218,10 +233,36 @@ namespace bqt
     
     void window::acceptEvent( window_event& e )
     {
-        // scoped_lock slock( window_mutex );
-        // TODO: implement
-        // throw exception( "window::acceptEvent(): Not implemented" );
-        // ff::write( bqt_out, "window::acceptEvent(): Not implemented, skipping\n" );
+        scoped_lock slock( window_mutex );
+        
+        switch( e.id )
+        {
+        case STROKE:
+            // ff::write( bqt_out, e.stroke.position[ 0 ],
+            //            " ", e.stroke.position[ 1 ],
+            //            " ", e.stroke.pressure, "\n" );
+            if( e.stroke.pressure > 0 )
+            {
+                e.stroke.position[ 0 ] -= position[ 0 ];
+                e.stroke.position[ 1 ] -= position[ 1 ];
+                pending_points.push_back( e.stroke );
+                submitTask( new window::redraw( *this ) );
+            }
+            break;
+        case DROP:
+            break;
+        case KEYCOMMAND:
+            break;
+        case COMMAND:
+            break;
+        case TEXT:
+            break;
+        case PINCH:
+            break;
+        default:
+            throw exception( "window::acceptEvent(): Unknown window event id" );
+            break;
+        }
     }
     
     bqt_platform_window_t& window::getPlatformWindow()
@@ -543,13 +584,165 @@ namespace bqt
             
             XFlush( x_display );
             
-            // TODO: Implement
-            {
-                glEnable(GL_DEPTH_TEST);
-                glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
+            // {   // FBO
+            //     if( target.init_gl )
+            //     {
+            //         glGenFramebuffers( 1, &target.text_fbo );
+            //         glGenTextures( 1, &target.texture );
+            //         glGenRenderbuffers( 1, &target.render_buff );
+                    
+            //         if( target.text_fbo == 0x00 )
+            //             throw exception( "window::redraw::execute(): Could not create FBO" );
+            //         if( target.texture == 0x00 )
+            //             throw exception( "window::redraw::execute(): Could not generate texture" );
+                    
+            //         glBindTexture( GL_TEXTURE_2D, target.texture );
+            //         {
+            //             glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+            //             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+            //             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+            //         }
+            //         glBindTexture( GL_TEXTURE_2D, 0x00 );
+                    
+            //         glBindFramebuffer( GL_FRAMEBUFFER, target.text_fbo );
+            //         glFramebufferTexture2D( GL_FRAMEBUFFER,
+            //                                 GL_COLOR_ATTACHMENT0,
+            //                                 GL_TEXTURE_2D,
+            //                                 target.texture,
+            //                                 0 );
+                    
+            //         glBindRenderbuffer( GL_RENDERBUFFER, target.render_buff );
+            //         glRenderbufferStorage( GL_RENDERBUFFER,
+            //                                GL_DEPTH_COMPONENT24,
+            //                                256,
+            //                                256 );
+            //         glFramebufferRenderbuffer( GL_FRAMEBUFFER,
+            //                                    GL_DEPTH_ATTACHMENT,
+            //                                    GL_RENDERBUFFER,
+            //                                    target.render_buff );
+                    
+            //         target.init_gl = false;
+            //     }
                 
-                glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
-                glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+            //     glBindFramebuffer( GL_FRAMEBUFFER, target.text_fbo );
+            //     glBindRenderbuffer( GL_RENDERBUFFER, target.render_buff );
+                
+            //     {
+            //         static float pulse = 0.0;
+            //         static float inc = 0.05;
+                    
+            //         // ff::write( bqt_out, "Clearing texture ", target.texture, " to ", pulse, "\n" );
+                    
+            //         pulse += inc;
+            //         if( pulse > 1.05 || pulse < 0.05 )
+            //             inc *= -1;
+                    
+            //         glEnable(GL_DEPTH_TEST);
+            //         // glViewport( 0, 0, 256, 256 );
+            //         glLoadIdentity();
+            //         // glOrtho( 0.0, 256, 256, 0.0, 1.0, -1.0 );
+                    
+            //         glClearColor( pulse, 0.5f, 0.5f, 1.0f );
+            //         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+                    
+            //         glBegin( GL_QUADS );
+            //         {
+            //             glColor4f( 0.1, 0.9, 0.5, 1.0 );
+            //             glVertex2f( 0.0, 0.50 );
+            //             glVertex2f( 0.50, 0.0 );
+            //             glVertex2f( 0.50, 0.50 );
+            //             glVertex2f( 0.0, 0.0 );
+            //         }
+            //         glEnd();
+                    
+            //         // ...
+            //     }
+                
+            //     glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+            //     glBindRenderbuffer( GL_RENDERBUFFER, 0 );
+            // }
+            {   // SCREEN
+                // glEnable(GL_DEPTH_TEST);
+                glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
+                glLoadIdentity();
+                glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
+                
+                glClearColor( 1.0, 1.0, 1.0, 1.0 );
+                glClear( GL_COLOR_BUFFER_BIT );
+                // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+                
+                float corner[ 4 ][ 2 ];
+                
+                // ff::write( bqt_out, "Starting stroke ------------------\n" );
+                for( int i = 0; i < target.pending_points.size(); ++i )
+                {
+                    int window_x = target.pending_points[ i ].position[ 0 ];
+                    int window_y = target.pending_points[ i ].position[ 1 ];
+                    float width = target.pending_points[ i ].pressure * 10;
+                    
+                    // ff::write( bqt_out, "Drawing point @ ", window_x, ",", window_y, " w=", width, "\n" );
+                    
+                    corner[ 0 ][ 0 ] = window_x - width;
+                    corner[ 0 ][ 1 ] = window_y - width;
+                    
+                    corner[ 1 ][ 0 ] = window_x + width;
+                    corner[ 1 ][ 1 ] = window_x - width;
+                    
+                    corner[ 2 ][ 0 ] = window_x + width;
+                    corner[ 2 ][ 1 ] = window_x + width;
+                    
+                    corner[ 3 ][ 0 ] = window_x - width;
+                    corner[ 3 ][ 1 ] = window_x + width;
+                    
+                    if( target.pending_points[ i ].click == CLICK_ERASE )
+                    {
+                        // ff::write( bqt_out, "eraser\n" );
+                        glColor4f( 1.0, 1.0, 1.0, 1.0 );
+                    }
+                    else
+                        glColor4f( 0.0, 0.0, 0.0, 1.0 );
+                    // glBegin( GL_QUADS );
+                    // {
+                    //     glVertex2f( corner[ 0 ][ 0 ], corner[ 0 ][ 1 ] );
+                    //     glVertex2f( corner[ 1 ][ 0 ], corner[ 1 ][ 1 ] );
+                    //     glVertex2f( corner[ 0 ][ 0 ], corner[ 0 ][ 1 ] );
+                    //     glVertex2f( corner[ 3 ][ 0 ], corner[ 3 ][ 1 ] );
+                    // }
+                    // glEnd();
+                    glPointSize( width );
+                    glBegin( GL_POINTS );
+                    {
+                        glVertex2f( window_x, window_y );
+                    }
+                    glEnd();
+                }
+                
+                // glBindTexture( GL_TEXTURE_2D, target.texture );
+                // glBegin( GL_QUADS );
+                // {
+                //     // float w_norm = 256.0f / ( float )target.dimensions[ 0 ];
+                //     // float h_norm = 256.0f / ( float )target.dimensions[ 1 ];
+                    
+                //     // glTexCoord2f(  0.0f,  0.0f );
+                //     // glVertex3f( -1 * w_norm,  h_norm,  0.0f );
+                //     // glTexCoord2f(  1.0f,  0.0f );
+                //     // glVertex3f( w_norm,  h_norm,  0.0f );
+                //     // glTexCoord2f(  1.0f,  1.0f );
+                //     // glVertex3f( w_norm, -1 * h_norm,  0.0f );
+                //     // glTexCoord2f(  0.0f,  1.0f );
+                //     // glVertex3f( -1 * w_norm, -1 * h_norm,  0.0f );
+                //     glTexCoord2f(  0.0f,  0.0f );
+                //     glVertex3f( 0, 0,  0.0f );
+                //     glTexCoord2f(  1.0f,  0.0f );
+                //     glVertex3f( 256, 0,  0.0f );
+                //     glTexCoord2f(  1.0f,  1.0f );
+                //     glVertex3f( 256, 256,  0.0f );
+                //     glTexCoord2f(  0.0f,  1.0f );
+                //     glVertex3f( 0, 256,  0.0f );
+                // }
+                // glEnd();
+                
+                // glBindTexture( GL_TEXTURE_2D, 0x00 );
                 
                 
             }

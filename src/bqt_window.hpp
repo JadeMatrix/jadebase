@@ -36,6 +36,9 @@
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
 
+// Debug/devel
+#include <vector>
+
 /******************************************************************************//******************************************************************************/
 
 #define BQT_WINDOW_DEFAULT_NAME     BQT_VERSION_STRING
@@ -82,8 +85,16 @@ namespace bqt
         
         float view_zoom;
     protected:
+        
+        // Drawing testing:
+        bool init_gl;
+        GLuint texture;
+        GLuint text_fbo;
+        GLuint render_buff;
+        std::vector< stroke_waypoint > pending_points;
+        
+        
         mutex window_mutex;
-    public:
         void init();
         
         ~window();

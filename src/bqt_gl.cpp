@@ -7,11 +7,14 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <GL/glew.h>
 #include "bqt_gl.hpp"
 
 #include "bqt_task.hpp"
 #include "bqt_taskexec.hpp"
 #include "bqt_log.hpp"
+
+#include "bqt_exception.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -28,6 +31,10 @@ namespace
         bqt::task_mask getMask()
         {
             return bqt::TASK_ALL;
+        }
+        bqt::task_priority getPriority()
+        {
+            return bqt::PRIORITY_HIGH;
         }
     };
 }

@@ -69,7 +69,7 @@ namespace bqt
                 submitTask( new HandleEvents_task() );
                 
                 submitTask( new window::manipulate( NULL ) );
-                submitTask( new window::manipulate( NULL ) );
+                // submitTask( new window::manipulate( NULL ) );
                 
                 // for( int i = 0; i < 4; ++i )
                 //     submitTask( new BusyWork_task() );
