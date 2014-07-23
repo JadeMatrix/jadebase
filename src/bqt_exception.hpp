@@ -11,7 +11,7 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include <iostream>
-#include <sstream>
+#include <string>
 
 /******************************************************************************//******************************************************************************/
 
@@ -25,7 +25,7 @@ namespace bqt
     class exception : public std::exception
     {
     protected:
-        std::stringstream message;
+        std::string message;
     public:
         exception() throw() {};
         exception( std::string message ) throw();
@@ -34,7 +34,7 @@ namespace bqt
         
         const char* what() const throw();
         
-        std::stringstream& operator*();
+        std::string& operator*();
     };
 }
 
