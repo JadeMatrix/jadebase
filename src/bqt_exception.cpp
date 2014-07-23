@@ -15,7 +15,11 @@ namespace bqt
 {
     exception::exception( std::string message ) throw()
     {
-        this -> message = message;
+        this -> message << message;
+    }
+    exception::exception( const exception& o ) throw() : message( o.message.str() )
+    {
+        // Do nothing
     }
     exception::~exception() throw()
     {
@@ -24,7 +28,12 @@ namespace bqt
     
     const char* exception::what() const throw()
     {
-        return message.c_str();
+        return message.str().c_str();
+    }
+    
+    std::stringstream& exception::operator*()
+    {
+        return message;
     }
 }
 
