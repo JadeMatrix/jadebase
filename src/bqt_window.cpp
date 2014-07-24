@@ -120,8 +120,9 @@ namespace bqt
         GLenum err = glewInit();
         if( err != GLEW_OK )
         {
-            ff::write( bqt_out, "Failed to initialize GLEW: ", std::string( ( const char* )glewGetErrorString( err ) ), "\n" );
-            throw bqt::exception( "InitOpenGL_task::execute(): Failed to initialize GLEW" );
+            bqt::exception e;
+            ff::write( *e, "Failed to initialize GLEW: ", std::string( ( const char* )glewGetErrorString( err ) ) );
+            throw e;
         }
         
         registerWindow( *this );
@@ -163,8 +164,7 @@ namespace bqt
         
         // Drawing testing
         init_gl = true;
-        texture = 0x00;
-        text_fbo = 0x00;
+        init_canvas = true;
     }
     window::~window()
     {
@@ -252,6 +252,12 @@ namespace bqt
         case DROP:
             break;
         case KEYCOMMAND:
+            if( pending_points.size() )
+            {
+                pending_points.clear();
+                init_canvas = true;
+                submitTask( new window::redraw( *this ) );
+            }
             break;
         case COMMAND:
             break;
@@ -587,6 +593,8 @@ namespace bqt
             // {   // FBO
             //     if( target.init_gl )
             //     {
+            //         glEnable( GL_TEXTURE_2D );
+                    
             //         glGenFramebuffers( 1, &target.text_fbo );
             //         glGenTextures( 1, &target.texture );
             //         glGenRenderbuffers( 1, &target.render_buff );
@@ -661,38 +669,33 @@ namespace bqt
             //     glBindFramebuffer( GL_FRAMEBUFFER, 0 );
             //     glBindRenderbuffer( GL_RENDERBUFFER, 0 );
             // }
+            
+            // glXSwapBuffers( x_display, target.platform_window.x_window );
             {   // SCREEN
                 // glEnable(GL_DEPTH_TEST);
                 glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
                 glLoadIdentity();
                 glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
                 
-                glClearColor( 1.0, 1.0, 1.0, 1.0 );
-                glClear( GL_COLOR_BUFFER_BIT );
-                // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+                glEnable( GL_BLEND );
+                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 
-                float corner[ 4 ][ 2 ];
+                // if( target.init_canvas )
+                {
+                    glClearColor( 1.0, 1.0, 1.0, 1.0 );
+                    glClear( GL_COLOR_BUFFER_BIT );
+                    // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+                    target.init_canvas = false;
+                    // ff::write( bqt_out, "Cleared canvas\n" );
+                }
                 
-                // ff::write( bqt_out, "Starting stroke ------------------\n" );
+                // glBegin( GL_LINE_STRIP );
                 for( int i = 0; i < target.pending_points.size(); ++i )
                 {
                     int window_x = target.pending_points[ i ].position[ 0 ];
                     int window_y = target.pending_points[ i ].position[ 1 ];
-                    float width = target.pending_points[ i ].pressure * 10;
                     
                     // ff::write( bqt_out, "Drawing point @ ", window_x, ",", window_y, " w=", width, "\n" );
-                    
-                    corner[ 0 ][ 0 ] = window_x - width;
-                    corner[ 0 ][ 1 ] = window_y - width;
-                    
-                    corner[ 1 ][ 0 ] = window_x + width;
-                    corner[ 1 ][ 1 ] = window_x - width;
-                    
-                    corner[ 2 ][ 0 ] = window_x + width;
-                    corner[ 2 ][ 1 ] = window_x + width;
-                    
-                    corner[ 3 ][ 0 ] = window_x - width;
-                    corner[ 3 ][ 1 ] = window_x + width;
                     
                     if( target.pending_points[ i ].click == CLICK_ERASE )
                     {
@@ -701,52 +704,23 @@ namespace bqt
                     }
                     else
                         glColor4f( 0.0, 0.0, 0.0, 1.0 );
-                    // glBegin( GL_QUADS );
-                    // {
-                    //     glVertex2f( corner[ 0 ][ 0 ], corner[ 0 ][ 1 ] );
-                    //     glVertex2f( corner[ 1 ][ 0 ], corner[ 1 ][ 1 ] );
-                    //     glVertex2f( corner[ 0 ][ 0 ], corner[ 0 ][ 1 ] );
-                    //     glVertex2f( corner[ 3 ][ 0 ], corner[ 3 ][ 1 ] );
-                    // }
-                    // glEnd();
-                    glPointSize( width );
+                        // glColor4f( 0.0, 0.0, 0.0, target.pending_points[ i ].pressure );
+                    
+                    // glVertex2f( window_x, window_y );
+                    
+                    glPointSize( target.pending_points[ i ].pressure * 10 );
                     glBegin( GL_POINTS );
                     {
                         glVertex2f( window_x, window_y );
                     }
                     glEnd();
                 }
-                
-                // glBindTexture( GL_TEXTURE_2D, target.texture );
-                // glBegin( GL_QUADS );
-                // {
-                //     // float w_norm = 256.0f / ( float )target.dimensions[ 0 ];
-                //     // float h_norm = 256.0f / ( float )target.dimensions[ 1 ];
-                    
-                //     // glTexCoord2f(  0.0f,  0.0f );
-                //     // glVertex3f( -1 * w_norm,  h_norm,  0.0f );
-                //     // glTexCoord2f(  1.0f,  0.0f );
-                //     // glVertex3f( w_norm,  h_norm,  0.0f );
-                //     // glTexCoord2f(  1.0f,  1.0f );
-                //     // glVertex3f( w_norm, -1 * h_norm,  0.0f );
-                //     // glTexCoord2f(  0.0f,  1.0f );
-                //     // glVertex3f( -1 * w_norm, -1 * h_norm,  0.0f );
-                //     glTexCoord2f(  0.0f,  0.0f );
-                //     glVertex3f( 0, 0,  0.0f );
-                //     glTexCoord2f(  1.0f,  0.0f );
-                //     glVertex3f( 256, 0,  0.0f );
-                //     glTexCoord2f(  1.0f,  1.0f );
-                //     glVertex3f( 256, 256,  0.0f );
-                //     glTexCoord2f(  0.0f,  1.0f );
-                //     glVertex3f( 0, 256,  0.0f );
-                // }
                 // glEnd();
                 
-                // glBindTexture( GL_TEXTURE_2D, 0x00 );
+                target.pending_points.clear();
                 
                 
             }
-            
             glXSwapBuffers( x_display, target.platform_window.x_window );
         }
         

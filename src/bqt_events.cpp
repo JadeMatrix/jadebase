@@ -118,7 +118,13 @@ namespace
     
     void handleKeyEvent( XEvent& x_event )
     {
-        ff::write( bqt_out, "Key event\n" );
+        // ff::write( bqt_out, "Key event\n" );
+        bqt::window_event w_event;
+        w_event.id = bqt::KEYCOMMAND;
+        
+        bqt::window* active_window = bqt::getActiveWindow();
+        if( active_window != NULL )
+            active_window -> acceptEvent( w_event );
     }
     // void handleKeyEvent( SDL_Event& sdl_event )
     // {

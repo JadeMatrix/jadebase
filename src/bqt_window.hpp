@@ -88,9 +88,7 @@ namespace bqt
         
         // Drawing testing:
         bool init_gl;
-        GLuint texture;
-        GLuint text_fbo;
-        GLuint render_buff;
+        bool init_canvas;
         std::vector< stroke_waypoint > pending_points;
         
         
