@@ -10,6 +10,7 @@
 
 #include "bqt_taskexec.hpp"
 
+#include "bqt_platform.h"
 #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
 #include <time.h>
 #else
@@ -25,8 +26,6 @@
 #include "bqt_log.hpp"
 #include "bqt_launchargs.hpp"
 #include "bqt_condition.hpp"
-
-#include "bqt_platform.h"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

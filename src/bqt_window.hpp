@@ -26,10 +26,9 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include "bqt_platform.h"
-
 #include <string>
 
+#include "bqt_platform.h"
 #include "bqt_canvas.hpp"
 #include "bqt_task.hpp"
 #include "bqt_mutex.hpp"

@@ -62,7 +62,7 @@ extern "C"
     } bqt_platform_condition_t;
     
     #include <X11/X.h>
-    #include <GL/glx.h>
+    #include <GL/glxew.h>
     #include <X11/extensions/XInput.h>
     
     #define X_PROTOCOL_COUNT 1
