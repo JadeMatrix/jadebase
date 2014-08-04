@@ -51,7 +51,7 @@ namespace
         TOUCH_STYLUS
     };
     
-    pen_type getWacomTabletType( const char* name )                             // The Linux Wacom driver reports names as "Wacom... *type*"
+    pen_type getWacomTabletType( const char* name )                             // The Linux Wacom driver reports names as "Wacom ... *type*"
     {
         std::string name_str( name );
         
@@ -125,64 +125,11 @@ namespace
         if( active_window != NULL )
             active_window -> acceptEvent( w_event );
     }
-    // void handleKeyEvent( SDL_Event& sdl_event )
-    // {
-    //     // https://wiki.libsdl.org/SDL_KeyboardEvent
-    //     // https://wiki.libsdl.org/SDL_Keysym
-    //     // https://wiki.libsdl.org/SDL_Keymod
-    //     switch( sdl_event.type )
-    //     {
-    //     case SDL_KEYDOWN:
-    //         break;
-    //     case SDL_KEYUP:
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
     
     void handleTouchEvent( XEvent& x_event )
     {
         ff::write( bqt_out, "Touch event\n" );
     }
-    // void handleTouchEvent( SDL_Event& sdl_event )
-    // {
-    //     bqt::window* active_window = getActiveWindow();
-        
-    //     switch( sdl_event.type )
-    //     {
-    //         // https://wiki.libsdl.org/SDL_TouchFingerEvent
-    //         // http://hg.libsdl.org/SDL/file/default/README-gesture.txt
-    //     case SDL_FINGERMOTION:
-    //         break;
-    //     case SDL_FINGERDOWN:
-    //         break;
-    //     case SDL_FINGERUP:
-    //         break;
-    //     case SDL_MULTIGESTURE:
-    //         {
-    //             if( sdl_event.mgesture.numFingers == 2 )                        // Ignore event.mgesture.numFingers != 2
-    //             {
-    //                 SDL_DisplayMode d_mode;
-    //                 if( SDL_GetCurrentDisplayMode( SDL_GetWindowDisplayIndex( active_window -> getPlatformWindow().sdl_window ),
-    //                                                &d_mode ) )                  // Current instead of Desktop for fullscreen
-    //                 {
-    //                     pinch_input p_i;
-                        
-    //                     p_i.distance = sdl_event.mgesture.dDist;
-    //                     p_i.rotation = sdl_event.mgesture.dTheta;
-    //                     p_i.position[ 0 ] = active_window -> getPosition().first - sdl_event.mgesture.x * d_mode.w;
-    //                     p_i.position[ 1 ] = active_window -> getPosition().second - sdl_event.mgesture.y * d_mode.h;
-    //                 }
-    //                 else
-    //                     throw exception( "handleTouchEvent(): Could not get display mode" );
-    //             }
-    //         }
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
     
     void handleMotionEvent( XEvent& x_event )
     {
@@ -550,7 +497,7 @@ namespace bqt
             {
                 // ff::write( bqt_out, "Testing XCloseDevice\n" );
                 // XCloseDevice( x_display, new_devices[ i ].x_device );
-                ff::write( bqt_out, "Leaking device \"", new_devices[ i ].name, "\" (unplugged)\n" );
+                ff::write( bqt_out, "Leaking device \"", new_devices[ i ].name, "\" (unplugged?)\n" );
             }
     }
     
@@ -641,7 +588,7 @@ namespace bqt
                 case SelectionNotify:
                 case ColormapNotify:
                 case PropertyNotify:
-                    break;                                                      // Ignore
+                    break;                                                      // Ignore, for now
                 default:
                     handleMotionEvent( x_event );                               // DeviceMotion events have a dynamic type
                     break;
