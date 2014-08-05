@@ -160,34 +160,36 @@ namespace
             
             if( w_event.key.key != bqt::KEY_INVALID )                           // Simply ignore invalid keys
             {
-                if( x_kevent.state & ShiftMask )
-                    w_event.key.shift = true;
-                else
-                    w_event.key.shift = false;
-                
-                if( x_kevent.state & ControlMask )
-                    w_event.key.ctrl = true;
-                else
-                    w_event.key.ctrl = false;
-                
-                if( x_kevent.state & Mod1Mask )
-                    w_event.key.alt = true;
-                else
-                    w_event.key.alt = false;
-                
-                if( x_kevent.state & Mod4Mask )                                 // Run xmodmap to find these on a given system
-                    w_event.key.super = true;
-                else
-                    w_event.key.super = false;
-                
-                #ifdef PLATFORM_MACOSX
-                if( w_event.key.super )
-                #else
-                if( w_event.key.ctrl )
-                #endif
-                    w_event.key.cmd = true;
-                else
-                    w_event.key.cmd = false;
+                {                                                               // Set modifier flags
+                    if( x_kevent.state & ShiftMask )
+                        w_event.key.shift = true;
+                    else
+                        w_event.key.shift = false;
+                    
+                    if( x_kevent.state & ControlMask )
+                        w_event.key.ctrl = true;
+                    else
+                        w_event.key.ctrl = false;
+                    
+                    if( x_kevent.state & Mod1Mask )
+                        w_event.key.alt = true;
+                    else
+                        w_event.key.alt = false;
+                    
+                    if( x_kevent.state & Mod4Mask )                             // Run xmodmap to find these on a given system
+                        w_event.key.super = true;
+                    else
+                        w_event.key.super = false;
+                    
+                    #ifdef PLATFORM_MACOSX
+                    if( w_event.key.super )
+                    #else
+                    if( w_event.key.ctrl )
+                    #endif
+                        w_event.key.cmd = true;
+                    else
+                        w_event.key.cmd = false;
+                }
                 
                 ff::write( bqt_out,
                            "Key command ",
@@ -263,7 +265,38 @@ namespace
                         else
                             w_event.stroke.click = CLICK_PRIMARY;               // TODO: Figure out other click types from modifier keys
                         
-                        // TODO: support less-than-fullscreen surfaces
+                        {                                                       // Set modifier flags
+                            if( x_dmevent.state & ShiftMask )
+                                w_event.key.shift = true;
+                            else
+                                w_event.key.shift = false;
+                            
+                            if( x_dmevent.state & ControlMask )
+                                w_event.key.ctrl = true;
+                            else
+                                w_event.key.ctrl = false;
+                            
+                            if( x_dmevent.state & Mod1Mask )
+                                w_event.key.alt = true;
+                            else
+                                w_event.key.alt = false;
+                            
+                            if( x_dmevent.state & Mod4Mask )
+                                w_event.key.super = true;
+                            else
+                                w_event.key.super = false;
+                            
+                            #ifdef PLATFORM_MACOSX
+                            if( w_event.key.super )
+                            #else
+                            if( w_event.key.ctrl )
+                            #endif
+                                w_event.key.cmd = true;
+                            else
+                                w_event.key.cmd = false;
+                        }
+                        
+                        // TODO: support less-than-fullscreen tablet surfaces
                         w_event.stroke.position[ 0 ] = ( ( float )x_dmevent.axis_data[ 0 ]
                                                          / ( float )x_tablet_devices[ i ].axes[ 0 ].max_value )
                                                        * ( float )x_screen_px[ 0 ];

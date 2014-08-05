@@ -91,7 +91,7 @@ extern "C"
     
     #elif defined PLATFORM_WINDOWS
     
-    #error "Windows not available as a platform yet"
+    #error "Windows not implemented as a platform yet"
     
     /* Apple Mac OS X *********************************************************//******************************************************************************/
     
