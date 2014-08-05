@@ -160,36 +160,16 @@ namespace
             
             if( w_event.key.key != bqt::KEY_INVALID )                           // Simply ignore invalid keys
             {
-                {                                                               // Set modifier flags
-                    if( x_kevent.state & ShiftMask )
-                        w_event.key.shift = true;
-                    else
-                        w_event.key.shift = false;
-                    
-                    if( x_kevent.state & ControlMask )
-                        w_event.key.ctrl = true;
-                    else
-                        w_event.key.ctrl = false;
-                    
-                    if( x_kevent.state & Mod1Mask )
-                        w_event.key.alt = true;
-                    else
-                        w_event.key.alt = false;
-                    
-                    if( x_kevent.state & Mod4Mask )                             // Run xmodmap to find these on a given system
-                        w_event.key.super = true;
-                    else
-                        w_event.key.super = false;
-                    
-                    #ifdef PLATFORM_MACOSX
-                    if( w_event.key.super )
-                    #else
-                    if( w_event.key.ctrl )
-                    #endif
-                        w_event.key.cmd = true;
-                    else
-                        w_event.key.cmd = false;
-                }
+                w_event.key.shift = ( bool )( x_kevent.state & ShiftMask );
+                w_event.key.ctrl  = ( bool )( x_kevent.state & ControlMask );
+                w_event.key.alt   = ( bool )( x_kevent.state & Mod1Mask );
+                w_event.key.super = ( bool )( x_kevent.state & Mod4Mask );      // Run xmodmap to find these on a given system
+                
+                #ifdef PLATFORM_MACOSX
+                w_event.key.cmd = w_event.key.super;
+                #else
+                w_event.key.cmd = w_event.key.ctrl;
+                #endif
                 
                 ff::write( bqt_out,
                            "Key command ",
@@ -265,36 +245,16 @@ namespace
                         else
                             w_event.stroke.click = CLICK_PRIMARY;               // TODO: Figure out other click types from modifier keys
                         
-                        {                                                       // Set modifier flags
-                            if( x_dmevent.state & ShiftMask )
-                                w_event.key.shift = true;
-                            else
-                                w_event.key.shift = false;
-                            
-                            if( x_dmevent.state & ControlMask )
-                                w_event.key.ctrl = true;
-                            else
-                                w_event.key.ctrl = false;
-                            
-                            if( x_dmevent.state & Mod1Mask )
-                                w_event.key.alt = true;
-                            else
-                                w_event.key.alt = false;
-                            
-                            if( x_dmevent.state & Mod4Mask )
-                                w_event.key.super = true;
-                            else
-                                w_event.key.super = false;
-                            
-                            #ifdef PLATFORM_MACOSX
-                            if( w_event.key.super )
-                            #else
-                            if( w_event.key.ctrl )
-                            #endif
-                                w_event.key.cmd = true;
-                            else
-                                w_event.key.cmd = false;
-                        }
+                        w_event.key.shift = ( bool )( x_dmevent.state & ShiftMask );
+                        w_event.key.ctrl  = ( bool )( x_dmevent.state & ControlMask );
+                        w_event.key.alt   = ( bool )( x_dmevent.state & Mod1Mask );
+                        w_event.key.super = ( bool )( x_dmevent.state & Mod4Mask );
+                        
+                        #ifdef PLATFORM_MACOSX
+                        w_event.key.cmd = w_event.key.super;
+                        #else
+                        w_event.key.cmd = w_event.key.ctrl;
+                        #endif
                         
                         // TODO: support less-than-fullscreen tablet surfaces
                         w_event.stroke.position[ 0 ] = ( ( float )x_dmevent.axis_data[ 0 ]
@@ -423,28 +383,10 @@ namespace
         }
     }
     
-    #endif
-}
-
-/******************************************************************************//******************************************************************************/
-
-#if defined PLATFORM_XWS_GNUPOSIX
-
-void setQuitFlag()
-{
-    bqt::scoped_lock slock( quit_mutex );
-    quit_flag = true;
-}
-bool getQuitFlag()
-{
-    bqt::scoped_lock slock( quit_mutex );
-    return quit_flag;
-}
-
-namespace bqt
-{
     void openTabletDevices()
     {
+        using namespace bqt;
+        
         // for stroke_waypoint collecting:
         // http://www.cplusplus.com/reference/vector/vector/reserve/
         
@@ -610,6 +552,8 @@ namespace bqt
     
     void closeTabletDevices()
     {
+        using namespace bqt;
+        
         Display* x_display = getXDisplay();
         
         for( int i = 0; i < x_tablet_devices.size(); i++ )
@@ -623,6 +567,26 @@ namespace bqt
         x_tablet_devices.clear();
     }
     
+    #endif
+}
+
+/******************************************************************************//******************************************************************************/
+
+#if defined PLATFORM_XWS_GNUPOSIX
+
+void setQuitFlag()
+{
+    bqt::scoped_lock slock( quit_mutex );
+    quit_flag = true;
+}
+bool getQuitFlag()
+{
+    bqt::scoped_lock slock( quit_mutex );
+    return quit_flag;
+}
+
+namespace bqt
+{
     bool HandleEvents_task::execute( task_mask* caller_mask )
     {
         if( getQuitFlag() )

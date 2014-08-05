@@ -15,6 +15,7 @@
 
 #include "bqt_platform.h"
 #include "bqt_log.hpp"
+#include "bqt_launchargs.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -33,6 +34,11 @@ Display* getXDisplay()                                                          
 int main( int argc, char* argv[] )
 {
     int return_code = 0x00;
+    
+    if( !XInitThreads() && bqt::getDevMode() )                                  // Using XInitThreads makes the TASK_SYSTEM mask unneeded on X-based platforms,
+                                                                                // however other platforms still require single-threaded system code.
+                                                                                // TODO: Potentially use TASK_ANY instead of TASK_SYSTEM wherever it is used
+        ff::write( bqt_out, "Warning: Could not initialize XLib thread safety, attempting to start anyways\n" );
     
     x_display = XOpenDisplay( NULL );
     

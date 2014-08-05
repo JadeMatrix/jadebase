@@ -1,7 +1,7 @@
 /* 
  * bqt_window.cpp
  * 
- * About
+ * Implements bqt_window.hpp
  * 
  */
 
@@ -599,6 +599,8 @@ namespace bqt
     }
     bool window::redraw::execute( task_mask* caller_mask )
     {
+        ff::write( bqt_out, "redrawing a window\n" );
+        
         scoped_lock slock( target.window_mutex );
         
         if( target.pending_redraws <= 1 )                                       // Only redraw if there are no other pending redraws for that window; this is
