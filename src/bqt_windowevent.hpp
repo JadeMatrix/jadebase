@@ -8,11 +8,19 @@
  * This means they include clicks, drags, etc. but not file opening, quitting,
  * etc. that affect the program as a whole.
  * 
+ * Note about bqt::stroke_waypoint::cmd - this flag is set if the system-depend-
+ * ant application command key is pressed.  On OS X, this is the Command key
+ * (which is also used for system shortcuts).  On Windows & Linux, this is CTRL,
+ * as the super key is used for system-level shortcuts.  The appropriate flag
+ * bqt::stroke_waypoint::ctrl or bqt::stroke_waypoint::super will also be set.
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <string>
 
+#include "bqt_keycode.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -36,25 +44,30 @@ namespace bqt
         bool shift : 1;
         bool ctrl  : 1;
         bool alt   : 1;                                                         // Apple Option/Alt or Windows Alt
-        bool meta  : 1;                                                         // Apple Command or Windows key
+        bool super : 1;                                                         // Apple Command or Windows key
+        bool cmd   : 1;                                                         // Platform command key: CTRL on Windows/Linux, Command on OS X
         
         float   position[ 2 ];                                                  // Position [ x, y ] relative to screen (fractional if supported)
         float   pressure;                                                       // Pressure, ( 0.0 ... 1.0 )
         int         tilt[ 2 ];                                                  // Tilt [ x, y ], ( -1.0 ... 1.0 )
         float   rotation;                                                       // Rotation (0.0 up to but not including 1.0 is a full rotation, can contain
-                                                                                // multiple rotations)
+                                                                                // multiple rotations but usually not)
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
     };
     
-    struct key_input
+    struct key_command
     {
-        bqt_platform_keycode_t key;
+        keycode key;
         
         bool shift : 1;
         bool ctrl  : 1;
         bool alt   : 1;
-        bool meta  : 1;
+        bool super : 1;
+        bool cmd   : 1;
+        
+        bool up;
     };
+    std::string getKeyCommandString( key_command& k );                          // TODO: Make this UTF-8 to return symbols for modifier keys
     
     struct pinch_input
     {
@@ -83,7 +96,7 @@ namespace bqt
         {
             stroke_waypoint stroke;
             //drop;
-            key_input key;
+            key_command key;
             //command;
             //text;
             pinch_input pinch;

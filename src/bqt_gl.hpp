@@ -10,7 +10,9 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#ifdef __APPLE__                                                                // Change to def for Cocoa in bqt_platform.h?
+#include "bqt_platform.h"
+
+#ifdef PLATFORM_MACOSX
 #include <OpenGL/glew.h>
 #else
 #include <GL/glew.h>

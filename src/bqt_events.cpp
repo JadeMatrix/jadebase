@@ -5,6 +5,8 @@
  * as it is entirely up to the window to check the event position(s) and thus to
  * decide whether it is a drag or a click.
  * 
+ * Also implements setQuitFlag() and getQuitFlag() from bqt_platform.h
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -24,6 +26,7 @@
 #include "bqt_exception.hpp"
 #include "bqt_launchargs.hpp"
 #include "bqt_mutex.hpp"
+#include "bqt_keycode.hpp"
 
 #include "bqt_log.hpp"
 
@@ -35,6 +38,7 @@ namespace
     // We don't need any thread safety here as events have to be single-threaded
     
     std::map< Window, bqt::window::manipulate* > window_manipulates;            // Waiting room so we don't submit more than we need
+                                                                                // TODO: Remove when we overload new for manipulates
     
     // INPUT DEVICES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -117,13 +121,83 @@ namespace
     
     void handleKeyEvent( XEvent& x_event )
     {
-        // ff::write( bqt_out, "Key event\n" );
-        bqt::window_event w_event;
-        w_event.id = bqt::KEYCOMMAND;
+        XKeyEvent& x_kevent( *( ( XKeyEvent* )&x_event ) );
         
-        bqt::window* active_window = bqt::getActiveWindow();
-        if( active_window != NULL )
-            active_window -> acceptEvent( w_event );
+        bqt_platform_window_t platform_window;
+        platform_window.x_window = x_event.xany.window;
+        bqt::window* target_window = &bqt::getWindow( platform_window );
+        
+        if( target_window == NULL )
+        {
+            if( bqt::getDevMode() )
+                ff::write( bqt_out, "Got key event for unknown window, using active window\n" );
+            target_window = bqt::getActiveWindow();
+        }
+        
+        if( target_window == NULL )
+        {
+            if( bqt::getDevMode() )
+                ff::write( bqt_out, "Got key event with no active window, ignoring\n" );
+        }
+        else
+        {
+            bqt::window_event w_event;
+            w_event.id = bqt::KEYCOMMAND;
+            
+            switch( x_kevent.type )
+            {
+                case KeyPress:
+                    w_event.key.up = false;
+                    break;
+                case KeyRelease:
+                    w_event.key.up = true;
+                    break;
+                default:
+                    throw bqt::exception( "handleKeyEvent(): Key event neither up nor down" );
+            }
+            
+            w_event.key.key = bqt::convertPlatformKeycode( XLookupKeysym( &x_kevent, 0 ) );
+            
+            if( w_event.key.key != bqt::KEY_INVALID )                           // Simply ignore invalid keys
+            {
+                if( x_kevent.state & ShiftMask )
+                    w_event.key.shift = true;
+                else
+                    w_event.key.shift = false;
+                
+                if( x_kevent.state & ControlMask )
+                    w_event.key.ctrl = true;
+                else
+                    w_event.key.ctrl = false;
+                
+                if( x_kevent.state & Mod1Mask )
+                    w_event.key.alt = true;
+                else
+                    w_event.key.alt = false;
+                
+                if( x_kevent.state & Mod4Mask )                                 // Run xmodmap to find these on a given system
+                    w_event.key.super = true;
+                else
+                    w_event.key.super = false;
+                
+                #ifdef PLATFORM_MACOSX
+                if( w_event.key.super )
+                #else
+                if( w_event.key.ctrl )
+                #endif
+                    w_event.key.cmd = true;
+                else
+                    w_event.key.cmd = false;
+                
+                ff::write( bqt_out,
+                           "Key command ",
+                           bqt::getKeyCommandString( w_event.key ),
+                           ( w_event.key.up ? " (Up)" : " (Down)" ),
+                           "\n" );
+                
+                target_window -> acceptEvent( w_event );
+            }
+        }
     }
     
     void handleTouchEvent( XEvent& x_event )

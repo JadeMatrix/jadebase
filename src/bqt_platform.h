@@ -17,6 +17,9 @@
  * bqt_platform_idevid_t
  * Type wrapper for platform input device IDs
  * 
+ * bqt_platform_keycode_t
+ * Type wrapper for platform keyboard key IDs
+ * 
  * 
  * Platform defs:
  * 
@@ -68,24 +71,21 @@ extern "C"
     #define X_PROTOCOL_COUNT 1
     typedef struct
     {
-        bool                   good;
-        Window               x_window;
-        XWindowAttributes    x_window_attr;
-        GLXContext         glx_context;
-        XVisualInfo*         x_visual_info;
-        XSetWindowAttributes x_set_window_attr;
-        GLint              glx_attr[ 5 ];
-        Atom                 x_protocols[ X_PROTOCOL_COUNT ];
+        bool                     good;
+        Window                 x_window;
+        XWindowAttributes      x_window_attr;
+        GLXContext           glx_context;
+        XVisualInfo*           x_visual_info;
+        XSetWindowAttributes   x_set_window_attr;
+        GLint                glx_attr[ 5 ];
+        Atom                   x_protocols[ X_PROTOCOL_COUNT ];
     } bqt_platform_window_t;
     
     Display* getXDisplay();
     
     typedef XID bqt_platform_idevid_t;
     
-    typedef unsigned int bqt_platform_keycode_t;
-    
-    void setQuitFlag();
-    bool getQuitFlag();
+    typedef unsigned int bqt_platform_keycode_t;                                // XLib's keycode type
     
     /* Microsoft Windows ******************************************************//******************************************************************************/
     
@@ -100,7 +100,9 @@ extern "C"
     #error "Mac OS X not fully implemented as a platform yet"
     
     #endif
-
+    
+    void setQuitFlag();
+    bool getQuitFlag();
 
     // typedef struct
     // {
