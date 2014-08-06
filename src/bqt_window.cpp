@@ -188,10 +188,6 @@ namespace bqt
         updates.minimize   = false;
         updates.maximize   = false;
         updates.restore    = false;
-        
-        // Drawing testing
-        init_gl = true;
-        init_canvas = true;
     }
     window::~window()
     {
@@ -262,38 +258,51 @@ namespace bqt
     {
         scoped_lock slock( window_mutex );
         
-        switch( e.id )
+        switch( e.type )
         {
         case STROKE:
-            // // ff::write( bqt_out, e.stroke.position[ 0 ],
-            // //            " ", e.stroke.position[ 1 ],
-            // //            " ", e.stroke.pressure, "\n" );
-            // if( e.stroke.pressure > 0 )
-            {
-                e.stroke.position[ 0 ] -= position[ 0 ];
-                e.stroke.position[ 1 ] -= position[ 1 ];
-                pending_points.push_back( e.stroke );
-                submitTask( new window::redraw( *this ) );
-            }
+            e.stroke.position[ 0 ] -= position[ 0 ];
+            e.stroke.position[ 1 ] -= position[ 1 ];
+            layout.acceptEvent( e );
             break;
         case DROP:
             break;
         case KEYCOMMAND:
-            // if( pending_points.size() )
-            {
-                pending_points.clear();
-                init_canvas = true;
-                submitTask( new window::redraw( *this ) );
-            }
             break;
         case COMMAND:
             break;
         case TEXT:
             break;
-        case PINCH:
-            break;
+        // case STROKE:
+        //     // // ff::write( bqt_out, e.stroke.position[ 0 ],
+        //     // //            " ", e.stroke.position[ 1 ],
+        //     // //            " ", e.stroke.pressure, "\n" );
+        //     // if( e.stroke.pressure > 0 )
+        //     {
+        //         e.stroke.position[ 0 ] -= position[ 0 ];
+        //         e.stroke.position[ 1 ] -= position[ 1 ];
+        //         pending_points.push_back( e.stroke );
+        //         submitTask( new window::redraw( *this ) );
+        //     }
+        //     break;
+        // case DROP:
+        //     break;
+        // case KEYCOMMAND:
+        //     // if( pending_points.size() )
+        //     {
+        //         pending_points.clear();
+        //         init_canvas = true;
+        //         submitTask( new window::redraw( *this ) );
+        //     }
+        //     break;
+        // case COMMAND:
+        //     break;
+        // case TEXT:
+        //     break;
+        // case PINCH:
+        //     break;
         default:
-            throw exception( "window::acceptEvent(): Unknown window event id" );
+            throw exception( "window::acceptEvent(): Unknown event type" );
             break;
         }
     }
@@ -699,92 +708,92 @@ namespace bqt
             
             glXSwapBuffers( x_display, target.platform_window.x_window );
             {   // SCREEN
-                // glEnable(GL_DEPTH_TEST);
-                glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
-                glLoadIdentity();
-                glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
+                // // glEnable(GL_DEPTH_TEST);
+                // glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
+                // glLoadIdentity();
+                // glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
                 
-                glEnable( GL_BLEND );
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+                // glEnable( GL_BLEND );
+                // glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 
-                if( target.init_canvas )
-                {
-                    glClearColor( 1.0, 1.0, 1.0, 1.0 );
-                    glClear( GL_COLOR_BUFFER_BIT );
-                    // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-                    target.init_canvas = false;
-                    // ff::write( bqt_out, "Cleared canvas\n" );
-                }
+                // if( target.init_canvas )
+                // {
+                //     glClearColor( 1.0, 1.0, 1.0, 1.0 );
+                //     glClear( GL_COLOR_BUFFER_BIT );
+                //     // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+                //     target.init_canvas = false;
+                //     // ff::write( bqt_out, "Cleared canvas\n" );
+                // }
                 
-                // glBegin( GL_LINE_STRIP );
-                for( int i = 0; i < target.pending_points.size(); ++i )
-                {
-                    static bool first = true;
-                    static float previous[ 3 ];
-                    float width = 15.0;
-                    previous[ 2 ] = 0.0;
+                // // glBegin( GL_LINE_STRIP );
+                // for( int i = 0; i < target.pending_points.size(); ++i )
+                // {
+                //     static bool first = true;
+                //     static float previous[ 3 ];
+                //     float width = 15.0;
+                //     previous[ 2 ] = 0.0;
                     
-                    if( target.pending_points[ i ].pressure <= 0.0 )
-                        first  = true;
-                    else
-                    {
-                        int window_x = target.pending_points[ i ].position[ 0 ];
-                        int window_y = target.pending_points[ i ].position[ 1 ];
+                //     if( target.pending_points[ i ].pressure <= 0.0 )
+                //         first  = true;
+                //     else
+                //     {
+                //         int window_x = target.pending_points[ i ].position[ 0 ];
+                //         int window_y = target.pending_points[ i ].position[ 1 ];
                         
-                        // ff::write( bqt_out, "Drawing point @ ", window_x, ",", window_y, " w=", width, "\n" );
+                //         // ff::write( bqt_out, "Drawing point @ ", window_x, ",", window_y, " w=", width, "\n" );
                         
-                        if( target.pending_points[ i ].click == CLICK_ERASE )
-                        {
-                            // ff::write( bqt_out, "eraser\n" );
-                            glColor4f( 1.0, 1.0, 1.0, 1.0 );
-                            // glColor4f( 0.0, 0.0, 0.0, 0.0 );
-                        }
-                        else
-                            glColor4f( 0.0, 0.0, 0.0, 1.0 );
-                            // glColor4f( 0.0, 0.0, 0.0, target.pending_points[ i ].pressure );
+                //         if( target.pending_points[ i ].click == CLICK_ERASE )
+                //         {
+                //             // ff::write( bqt_out, "eraser\n" );
+                //             glColor4f( 1.0, 1.0, 1.0, 1.0 );
+                //             // glColor4f( 0.0, 0.0, 0.0, 0.0 );
+                //         }
+                //         else
+                //             glColor4f( 0.0, 0.0, 0.0, 1.0 );
+                //             // glColor4f( 0.0, 0.0, 0.0, target.pending_points[ i ].pressure );
                         
-                        // glVertex2f( window_x, window_y );
+                //         // glVertex2f( window_x, window_y );
                         
-                        drawCircle( 6, target.pending_points[ i ].pressure * width, false );
+                //         drawCircle( 6, target.pending_points[ i ].pressure * width, false );
                         
-                        // glPointSize( target.pending_points[ i ].pressure * width );
-                        // glBegin( GL_POINTS );
-                        // {
-                        //     if( first )
-                        //     {
-                        //         glVertex2f( window_x, window_y );
-                        //         previous[ 0 ] = window_x;
-                        //         previous[ 1 ] = window_y;
-                        //         previous[ 2 ] = target.pending_points[ i ].pressure * width;
-                        //         first = false;
-                        //     }
-                        //     else
-                        //     {
-                        //         float dx = ( window_x - previous[ 0 ] );
-                        //         float dy = ( window_y - previous[ 1 ] );
+                //         // glPointSize( target.pending_points[ i ].pressure * width );
+                //         // glBegin( GL_POINTS );
+                //         // {
+                //         //     if( first )
+                //         //     {
+                //         //         glVertex2f( window_x, window_y );
+                //         //         previous[ 0 ] = window_x;
+                //         //         previous[ 1 ] = window_y;
+                //         //         previous[ 2 ] = target.pending_points[ i ].pressure * width;
+                //         //         first = false;
+                //         //     }
+                //         //     else
+                //         //     {
+                //         //         float dx = ( window_x - previous[ 0 ] );
+                //         //         float dy = ( window_y - previous[ 1 ] );
                                 
-                        //         int steps = ( int )abs( ceil( abs( dx ) > abs( dy ) ? dx : dy ) );
+                //         //         int steps = ( int )abs( ceil( abs( dx ) > abs( dy ) ? dx : dy ) );
                                 
-                        //         dx /= steps;
-                        //         dy /= steps;
+                //         //         dx /= steps;
+                //         //         dy /= steps;
                                 
-                        //         for( int j = 0; j < abs( steps ); ++j )
-                        //         {
-                        //             glVertex2f( previous[ 0 ] + dx * j, previous[1  ] + dy * j );
-                        //         }
+                //         //         for( int j = 0; j < abs( steps ); ++j )
+                //         //         {
+                //         //             glVertex2f( previous[ 0 ] + dx * j, previous[1  ] + dy * j );
+                //         //         }
                                 
-                        //         previous[ 0 ] = window_x;
-                        //         previous[ 1 ] = window_y;
-                        //     }
-                        // }
-                        // glEnd();
-                    }
-                }
-                // glEnd();
+                //         //         previous[ 0 ] = window_x;
+                //         //         previous[ 1 ] = window_y;
+                //         //     }
+                //         // }
+                //         // glEnd();
+                //     }
+                // }
+                // // glEnd();
                 
-                target.pending_points.clear();
+                // target.pending_points.clear();
                 
-                
+                target.layout.draw();
             }
             glXSwapBuffers( x_display, target.platform_window.x_window );
         }

@@ -19,11 +19,6 @@
 // http://tronche.com/gui/x/xlib/pixmap-and-cursor/cursor.html
 // http://tronche.com/gui/x/xlib/window/XDefineCursor.html
 
-// Text input references:
-// https://wiki.libsdl.org/Tutorials/TextInput
-// http://lazyfoo.net/tutorials/SDL/32_text_input_and_clipboard_handling/index.php
-// http://hg.libsdl.org/SDL/file/783d1cff9b20/test/testime.c
-
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include <string>
@@ -34,9 +29,7 @@
 #include "bqt_mutex.hpp"
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
-
-// Debug/devel
-#include <vector>
+#include "bqt_layout.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -84,12 +77,7 @@ namespace bqt
         
         float view_zoom;
     protected:
-        
-        // Drawing testing:
-        bool init_gl;
-        bool init_canvas;
-        std::vector< stroke_waypoint > pending_points;
-        
+        gui_layout layout;
         
         mutex window_mutex;
         void init();

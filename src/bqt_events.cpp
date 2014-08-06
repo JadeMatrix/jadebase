@@ -142,7 +142,7 @@ namespace
         else
         {
             bqt::window_event w_event;
-            w_event.id = bqt::KEYCOMMAND;
+            w_event.type = bqt::KEYCOMMAND;
             
             switch( x_kevent.type )
             {
@@ -190,8 +190,8 @@ namespace
     void handleMotionEvent( XEvent& x_event )
     {
         bqt::window_event w_event;
-        w_event.id = bqt::NONE;
-        w_event.id = bqt::COMMAND;
+        w_event.type = bqt::NONE;
+        w_event.type = bqt::COMMAND;
         
         // bqt_platform_window_t platform_window;
         // platform_window.x_window = x_event.xany.window;
@@ -238,7 +238,7 @@ namespace
                     if( x_tablet_devices[ i ].x_motioneventtype == x_event.type
                         && x_tablet_devices[ i ].x_devid == x_dmevent.deviceid )
                     {
-                        w_event.id = bqt::STROKE;
+                        w_event.type = bqt::STROKE;
                         
                         if( x_tablet_devices[ i ].type == ERASER_STYLUS )
                             w_event.stroke.click = CLICK_ERASE;
@@ -292,7 +292,7 @@ namespace
             break;
         }
         
-        if( w_event.id != bqt::NONE )
+        if( w_event.type != bqt::NONE )
             target -> acceptEvent( w_event );
     }
     

@@ -78,7 +78,7 @@ namespace bqt
     
     // WINDOW EVENT ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    enum wevent_id
+    enum wevent_type
     {
         NONE,
         STROKE,
@@ -91,7 +91,7 @@ namespace bqt
     
     struct window_event
     {
-        wevent_id id;
+        wevent_type type;
         union
         {
             stroke_waypoint stroke;
