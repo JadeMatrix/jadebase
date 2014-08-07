@@ -240,6 +240,8 @@ namespace
                     {
                         w_event.type = bqt::STROKE;
                         
+                        w_event.stroke.dev_id = x_tablet_devices[ i ].x_devid;
+                        
                         if( x_tablet_devices[ i ].type == ERASER_STYLUS )
                             w_event.stroke.click = CLICK_ERASE;
                         else

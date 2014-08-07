@@ -41,9 +41,6 @@
 
 namespace bqt
 {
-    typedef unsigned int view_id;
-    typedef unsigned int tool_id;
-    
     class window
     {
     private:
@@ -77,23 +74,12 @@ namespace bqt
         
         float view_zoom;
     protected:
-        gui_layout layout;
+        layout gui;
         
         mutex window_mutex;
         void init();
         
         ~window();
-        
-        // BQTDraw-specific stuff; exposed as higher-level functions ///////////////////////////////////////////////////////////////////////////////////////////
-        
-        void addCanvas( canvas* c, view_id v, int t );                          // Note: adding same canvas multiple times is safe (multiple views)
-        void removeCanvas( canvas* c );
-        
-        // void splitView( view_id a, bool v );
-        // void collapseViews( view_id a, view_id b );
-        
-        void setToolVisibility( bool v );
-        void setViewZoom( view_id v, float z );
         
         class redraw : public task
         {
@@ -116,8 +102,6 @@ namespace bqt
         
         std::pair< unsigned int, unsigned int > getDimensions();
         std::pair< int, int > getPosition();
-        
-        float getViewZoom( view_id v );
         
         void acceptEvent( window_event& e );
         
@@ -154,8 +138,6 @@ namespace bqt
             void close();
             
             void redraw();                                                      // Just redraw the window (sets changed flag to true)
-            
-            void dropCanvas( canvas* c, unsigned int x, unsigned int y );
         };
     };
 }

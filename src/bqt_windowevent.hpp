@@ -21,6 +21,7 @@
 #include <string>
 
 #include "bqt_keycode.hpp"
+#include "bqt_platform.h"
 
 /******************************************************************************//******************************************************************************/
 
@@ -39,6 +40,8 @@ namespace bqt
     
     struct stroke_waypoint
     {
+        bqt_platform_idevid_t dev_id;
+        
         click_type click;
         
         bool shift : 1;
@@ -55,6 +58,12 @@ namespace bqt
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
     };
     
+    struct drop_item
+    {
+        int position[ 0 ];
+        // droppable* item;
+    };
+    
     struct key_command
     {
         keycode key;
@@ -69,8 +78,31 @@ namespace bqt
     };
     std::string getKeyCommandString( key_command& k );                          // TODO: Make this UTF-8 to return symbols for modifier keys
     
+    struct command
+    {
+        enum
+        {
+            
+        } type;
+        union
+        {
+            
+        } data;
+    };
+    
+    class layout_element;
+    struct text_input
+    {
+        layout_element* element;                                                // Text input always occurst after a layout_element requests it
+        std::string* utf8str;                                                   // Unfortunately have to use a string* here
+    };
+    
     struct pinch_input
     {
+        bqt_platform_idevid_t dev_id;
+        
+        bool finish;
+        
         float distance;                                                         // Relative change in distance
         float rotation;                                                         // Relative change, 0.0 through 1.0 for a full rotation, repeating
         int position[ 2 ];                                                      // Absolute position in-window
@@ -95,52 +127,13 @@ namespace bqt
         union
         {
             stroke_waypoint stroke;
-            //drop;
+            drop_item drop;
             key_command key;
-            //command;
-            //text;
+            command cmd;
+            text_input text;
             pinch_input pinch;
         };
     };
-    
-    // enum wevent_id
-    // {
-    //     CLICK,
-    //     DRAG,
-    //     DROP,
-    //     COMMAND,
-    //     TEXT
-    // };
-    
-    // // TODO: Very much a work in progress
-    // struct window_event
-    // {
-    //     wevent_id id;
-    //     union
-    //     {
-    //         struct
-    //         {
-    //             unsigned int position[ 2 ];
-    //         } click;
-    //         struct
-    //         {
-    //             unsigned int start[ 2 ];
-    //             unsigned int end[ 2 ];
-    //         } drag;
-    //         struct
-    //         {
-    //             unsigned int position[ 2 ];
-    //         } drop;
-    //         struct
-    //         {
-                
-    //         } command;
-    //         struct
-    //         {
-                
-    //         } text;
-    //     } data;
-    // };
 }
 
 /******************************************************************************//******************************************************************************/

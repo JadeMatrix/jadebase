@@ -21,33 +21,6 @@
 
 /******************************************************************************//******************************************************************************/
 
-void drawCircle( unsigned int sides, float radius = 1.0, bool fill = true )
-{
-    ff::write( bqt_out, "Drawing a circle\n" );
-    
-    if( fill )
-        glBegin( GL_POLYGON );
-    else
-        glBegin( GL_LINE_LOOP );
-    {
-        glPushMatrix();
-        {
-            // glTranslatef( radius, 0.0, 0.0 );
-            
-            for( int i = 0; i < sides; i++ )
-            {
-                glRotatef( 360.0f / sides, 1.0, 0.0, 0.0 );
-                
-                glVertex2f( radius, 0.0 );
-            }
-        }
-        glPopMatrix();
-    }
-    glEnd();
-}
-
-/******************************************************************************//******************************************************************************/
-
 namespace bqt
 {
     // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +128,7 @@ namespace bqt
         registerWindow( *this );
     }
     
-    window::window()
+    window::window() : gui( BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
     {
         platform_window.good = false;
         
@@ -211,32 +184,6 @@ namespace bqt
         #endif
     }
     
-    void window::addCanvas( canvas* c, view_id v, int t )
-    {
-        scoped_lock slock( window_mutex );
-        // TODO: implement
-        throw exception( "window::addCanvas(): Not implemented" );
-    }
-    void window::removeCanvas( canvas* c )
-    {
-        scoped_lock slock( window_mutex );
-        // TODO: implement
-        throw exception( "window::removeCanvas(): Not implemented" );
-    }
-    
-    void window::setToolVisibility( bool v )
-    {
-        scoped_lock slock( window_mutex );
-        // TODO: implement
-        throw exception( "window::setToolVisibility(): Not implemented" );
-    }
-    void window::setViewZoom( view_id v, float z )
-    {
-        scoped_lock slock( window_mutex );
-        // TODO: implement
-        throw exception( "window::setViewZoom(): Not implemented" );
-    }
-    
     std::pair< unsigned int, unsigned int > window::getDimensions()
     {
         scoped_lock slock( window_mutex );
@@ -248,12 +195,6 @@ namespace bqt
         return std::pair< int, int >( position[ 0 ], position[ 1 ] );
     }
     
-    float window::getViewZoom( view_id v )
-    {
-        scoped_lock slock( window_mutex );
-        return view_zoom;
-    }
-    
     void window::acceptEvent( window_event& e )
     {
         scoped_lock slock( window_mutex );
@@ -263,48 +204,26 @@ namespace bqt
         case STROKE:
             e.stroke.position[ 0 ] -= position[ 0 ];
             e.stroke.position[ 1 ] -= position[ 1 ];
-            layout.acceptEvent( e );
             break;
         case DROP:
+            e.drop.position[ 0 ] -= position[ 0 ];
+            e.drop.position[ 1 ] -= position[ 1 ];
             break;
         case KEYCOMMAND:
-            break;
         case COMMAND:
-            break;
         case TEXT:
+            // No adjustment needed for these
             break;
-        // case STROKE:
-        //     // // ff::write( bqt_out, e.stroke.position[ 0 ],
-        //     // //            " ", e.stroke.position[ 1 ],
-        //     // //            " ", e.stroke.pressure, "\n" );
-        //     // if( e.stroke.pressure > 0 )
-        //     {
-        //         e.stroke.position[ 0 ] -= position[ 0 ];
-        //         e.stroke.position[ 1 ] -= position[ 1 ];
-        //         pending_points.push_back( e.stroke );
-        //         submitTask( new window::redraw( *this ) );
-        //     }
-        //     break;
-        // case DROP:
-        //     break;
-        // case KEYCOMMAND:
-        //     // if( pending_points.size() )
-        //     {
-        //         pending_points.clear();
-        //         init_canvas = true;
-        //         submitTask( new window::redraw( *this ) );
-        //     }
-        //     break;
-        // case COMMAND:
-        //     break;
-        // case TEXT:
-        //     break;
-        // case PINCH:
-        //     break;
+        case PINCH:
+            e.pinch.position[ 0 ] -= position[ 0 ];
+            e.pinch.position[ 1 ] -= position[ 1 ];
+            break;
         default:
             throw exception( "window::acceptEvent(): Unknown event type" );
             break;
         }
+        
+        gui.acceptEvent( e );
     }
     
     bqt_platform_window_t& window::getPlatformWindow()
@@ -388,7 +307,12 @@ namespace bqt
                         redraw_window = false;
                     }
                     else
+                    {
+                        target -> gui.setDimensions( target -> dimensions[ 0 ],
+                                                     target -> dimensions[ 1 ] );   // Update the gui dimensions
+                        
                         redraw_window = true;
+                    }
                     
                     target -> updates.dimensions = false;
                 }
@@ -415,7 +339,7 @@ namespace bqt
                 {
                     ff::write( bqt_out, "window::manipulate::execute(): Fullscreen not implemented yet, ignoring\n" );
                     // TODO: implement
-                    #warning "window::manipulate::execute(): Fullscreen not implemented"
+                    #warning window::manipulate::execute(): Fullscreen not implemented
                     
                     target -> updates.fullscreen = false;
                     redraw_window = true;
@@ -434,7 +358,7 @@ namespace bqt
                 {
                     ff::write( bqt_out, "window::manipulate::execute(): Centering not implemented yet, ignoring\n" );
                     // TODO: implement
-                    #warning "window::manipulate::execute(): Centering not implemented"
+                    #warning window::manipulate::execute(): Centering not implemented
                     
                     target -> updates.center = false;
                 }
@@ -452,7 +376,7 @@ namespace bqt
                 {
                     ff::write( bqt_out, "window::manipulate::execute(): Maximize not implemented yet, ignoring\n" );
                     // TODO: implement
-                    #warning "window::manipulate::execute(): Maximize not implemented"
+                    #warning window::manipulate::execute(): Maximize not implemented
                     
                     makeWindowActive( target -> getPlatformWindow() );
                     
@@ -589,13 +513,6 @@ namespace bqt
         scoped_lock slock( target -> window_mutex );
         
         target -> updates.changed = true;
-    }
-    
-    void window::manipulate::dropCanvas( canvas* c, unsigned int x, unsigned int y )
-    {
-        scoped_lock slock( target -> window_mutex );
-        // TODO: implement
-        throw exception( "window::manipulate::dropCanvas(): Not implemented" );
     }
     
     // WINDOW::REDRAW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -793,7 +710,7 @@ namespace bqt
                 
                 // target.pending_points.clear();
                 
-                target.layout.draw();
+                target.gui.draw();
             }
             glXSwapBuffers( x_display, target.platform_window.x_window );
         }
