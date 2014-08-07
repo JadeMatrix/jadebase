@@ -176,11 +176,6 @@ namespace
         }
     }
     
-    void handleTouchEvent( XEvent& x_event )
-    {
-        ff::write( bqt_out, "Touch event\n" );
-    }
-    
     void handleMotionEvent( XEvent& x_event )
     {
         bqt::window_event w_event;
