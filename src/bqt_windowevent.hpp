@@ -58,6 +58,7 @@ namespace bqt
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
     };
     
+    // class droppable;
     struct drop_item
     {
         int position[ 0 ];
@@ -134,6 +135,8 @@ namespace bqt
             pinch_input pinch;
         };
     };
+    
+    std::string wevent2str( window_event& e );
 }
 
 /******************************************************************************//******************************************************************************/

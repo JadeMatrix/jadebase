@@ -171,12 +171,6 @@ namespace
                 w_event.key.cmd = w_event.key.ctrl;
                 #endif
                 
-                ff::write( bqt_out,
-                           "Key command ",
-                           bqt::getKeyCommandString( w_event.key ),
-                           ( w_event.key.up ? " (Up)" : " (Down)" ),
-                           "\n" );
-                
                 target_window -> acceptEvent( w_event );
             }
         }
@@ -191,7 +185,6 @@ namespace
     {
         bqt::window_event w_event;
         w_event.type = bqt::NONE;
-        w_event.type = bqt::COMMAND;
         
         // bqt_platform_window_t platform_window;
         // platform_window.x_window = x_event.xany.window;
@@ -276,6 +269,11 @@ namespace
                         w_event.stroke.tilt[ 0 ] = ( float )x_dmevent.axis_data[ 3 ] / ( float )x_tablet_devices[ i ].axes[ 3 ].max_value;
                         w_event.stroke.tilt[ 1 ] = ( float )x_dmevent.axis_data[ 4 ] / ( float )x_tablet_devices[ i ].axes[ 4 ].max_value;
                         
+                        // Note that for at least some styluses with no wheel,
+                        // the Linux Wacom driver reports the wheel at minimum
+                        // value rather than rest value (0.0) - however there
+                        // doesn't seem to be a way to tell if this value is
+                        // being used this way or if it's real input.
                         if( x_tablet_devices[ i ].type == AIRBRUSH_STYLUS )     // Wacom 6th axis' meaning depends on device
                         {
                             w_event.stroke.wheel = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
@@ -595,9 +593,16 @@ namespace bqt
         {
             if( getDevMode() )
                 ff::write( bqt_out, "Quitting...\n" );
-            closeTabletDevices();
-            closeAllWindows();
-            submitTask( new StopTaskSystem_task() );
+            
+            #warning Quitting does not check open documents
+            if( false /* !closeAllDocuments() */ )
+                ff::write( bqt_out, "Quit interrupted\n" );
+            else
+            {
+                closeTabletDevices();
+                closeAllWindows();
+                submitTask( new StopTaskSystem_task() );
+            }
         }
         else
         {
