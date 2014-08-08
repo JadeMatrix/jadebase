@@ -68,7 +68,7 @@ extern "C"
     #include <GL/glxew.h>
     #include <X11/extensions/XInput.h>
     
-    #define X_PROTOCOL_COUNT 1
+    #define X_PROTOCOL_COUNT 1                                                  // We only need one for now to catch window closes from the WM
     typedef struct
     {
         bool                     good;
@@ -101,18 +101,12 @@ extern "C"
     
     #endif
     
+    /* General ****************************************************************//******************************************************************************/
+    
+    // TODO: Move to a different header?
+    
     void setQuitFlag();
     bool getQuitFlag();
-
-    // typedef struct
-    // {
-    //     SDL_Window* sdl_window;
-    //     SDL_GLContext sdl_gl_context;
-    // } bqt_platform_window_t;
-
-    // typedef unsigned int bqt_platform_idevid_t;
-
-    // typedef SDL_Keycode bqt_platform_keycode_t;
 
 #ifdef __cplusplus
 }
