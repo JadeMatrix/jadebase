@@ -27,8 +27,8 @@ namespace bqt
         case STROKE:
             {
                 ff::write( str,
-                           "STROKE from device ",
-                           ff::to_x( e.stroke.dev_id ),
+                           "STROKE from device 0x",
+                           ff::to_x( e.stroke.dev_id, 2, 2 ),
                            ": " );
                 
                 if( e.stroke.click & CLICK_PRIMARY )
@@ -76,9 +76,9 @@ namespace bqt
                        e.drop.position[ 0 ],
                        ",",
                        e.drop.position[ 1 ],
-                       " with item ",
+                       " with item 0x",
             #warning DROP event to string not fully implemented
-                       ff::to_x( 0x00 ) );
+                       ff::to_x( 0x00, 2, 2 ) );
             break;
         case KEYCOMMAND:
             ff::write( str,

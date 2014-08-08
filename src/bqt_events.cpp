@@ -235,15 +235,15 @@ namespace
                         else
                             w_event.stroke.click = CLICK_PRIMARY;               // TODO: Figure out other click types from modifier keys
                         
-                        w_event.key.shift = ( bool )( x_dmevent.state & ShiftMask );
-                        w_event.key.ctrl  = ( bool )( x_dmevent.state & ControlMask );
-                        w_event.key.alt   = ( bool )( x_dmevent.state & Mod1Mask );
-                        w_event.key.super = ( bool )( x_dmevent.state & Mod4Mask );
+                        w_event.stroke.shift = ( bool )( x_dmevent.state & ShiftMask );
+                        w_event.stroke.ctrl  = ( bool )( x_dmevent.state & ControlMask );
+                        w_event.stroke.alt   = ( bool )( x_dmevent.state & Mod1Mask );
+                        w_event.stroke.super = ( bool )( x_dmevent.state & Mod4Mask );
                         
                         #ifdef PLATFORM_MACOSX
-                        w_event.key.cmd = w_event.key.super;
+                        w_event.stroke.cmd = w_event.stroke.super;
                         #else
-                        w_event.key.cmd = w_event.key.ctrl;
+                        w_event.stroke.cmd = w_event.stroke.ctrl;
                         #endif
                         
                         // TODO: support less-than-fullscreen tablet surfaces
@@ -591,7 +591,12 @@ namespace bqt
             
             #warning Quitting does not check open documents
             if( false /* !closeAllDocuments() */ )
+            {
+                scoped_lock slock( quit_mutex );
+                quit_flag = false;
+                
                 ff::write( bqt_out, "Quit interrupted\n" );
+            }
             else
             {
                 closeTabletDevices();
