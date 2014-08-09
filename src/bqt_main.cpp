@@ -47,7 +47,11 @@ namespace bqt
                 
             }
             
-            ff::write( bqt_out, "Welcome to ", BQT_VERSION_STRING, "\n" );
+            ff::write( bqt_out,
+                       "Welcome to ",
+                       BQT_VERSION_STRING,
+                       ( bqt::getDevMode() ? " (Developer Mode)" : "" ),
+                       "\n" );
             
             return true;
         }
