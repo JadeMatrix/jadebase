@@ -37,9 +37,9 @@ namespace bqt
                         unsigned int h );
         
         void setRealDimensions( unsigned int w, unsigned int h );
-        std::pair< unsigned int, unsigned int > getRealDimensions();            // Used to arrange elements
+        virtual std::pair< unsigned int, unsigned int > getRealDimensions();    // Used to arrange elements
         virtual std::pair< unsigned int, unsigned int > getVisualDimensions();  // Used to generate area for event capturing
-        virtual std::pair< unsigned int, unsigned int > getMinDimensions() = 0;
+        virtual std::pair< unsigned int, unsigned int > getMinDimensions() = 0; // Absolute minimum dimensions, regardless of settings or content
         
         void setPosition( int x, int y );
         std::pair< int, int > getPosition();

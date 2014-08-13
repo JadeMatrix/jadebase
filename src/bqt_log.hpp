@@ -27,6 +27,8 @@
 #define MACROTOSTR_A( D ) #D
 #define   MACROTOSTR( D ) MACROTOSTR_A( D )                                     // Double expansion trick
 
+#define HEX_WIDTH   ( int )( sizeof( long ) / 2 )
+
 namespace bqt
 {
     std::ostream& getLogStream();                                               // Returns the std::ostream being used as a log; std::cout by default

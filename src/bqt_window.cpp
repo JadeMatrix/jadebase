@@ -21,6 +21,13 @@
 
 /******************************************************************************//******************************************************************************/
 
+// test
+#include "gui/bqt_gui_resource.hpp"
+namespace
+{
+    bqt::gui_resource* test_rsrc = NULL;
+}
+
 namespace bqt
 {
     // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,6 +184,8 @@ namespace bqt
             platform_window.good = false;
         }
         
+        delete test_rsrc;
+        
         #else
         
         #error "Windows not implemented on non-X platforms"
@@ -224,6 +233,8 @@ namespace bqt
         }
         
         gui.acceptEvent( e );
+        
+        submitTask( new redraw( *this ) );
     }
     
     bqt_platform_window_t& window::getPlatformWindow()
@@ -623,20 +634,20 @@ namespace bqt
             //     glBindRenderbuffer( GL_RENDERBUFFER, 0 );
             // }
             
-            glXSwapBuffers( x_display, target.platform_window.x_window );
+            // glXSwapBuffers( x_display, target.platform_window.x_window );
             {   // SCREEN
-                // // glEnable(GL_DEPTH_TEST);
-                // glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
-                // glLoadIdentity();
-                // glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
+                // glEnable(GL_DEPTH_TEST);
+                glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
+                glLoadIdentity();
+                glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
                 
-                // glEnable( GL_BLEND );
-                // glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+                glEnable( GL_BLEND );
+                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 
                 // if( target.init_canvas )
                 // {
-                //     glClearColor( 1.0, 1.0, 1.0, 1.0 );
-                //     glClear( GL_COLOR_BUFFER_BIT );
+                    glClearColor( 0.3, 0.3, 0.3, 1.0 );
+                    glClear( GL_COLOR_BUFFER_BIT );
                 //     // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
                 //     target.init_canvas = false;
                 //     // ff::write( bqt_out, "Cleared canvas\n" );
@@ -709,6 +720,18 @@ namespace bqt
                 // // glEnd();
                 
                 // target.pending_points.clear();
+                
+                if( test_rsrc == NULL )
+                {
+                    // test_rsrc = new gui_resource( "/home/jadematrix/Developer/BQTDraw/make/BQTDraw/Linux/button_on_up_topleft.png", 0, 0, 6, 7 );
+                    // test_rsrc = new gui_resource( "/home/jadematrix/Developer/BQTDraw/make/BQTDraw/Linux/BQTDraw_app_16p.png", 0, 0, 16, 16 );
+                    test_rsrc = new gui_resource( "/home/jadematrix/Developer/BQTDraw/make/BQTDraw/Linux/BQTDraw_app_128p.png", 0, 0, 128, 128 );
+                    // test_rsrc = new gui_resource( "BQTDraw_app_16p.png" );
+                }
+                
+                glEnable( GL_TEXTURE_2D );
+                
+                test_rsrc -> draw();
                 
                 target.gui.draw();
             }
