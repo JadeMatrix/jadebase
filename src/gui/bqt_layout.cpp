@@ -191,6 +191,10 @@ namespace bqt
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
     }
+    layout::~layout()
+    {
+        scoped_lock slock( layout_mutex );
+    }
     
     std::pair< unsigned int, unsigned int > layout::getDimensions()
     {
@@ -477,6 +481,8 @@ namespace bqt
     
     bool layout::InitLayoutResources_task::execute( task_mask* caller_mask )
     {
+        ff::write( bqt_out, "Attempting to lock layout mutex\n" );
+        
         scoped_lock slock( target.layout_mutex );
         
         if( state == UPLOADING_TEXTURES )
@@ -609,7 +615,9 @@ namespace bqt
     
     bool layout::DeinitLayoutResources_task::execute( task_mask* caller_mask )
     {
+        ff::write( bqt_out, "attempting to lock layout mutex from DeinitLayoutResources_task\n" );
         scoped_lock slock( target.layout_mutex );
+        ff::write( bqt_out, "lock attempt from DeinitLayoutResources_task succeeded\n" );
         
         target.parent -> makeContextCurrent();
         

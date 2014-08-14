@@ -128,11 +128,9 @@ namespace bqt
         registerWindow( *this );
         
         initOpenGL();
-        
-        gui.initNamedResources();
     }
     
-    window::window() : gui( this, BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
+    window::window() // : gui( this, BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
     {
         platform_window.good = false;
         
@@ -227,7 +225,7 @@ namespace bqt
             break;
         }
         
-        gui.acceptEvent( e );
+        // gui.acceptEvent( e );
         
         submitTask( new redraw( *this ) );
     }
@@ -276,11 +274,11 @@ namespace bqt
         
         if( target -> updates.close )
         {
-            if( !( target -> gui.isClean() ) )
-            {
-                target -> gui.startClean();
-                return false;                                                   // Requeue if there are still resources to clean up
-            }
+            // if( !( target -> gui.isClean() ) )
+            // {
+            //     target -> gui.startClean();
+            //     return false;                                                   // Requeue if there are still resources to clean up
+            // }
             
             deregisterWindow( *target );
             target -> window_mutex.unlock();
@@ -330,8 +328,8 @@ namespace bqt
                     }
                     else
                     {
-                        target -> gui.setDimensions( target -> dimensions[ 0 ],
-                                                     target -> dimensions[ 1 ] );   // Update the gui dimensions
+                        // target -> gui.setDimensions( target -> dimensions[ 0 ],
+                        //                              target -> dimensions[ 1 ] );   // Update the gui dimensions
                         
                         redraw_window = true;
                     }
@@ -573,7 +571,7 @@ namespace bqt
             
             glEnable( GL_TEXTURE_2D );
             
-            target.gui.draw();
+            // target.gui.draw();
             
             #if defined PLATFORM_XWS_GNUPOSIX
             

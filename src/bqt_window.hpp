@@ -29,7 +29,7 @@
 #include "bqt_mutex.hpp"
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
-#include "gui/bqt_layout.hpp"
+// #include "gui/bqt_layout.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -74,7 +74,7 @@ namespace bqt
         
         float view_zoom;
     protected:
-        layout gui;
+        // layout gui;
         
         mutex window_mutex;
         void init();

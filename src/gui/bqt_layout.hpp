@@ -68,6 +68,7 @@ namespace bqt
         std::map< gui_resource_name, gui_resource* > named_resources;
     public:
         layout( window* p, unsigned int w, unsigned int h );
+        ~layout();
         
         void initNamedResources();
         
