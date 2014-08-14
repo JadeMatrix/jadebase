@@ -30,7 +30,7 @@ namespace bqt
                                 unsigned int w,
                                 unsigned int h ) : parent( p )
     {
-        
+        ff::write( bqt_out, "Creating gui_resource \"", f, "\" ", x, " ", y, " ", w, " ", h, "\n" );
         
         texture = parent.acquireTexture( f );
         
@@ -62,6 +62,7 @@ namespace bqt
             {
                 if( getDevMode() )
                 {
+                    ff::write( bqt_out, "Drawing placeholder graphic\n" );
                     glBegin( GL_QUADS );
                     {
                         glColor4f( 0.0, 1.0, 1.0, 1.0 );
@@ -83,6 +84,11 @@ namespace bqt
             }
             else
             {                                                                   // TODO: Inefficient, find another way
+                ff::write( bqt_out,
+                           "Drawing with texture 0x",
+                           ff::to_x( texture -> gl_texture ),
+                           "\n" );
+                
                 draw_pos[ 0 ] = (float )position[ 0 ] / texture -> dimensions[ 0 ];
                 draw_pos[ 1 ] = (float )position[ 1 ] / texture -> dimensions[ 1 ];
                 
@@ -95,16 +101,20 @@ namespace bqt
         
         glBegin( GL_QUADS );
         {
-            glTexCoord2f( draw_pos[ 0 ], draw_pos[ 1 ] );
+            // glTexCoord2f( draw_pos[ 0 ], draw_pos[ 1 ] );
+            glColor4f( 0.0, 1.0, 1.0, 1.0 );
             glVertex2f( 0, 0 );
             
-            glTexCoord2f( draw_pos[ 0 ] + draw_dim[ 0 ], draw_pos[ 1 ] );
+            // glTexCoord2f( draw_pos[ 0 ] + draw_dim[ 0 ], draw_pos[ 1 ] );
+            glColor4f( 1.0, 0.0, 1.0, 1.0 );
             glVertex2f( dimensions[ 0 ], 0 );
             
-            glTexCoord2f( draw_pos[ 0 ] + draw_dim[ 0 ], draw_pos[ 1 ] + draw_dim[ 1 ] );
+            // glTexCoord2f( draw_pos[ 0 ] + draw_dim[ 0 ], draw_pos[ 1 ] + draw_dim[ 1 ] );
+            glColor4f( 1.0, 1.0, 0.0, 1.0 );
             glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
             
-            glTexCoord2f( draw_pos[ 0 ], draw_pos[ 1 ] + draw_dim[ 1 ] );
+            // glTexCoord2f( draw_pos[ 0 ], draw_pos[ 1 ] + draw_dim[ 1 ] );
+            glColor4f( 0.0, 0.0, 0.0, 1.0 );
             glVertex2f( 0, dimensions[ 1 ] );
         }
         glEnd();

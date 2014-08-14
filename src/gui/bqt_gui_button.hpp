@@ -28,6 +28,24 @@ namespace bqt
             IMAGE
         } type;
         
+        struct rsrc_group
+        {
+            gui_resource* top_left;
+            gui_resource* top_center;
+            gui_resource* top_right;
+            gui_resource* center_left;
+            gui_resource* center_center;
+            gui_resource* center_right;
+            gui_resource* bottom_left;
+            gui_resource* bottom_center;
+            gui_resource* bottom_right;
+        };
+        
+        rsrc_group off_up;
+        rsrc_group off_down;
+        rsrc_group on_up;
+        rsrc_group on_down;
+        
         std::string str_contents;
         //??? img_contents;
         
@@ -36,10 +54,10 @@ namespace bqt
         bool togglable;
         enum
         {
-            UP_OFF,
-            UP_ON,
-            DOWN_OFF,
-            DOWN_ON
+            OFF_UP,
+            OFF_DOWN,
+            ON_UP,
+            ON_DOWN
         } state;
     public:
         button( layout& parent,
@@ -51,7 +69,6 @@ namespace bqt
         
         std::pair< unsigned int, unsigned int > getRealDimensions();
         // virtual std::pair< unsigned int, unsigned int > getVisualDimensions();
-        std::pair< unsigned int, unsigned int > getMinDimensions();
         
         virtual bool acceptEvent( window_event&e );
         

@@ -126,6 +126,10 @@ namespace bqt
         }
         
         registerWindow( *this );
+        
+        initOpenGL();
+        
+        gui.initNamedResources();
     }
     
     window::window() : gui( this, BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
@@ -552,181 +556,35 @@ namespace bqt
             if( target.pending_redraws != 1 )                                   // Sanity check
                 throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
             
-            // ff::write( bqt_out, "Redrawing window\n" );
+            ff::write( bqt_out, "Redrawing window\n" );
             
             target.makeContextCurrent();
             
-            // {   // FBO
-            //     if( target.init_gl )
-            //     {
-            //         glEnable( GL_TEXTURE_2D );
-                    
-            //         glGenFramebuffers( 1, &target.text_fbo );
-            //         glGenTextures( 1, &target.texture );
-            //         glGenRenderbuffers( 1, &target.render_buff );
-                    
-            //         if( target.text_fbo == 0x00 )
-            //             throw exception( "window::redraw::execute(): Could not create FBO" );
-            //         if( target.texture == 0x00 )
-            //             throw exception( "window::redraw::execute(): Could not generate texture" );
-                    
-            //         glBindTexture( GL_TEXTURE_2D, target.texture );
-            //         {
-            //             glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
-            //             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-            //             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            //         }
-            //         glBindTexture( GL_TEXTURE_2D, 0x00 );
-                    
-            //         glBindFramebuffer( GL_FRAMEBUFFER, target.text_fbo );
-            //         glFramebufferTexture2D( GL_FRAMEBUFFER,
-            //                                 GL_COLOR_ATTACHMENT0,
-            //                                 GL_TEXTURE_2D,
-            //                                 target.texture,
-            //                                 0 );
-                    
-            //         glBindRenderbuffer( GL_RENDERBUFFER, target.render_buff );
-            //         glRenderbufferStorage( GL_RENDERBUFFER,
-            //                                GL_DEPTH_COMPONENT24,
-            //                                256,
-            //                                256 );
-            //         glFramebufferRenderbuffer( GL_FRAMEBUFFER,
-            //                                    GL_DEPTH_ATTACHMENT,
-            //                                    GL_RENDERBUFFER,
-            //                                    target.render_buff );
-                    
-            //         target.init_gl = false;
-            //     }
-                
-            //     glBindFramebuffer( GL_FRAMEBUFFER, target.text_fbo );
-            //     glBindRenderbuffer( GL_RENDERBUFFER, target.render_buff );
-                
-            //     {
-            //         static float pulse = 0.0;
-            //         static float inc = 0.05;
-                    
-            //         // ff::write( bqt_out, "Clearing texture ", target.texture, " to ", pulse, "\n" );
-                    
-            //         pulse += inc;
-            //         if( pulse > 1.05 || pulse < 0.05 )
-            //             inc *= -1;
-                    
-            //         glEnable(GL_DEPTH_TEST);
-            //         // glViewport( 0, 0, 256, 256 );
-            //         glLoadIdentity();
-            //         // glOrtho( 0.0, 256, 256, 0.0, 1.0, -1.0 );
-                    
-            //         glClearColor( pulse, 0.5f, 0.5f, 1.0f );
-            //         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-                    
-            //         glBegin( GL_QUADS );
-            //         {
-            //             glColor4f( 0.1, 0.9, 0.5, 1.0 );
-            //             glVertex2f( 0.0, 0.50 );
-            //             glVertex2f( 0.50, 0.0 );
-            //             glVertex2f( 0.50, 0.50 );
-            //             glVertex2f( 0.0, 0.0 );
-            //         }
-            //         glEnd();
-                    
-            //         // ...
-            //     }
-                
-            //     glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-            //     glBindRenderbuffer( GL_RENDERBUFFER, 0 );
-            // }
+            // glLoadIdentity();
+            glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
+            glLoadIdentity();
+            glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
             
-            // glXSwapBuffers( x_display, target.platform_window.x_window );
-            {   // SCREEN
-                // glEnable(GL_DEPTH_TEST);
-                glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
-                glLoadIdentity();
-                glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
-                
-                glEnable( GL_BLEND );
-                glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-                
-                glEnable( GL_TEXTURE_2D );
-                
-                // if( target.init_canvas )
-                // {
-                    glClearColor( 0.3, 0.3, 0.3, 1.0 );
-                    glClear( GL_COLOR_BUFFER_BIT );
-                //     // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-                //     target.init_canvas = false;
-                //     // ff::write( bqt_out, "Cleared canvas\n" );
-                // }
-                
-                // // glBegin( GL_LINE_STRIP );
-                // for( int i = 0; i < target.pending_points.size(); ++i )
-                // {
-                //     static bool first = true;
-                //     static float previous[ 3 ];
-                //     float width = 15.0;
-                //     previous[ 2 ] = 0.0;
-                    
-                //     if( target.pending_points[ i ].pressure <= 0.0 )
-                //         first  = true;
-                //     else
-                //     {
-                //         int window_x = target.pending_points[ i ].position[ 0 ];
-                //         int window_y = target.pending_points[ i ].position[ 1 ];
-                        
-                //         // ff::write( bqt_out, "Drawing point @ ", window_x, ",", window_y, " w=", width, "\n" );
-                        
-                //         if( target.pending_points[ i ].click == CLICK_ERASE )
-                //         {
-                //             // ff::write( bqt_out, "eraser\n" );
-                //             glColor4f( 1.0, 1.0, 1.0, 1.0 );
-                //             // glColor4f( 0.0, 0.0, 0.0, 0.0 );
-                //         }
-                //         else
-                //             glColor4f( 0.0, 0.0, 0.0, 1.0 );
-                //             // glColor4f( 0.0, 0.0, 0.0, target.pending_points[ i ].pressure );
-                        
-                //         // glVertex2f( window_x, window_y );
-                        
-                //         drawCircle( 6, target.pending_points[ i ].pressure * width, false );
-                        
-                //         // glPointSize( target.pending_points[ i ].pressure * width );
-                //         // glBegin( GL_POINTS );
-                //         // {
-                //         //     if( first )
-                //         //     {
-                //         //         glVertex2f( window_x, window_y );
-                //         //         previous[ 0 ] = window_x;
-                //         //         previous[ 1 ] = window_y;
-                //         //         previous[ 2 ] = target.pending_points[ i ].pressure * width;
-                //         //         first = false;
-                //         //     }
-                //         //     else
-                //         //     {
-                //         //         float dx = ( window_x - previous[ 0 ] );
-                //         //         float dy = ( window_y - previous[ 1 ] );
-                                
-                //         //         int steps = ( int )abs( ceil( abs( dx ) > abs( dy ) ? dx : dy ) );
-                                
-                //         //         dx /= steps;
-                //         //         dy /= steps;
-                                
-                //         //         for( int j = 0; j < abs( steps ); ++j )
-                //         //         {
-                //         //             glVertex2f( previous[ 0 ] + dx * j, previous[1  ] + dy * j );
-                //         //         }
-                                
-                //         //         previous[ 0 ] = window_x;
-                //         //         previous[ 1 ] = window_y;
-                //         //     }
-                //         // }
-                //         // glEnd();
-                //     }
-                // }
-                // // glEnd();
-                
-                // target.pending_points.clear();
-            }
+            glEnable( GL_BLEND );
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+            
+            glClearColor( 0.3, 0.3, 0.3, 1.0 );
+            glClear( GL_COLOR_BUFFER_BIT );
+            
+            glEnable( GL_TEXTURE_2D );
+            
+            target.gui.draw();
+            
+            #if defined PLATFORM_XWS_GNUPOSIX
+            
             Display* x_display = getXDisplay();
             glXSwapBuffers( x_display, target.platform_window.x_window );
+            
+            #else
+            
+            #error "Buffer swapping not implemented on non-X platforms"
+            
+            #endif
         }
         
         target.pending_redraws--;

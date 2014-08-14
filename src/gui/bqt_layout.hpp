@@ -66,11 +66,10 @@ namespace bqt
         
         std::map< std::string, gui_texture_wrapper* > resource_textures;
         std::map< gui_resource_name, gui_resource* > named_resources;
-        bool new_textures;
-        
-        void initNamedResources();
     public:
         layout( window* p, unsigned int w, unsigned int h );
+        
+        void initNamedResources();
         
         std::pair< unsigned int, unsigned int > getDimensions();
         void setDimensions( unsigned int w, unsigned int h );

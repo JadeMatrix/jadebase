@@ -11,33 +11,14 @@
 
 #include "../bqt_mutex.hpp"
 #include "../bqt_exception.hpp"
+#include "../bqt_log.hpp"
 #include "bqt_gui_resource.hpp"
-
-/* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
-
-namespace
-{
-    bqt::mutex button_rsrc_mutex;
-    int button_count = 0;
-    
-    enum button_rsrc_pos
-    {
-        TOP_LEFT,
-        TOP_CENTER,
-        TOP_RIGHT,
-        CENTER_LEFT,
-        CENTER_CENTER,
-        CENTER_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_CENTER,
-        BOTTOM_RIGHT,
-        
-        NUM_POS
-    };
-    bqt::gui_resource* button_resources;
-}
+#include "bqt_gui_resource_names.hpp"
 
 /******************************************************************************//******************************************************************************/
+
+#define BUTTON_MIN_WIDTH    12
+#define BUTTON_MIN_HEIGHT   14
 
 namespace bqt
 {
@@ -50,34 +31,53 @@ namespace bqt
         type = BLANK;
         auto_resize = false;
         togglable = false;
-        state = UP_OFF;
+        state = OFF_UP;
         
-        scoped_lock slock( button_rsrc_mutex );
-        
-        if( button_count < 1 )
         {
-            if( button_count < 0 )
-                throw exception( "button::button(): Button count < 0" );
-            
-            // for( int i = 0; i < NUM_POS; ++i )
-                
+            off_up.top_left = parent.getNamedResource( rounded_button_off_up_top_left );
+            off_up.top_center = parent.getNamedResource( rounded_button_off_up_top_center );
+            off_up.top_right = parent.getNamedResource( rounded_button_off_up_top_right );
+            off_up.center_left = parent.getNamedResource( rounded_button_off_up_center_left );
+            off_up.center_center = parent.getNamedResource( rounded_button_off_up_center_center );
+            off_up.center_right = parent.getNamedResource( rounded_button_off_up_center_right );
+            off_up.bottom_left = parent.getNamedResource( rounded_button_off_up_bottom_left );
+            off_up.bottom_center = parent.getNamedResource( rounded_button_off_up_bottom_center );
+            off_up.bottom_right = parent.getNamedResource( rounded_button_off_up_bottom_right );
+
+            off_down.top_left = parent.getNamedResource( rounded_button_off_down_top_left );
+            off_down.top_center = parent.getNamedResource( rounded_button_off_down_top_center );
+            off_down.top_right = parent.getNamedResource( rounded_button_off_down_top_right );
+            off_down.center_left = parent.getNamedResource( rounded_button_off_down_center_left );
+            off_down.center_center = parent.getNamedResource( rounded_button_off_down_center_center );
+            off_down.center_right = parent.getNamedResource( rounded_button_off_down_center_right );
+            off_down.bottom_left = parent.getNamedResource( rounded_button_off_down_bottom_left );
+            off_down.bottom_center = parent.getNamedResource( rounded_button_off_down_bottom_center );
+            off_down.bottom_right = parent.getNamedResource( rounded_button_off_down_bottom_right );
+
+            on_up.top_left = parent.getNamedResource( rounded_button_on_up_top_left );
+            on_up.top_center = parent.getNamedResource( rounded_button_on_up_top_center );
+            on_up.top_right = parent.getNamedResource( rounded_button_on_up_top_right );
+            on_up.center_left = parent.getNamedResource( rounded_button_on_up_center_left );
+            on_up.center_center = parent.getNamedResource( rounded_button_on_up_center_center );
+            on_up.center_right = parent.getNamedResource( rounded_button_on_up_center_right );
+            on_up.bottom_left = parent.getNamedResource( rounded_button_on_up_bottom_left );
+            on_up.bottom_center = parent.getNamedResource( rounded_button_on_up_bottom_center );
+            on_up.bottom_right = parent.getNamedResource( rounded_button_on_up_bottom_right );
+
+            on_down.top_left = parent.getNamedResource( rounded_button_on_down_top_left );
+            on_down.top_center = parent.getNamedResource( rounded_button_on_down_top_center );
+            on_down.top_right = parent.getNamedResource( rounded_button_on_down_top_right );
+            on_down.center_left = parent.getNamedResource( rounded_button_on_down_center_left );
+            on_down.center_center = parent.getNamedResource( rounded_button_on_down_center_center );
+            on_down.center_right = parent.getNamedResource( rounded_button_on_down_center_right );
+            on_down.bottom_left = parent.getNamedResource( rounded_button_on_down_bottom_left );
+            on_down.bottom_center = parent.getNamedResource( rounded_button_on_down_bottom_center );
+            on_down.bottom_right = parent.getNamedResource( rounded_button_on_down_bottom_right );
         }
-        
-        ++button_count;
     }
     button::~button()
     {
-        scoped_lock slock( button_rsrc_mutex );
         
-        --button_count;
-        
-        if( button_count < 1 )
-        {
-            if( button_count < 0 )
-                throw exception( "button::~button(): Button count < 0" );
-            
-            // release resources
-        }
     }
     
     std::pair< unsigned int, unsigned int > button::getRealDimensions()
@@ -86,8 +86,14 @@ namespace bqt
         
         if( auto_resize )
         {
-            // calculate new dimensions
+            // TODO: get contents' dimensions
         }
+        
+        if( dimensions[ 0 ] < BUTTON_MIN_WIDTH )
+            dimensions[ 0 ] = BUTTON_MIN_WIDTH;
+        
+        if( dimensions[ 1 ] < BUTTON_MIN_HEIGHT )
+            dimensions[ 1 ] = BUTTON_MIN_HEIGHT;
         
         return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
     }
@@ -95,11 +101,6 @@ namespace bqt
     // {
     //     return getRealDimensions();
     // }
-    std::pair< unsigned int, unsigned int > button::getMinDimensions()
-    {
-        // TODO: calculate
-        return std::pair< unsigned int, unsigned int >( 12, 14 );
-    }
     
     bool button::acceptEvent( window_event&e )
     {
@@ -114,7 +115,90 @@ namespace bqt
         
         std::pair< unsigned int, unsigned int > real_dimensions = getRealDimensions();
         
+        ff::write( bqt_out,
+                   "Drawing a ",
+                   real_dimensions.first,
+                   "x",
+                   real_dimensions.second,
+                   " button\n" );
         
+        rsrc_group* group;
+        
+        switch( state )
+        {
+        case OFF_UP:
+            group = &off_up;
+            break;
+        case OFF_DOWN:
+            group = &off_down;
+            break;
+        case ON_UP:
+            group = &on_up;
+            break;
+        case ON_DOWN:
+            group = &on_down;
+            break;
+        default:
+            throw exception( "button::draw(): Unknown state" );
+        }
+        
+        glPushMatrix();                                                         // Draw vertical centers
+        {
+            glTranslatef( BUTTON_MIN_WIDTH / 2, 0.0, 0.0 );
+            
+            glScalef( real_dimensions.first - BUTTON_MIN_WIDTH, 1.0, 1.0 );
+            
+            group -> top_center -> draw();
+            
+            glTranslatef( 0.0, real_dimensions.second - BUTTON_MIN_HEIGHT / 2, 0.0 );
+            
+            group -> bottom_center -> draw();
+        }
+        glPopMatrix();
+        
+        glPushMatrix();                                                         // Draw horizontal centers
+        {
+            glTranslatef( 0.0, BUTTON_MIN_HEIGHT / 2, 0.0 );
+            
+            glScalef( 1.0, real_dimensions.second - BUTTON_MIN_HEIGHT, 1.0 );
+            
+            group -> center_left -> draw();
+            
+            glTranslatef( real_dimensions.first - BUTTON_MIN_WIDTH / 2, 0.0, 0.0 );
+            
+            group -> center_right -> draw();
+        }
+        glPopMatrix();
+        
+        glPushMatrix();                                                         // Center
+        {
+            glTranslatef( BUTTON_MIN_WIDTH / 2, BUTTON_MIN_HEIGHT / 2, 0.0 );
+            
+            glScalef( real_dimensions.first - BUTTON_MIN_WIDTH, real_dimensions.second - BUTTON_MIN_HEIGHT, 1.0 );
+            
+            group -> center_center -> draw();
+        }
+        glPopMatrix();
+        
+        glPushMatrix();                                                         // Corners
+        {
+            group -> top_left -> draw();
+            
+            glTranslatef( real_dimensions.first - BUTTON_MIN_WIDTH / 2, 0.0, 0.0 );
+            
+            group -> top_right -> draw();
+            
+            glTranslatef( 0.0, real_dimensions.second - BUTTON_MIN_HEIGHT / 2, 0.0 );
+            
+            group -> bottom_right -> draw();
+            
+            glTranslatef( -1 * ( real_dimensions.first - BUTTON_MIN_WIDTH / 2 ), 0.0, 0.0 );
+            
+            group -> bottom_left -> draw();
+        }
+        glPopMatrix();
+        
+        // TODO: render contents
     }
     
     /* button-specific ****************************************************//******************************************************************************/

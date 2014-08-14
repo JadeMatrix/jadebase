@@ -190,10 +190,6 @@ namespace bqt
         
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
-        
-        initNamedResources();
-        
-        new_textures = true;
     }
     
     std::pair< unsigned int, unsigned int > layout::getDimensions()
@@ -217,13 +213,29 @@ namespace bqt
         gui_texture_wrapper* w;
         
         if( resource_textures.count( f ) )
+        {
             w = resource_textures[ f ];
+            
+            ff::write( bqt_out,
+                       "Acquiring existing texture \"",
+                       f,
+                       "\" as 0x",
+                       ff::to_x( ( unsigned long )( w -> texture ) ),
+                       "\n" );
+        }
         else
         {
             w = new gui_texture_wrapper();
             resource_textures[ f ] = w;
             
             submitTask( new InitLayoutResources_task( *this ) );
+            
+            ff::write( bqt_out,
+                       "Acquiring new texture \"",
+                       f,
+                       "\" as 0x",
+                       ff::to_x( ( unsigned long )( w -> texture ) ),
+                       "\n" );
         }
         
         w -> ref_count++;
@@ -241,6 +253,13 @@ namespace bqt
             if( iter -> second -> texture == t )
             {
                 iter -> second -> ref_count--;
+                
+                ff::write( bqt_out,
+                           "Releasing texture 0x",
+                           ff::to_x( ( unsigned long )( iter -> second -> texture ) ),
+                           ", ref count is now ",
+                           iter -> second -> ref_count,
+                           "\n" );
                 
                 submitTask( new DeinitLayoutResources_task( *this ) );
                 
@@ -321,100 +340,109 @@ namespace bqt
         
         if( pass_event )
         {
-            // layout_element* acceptor = NULL;
+            layout_element* acceptor = NULL;
             
-            // for( int i = elements.size() - 1; i >= 0; --i )                     // Iterate backwards as last element is topmost
-            // {
-            //     float position[ 2 ];
-            //     bool no_position = false;
+            for( int i = elements.size() - 1; i >= 0; --i )                     // Iterate backwards as last element is topmost
+            {
+                float position[ 2 ];
+                bool no_position = false;
                 
-            //     switch( e.type )
-            //     {
-            //     case STROKE:
-            //         position[ 0 ] = e.stroke.position[ 0 ];
-            //         position[ 1 ] = e.stroke.position[ 1 ];
-            //         break;
-            //     case PINCH:
-            //         position[ 0 ] = e.pinch.position[ 0 ];
-            //         position[ 1 ] = e.pinch.position[ 1 ];
-            //         break;
-            //     case DROP:
-            //         position[ 0 ] = e.drop.position[ 0 ];
-            //         position[ 1 ] = e.drop.position[ 1 ];
-            //         break;
-            //     case KEYCOMMAND:
-            //     case COMMAND:
-            //         no_position = true;
-            //         break;
-            //     default:
-            //         break;                                                      // Any other types should have already been handled above
-            //     }
+                switch( e.type )
+                {
+                case STROKE:
+                    position[ 0 ] = e.stroke.position[ 0 ];
+                    position[ 1 ] = e.stroke.position[ 1 ];
+                    break;
+                case PINCH:
+                    position[ 0 ] = e.pinch.position[ 0 ];
+                    position[ 1 ] = e.pinch.position[ 1 ];
+                    break;
+                case DROP:
+                    position[ 0 ] = e.drop.position[ 0 ];
+                    position[ 1 ] = e.drop.position[ 1 ];
+                    break;
+                case KEYCOMMAND:
+                case COMMAND:
+                    no_position = true;
+                    break;
+                default:
+                    break;                                                      // Any other types should have already been handled above
+                }
                 
-            //     if( no_position )
-            //     {
-            //         acceptor = elements[ i ] -> acceptEvent( e );
+                if( elements[ i ] -> acceptEvent( e ) )
+                    break;
+                
+                // if( no_position )
+                // {
+                //     acceptor = elements[ i ] -> acceptEvent( e );
                     
-            //         if( acceptor != NULL )                                      // layout_element::acceptEvent() must check fallthrough as layout_elements may
-            //                                                                     // have sub elements.
-            //             break;
-            //     }
-            //     else
-            //     {
-            //         std::pair< int, int > element_pos = elements[ i ] -> getPosition();
-            //         std::pair< unsigned int, unsigned int > element_dim = elements[ i ] -> getDimensions();
+                //     if( acceptor != NULL )                                      // layout_element::acceptEvent() must check fallthrough as layout_elements may
+                //                                                                 // have sub elements.
+                //         break;
+                // }
+                // else
+                // {
+                //     std::pair< int, int > element_pos = elements[ i ] -> getPosition();
+                //     std::pair< unsigned int, unsigned int > element_dim = elements[ i ] -> getDimensions();
                     
-            //         if(    position[ 0 ] <= element_pos.first
-            //             && position[ 0 ] >  element_pos.first  + element_dim.first
-            //             && position[ 1 ] <= element_pos.second
-            //             && position[ 1 ] >  element_pos.second + element_dim.second )
-            //         {
-            //             acceptor = elements[ i ] -> acceptEvent( e );
+                //     if(    position[ 0 ] <= element_pos.first
+                //         && position[ 0 ] >  element_pos.first  + element_dim.first
+                //         && position[ 1 ] <= element_pos.second
+                //         && position[ 1 ] >  element_pos.second + element_dim.second )
+                //     {
+                //         acceptor = elements[ i ] -> acceptEvent( e );
                         
-            //             if( acceptor != NULL )
-            //             {
-            //                 if( ( e.type == STROKE && e.stroke.pressure > 0.0f )// Only track events with pressure (ie not hovering)
-            //                     || ( e.type == PINCH && !e.pinch.finish ) )     // Also, no tracking drop events even though they have position
-            //                     input_assoc[ e.stroke.dev_id ] = acceptor;
+                //         if( acceptor != NULL )
+                //         {
+                //             if( ( e.type == STROKE && e.stroke.pressure > 0.0f )// Only track events with pressure (ie not hovering)
+                //                 || ( e.type == PINCH && !e.pinch.finish ) )     // Also, no tracking drop events even though they have position
+                //                 input_assoc[ e.stroke.dev_id ] = acceptor;
                             
-            //                 break;
-            //             }
-            //         }
-            //     }
-            // }
+                //             break;
+                //         }
+                //     }
+                // }
+            }
             
-            // if( acceptor == NULL && getDevMode() )
-            //     ff::write( bqt_out,
-            //                "Warning: event trickled down but not accepted\n",
-            //                " - Event: ",
-            //                wevent2str( e ),
-            //                "\n" );
+            if( acceptor == NULL && getDevMode() )
+                ff::write( bqt_out,
+                           "Warning: event trickled down but not accepted\n",
+                           " - Event: ",
+                           wevent2str( e ),
+                           "\n" );
         }
     }
     
     void layout::draw()
     {
-        // TODO: Implement
-        
         scoped_lock slock( layout_mutex );
         
-        // for( int i = 0; i < elements.size(); ++i )                              // Iterate forwards as last element is topmost
-        // {
-        //     glPushMatrix();
-        //     {
-        //         std::pair< int, int > pos = elements[ i ] -> getPosition();
-                
-        //         glTranslatef( ( float )pos.first,
-        //                       ( float )pos.second,
-        //                       0.0f );
-                
-        //         elements[ i ] -> draw();
-        //     }
-        //     glPopMatrix();
-        // }
+        for( int i = 0; i < elements.size(); ++i )                              // Iterate forwards as last element is topmost
+        {
+            std::pair< int, int > pos = elements[ i ] -> getPosition();
+            
+            glTranslatef( pos.first,
+                          pos.second,
+                          0.0f );
+            
+            elements[ i ] -> draw();
+            
+            glTranslatef( -1 * pos.first,
+                          -1 * pos.second,
+                          0.0f );
+        }
     }
     
     void layout::startClean()
     {
+        ff::write( bqt_out,
+                   "Starting clean:\n",
+                   "    elements: ",
+                   elements.size(),
+                   "\n    named_resources: ",
+                   named_resources.size(),
+                   "\n" );
+        
         scoped_lock slock( layout_mutex );
         
         for( int i = 0; i < elements.size(); ++i )                              // Iterate forwards as last element is topmost
@@ -465,6 +493,11 @@ namespace bqt
                     if( iter -> second -> texture -> gl_texture == 0x00
                         && iter -> second -> data == NULL )
                     {
+                        ff::write( bqt_out,
+                                   "Opening \"",
+                                   iter -> first,
+                                   "\" as a resource texture\n" );
+                        
                         bqt::png_file rsrc_file( iter -> first );
                         
                         std::pair< unsigned int, unsigned int > rsrc_dim = rsrc_file.getDimensions();
@@ -483,10 +516,24 @@ namespace bqt
                 break;
             case UPLOADING_TEXTURES:
                 {
+                    if( !( *caller_mask & TASK_GPU ) )
+                        throw exception( "not on task thread" );
+                    
                     if( iter -> second -> texture -> gl_texture == 0x00
                         && iter -> second -> data != NULL )
                     {
                         glGenTextures( 1, &( iter -> second -> texture -> gl_texture ) );
+                        
+                        if( iter -> second -> texture -> gl_texture == 0x00 )
+                            throw exception( "InitLayoutResources_task::execute(): Could not generate texture" );
+                        
+                        ff::write( bqt_out,
+                                   "Uploading \"",
+                                   iter -> first,
+                                   "\" as a resource texture 0x",
+                                   ff::to_x( iter -> second -> texture -> gl_texture ),
+                                   "\n" );
+                        
                         glBindTexture( GL_TEXTURE_2D, iter -> second -> texture -> gl_texture );
                         glTexImage2D( GL_TEXTURE_2D,
                                       0,
@@ -518,6 +565,12 @@ namespace bqt
                         
                         delete[] iter -> second -> data;
                         iter -> second -> data = NULL;
+                    }
+                    
+                    if( iter -> second -> texture -> gl_texture == 0x00
+                        && iter -> second -> data == NULL )
+                    {
+                        throw exception( "still no data" );
                     }
                 }
                 break;
@@ -565,6 +618,13 @@ namespace bqt
         {
             if( iter -> second -> ref_count < 1 )
             {
+                ff::write( bqt_out,
+                           "Deleting \"",
+                           iter -> first,
+                           "\" as a resource texture 0x",
+                           ff::to_x( iter -> second -> texture -> gl_texture ),
+                           "\n" );
+                
                 if( iter -> second -> texture -> gl_texture != 0x00 )
                     glDeleteTextures( 1, &( iter -> second -> texture -> gl_texture ) );
                 
