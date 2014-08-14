@@ -29,7 +29,7 @@
 #include "bqt_mutex.hpp"
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
-#include "bqt_layout.hpp"
+#include "gui/bqt_layout.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -106,6 +106,8 @@ namespace bqt
         void acceptEvent( window_event& e );
         
         bqt_platform_window_t& getPlatformWindow();                             // TODO: make this const-correct
+        
+        void makeContextCurrent();                                              // Utility for TASK_GPU stuff
         
         class manipulate : public task
         {

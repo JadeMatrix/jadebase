@@ -21,13 +21,6 @@
 
 /******************************************************************************//******************************************************************************/
 
-// test
-#include "gui/bqt_gui_resource.hpp"
-namespace
-{
-    bqt::gui_resource* test_rsrc = NULL;
-}
-
 namespace bqt
 {
     // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +128,7 @@ namespace bqt
         registerWindow( *this );
     }
     
-    window::window() : gui( BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
+    window::window() : gui( this, BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
     {
         platform_window.good = false;
         
@@ -183,8 +176,6 @@ namespace bqt
             
             platform_window.good = false;
         }
-        
-        delete test_rsrc;
         
         #else
         
@@ -247,6 +238,16 @@ namespace bqt
             return platform_window;
     }
     
+    void window::makeContextCurrent()
+    {
+        Display* x_display = getXDisplay();
+        glXMakeCurrent( x_display,
+                        platform_window.x_window,
+                        platform_window.glx_context );
+        
+        XFlush( x_display );
+    }
+    
     // WINDOW::MANIPULATE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     window::manipulate::manipulate( window* t )
@@ -271,6 +272,12 @@ namespace bqt
         
         if( target -> updates.close )
         {
+            if( !( target -> gui.isClean() ) )
+            {
+                target -> gui.startClean();
+                return false;                                                   // Requeue if there are still resources to clean up
+            }
+            
             deregisterWindow( *target );
             target -> window_mutex.unlock();
             delete target;
@@ -547,12 +554,7 @@ namespace bqt
             
             // ff::write( bqt_out, "Redrawing window\n" );
             
-            Display* x_display = getXDisplay();
-            glXMakeCurrent( x_display,
-                            target.platform_window.x_window,
-                            target.platform_window.glx_context );
-            
-            XFlush( x_display );
+            target.makeContextCurrent();
             
             // {   // FBO
             //     if( target.init_gl )
@@ -644,6 +646,8 @@ namespace bqt
                 glEnable( GL_BLEND );
                 glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 
+                glEnable( GL_TEXTURE_2D );
+                
                 // if( target.init_canvas )
                 // {
                     glClearColor( 0.3, 0.3, 0.3, 1.0 );
@@ -720,21 +724,8 @@ namespace bqt
                 // // glEnd();
                 
                 // target.pending_points.clear();
-                
-                if( test_rsrc == NULL )
-                {
-                    // test_rsrc = new gui_resource( "/home/jadematrix/Developer/BQTDraw/make/BQTDraw/Linux/button_on_up_topleft.png", 0, 0, 6, 7 );
-                    // test_rsrc = new gui_resource( "/home/jadematrix/Developer/BQTDraw/make/BQTDraw/Linux/BQTDraw_app_16p.png", 0, 0, 16, 16 );
-                    test_rsrc = new gui_resource( "/home/jadematrix/Developer/BQTDraw/make/BQTDraw/Linux/BQTDraw_app_128p.png", 0, 0, 128, 128 );
-                    // test_rsrc = new gui_resource( "BQTDraw_app_16p.png" );
-                }
-                
-                glEnable( GL_TEXTURE_2D );
-                
-                test_rsrc -> draw();
-                
-                target.gui.draw();
             }
+            Display* x_display = getXDisplay();
             glXSwapBuffers( x_display, target.platform_window.x_window );
         }
         

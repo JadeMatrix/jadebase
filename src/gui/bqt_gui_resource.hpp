@@ -15,37 +15,29 @@
 
 #include <string>
 
-#include "../bqt_gl.hpp"
+#include "bqt_layout.hpp"
+#include "bqt_gui_texture.hpp"
 
 /******************************************************************************//******************************************************************************/
 
 namespace bqt
 {
-    struct gui_texture
-    {
-        GLuint gl_texture;
-        unsigned int dimensions[ 2 ];
-        unsigned int ref_count;
-        
-        gui_texture( std::string f );
-        ~gui_texture();
-    };
-    
     class gui_resource
     {
     protected:
-        gui_texture* texture;
+        layout& parent;
         unsigned int dimensions[ 2 ];                                           // Relative dimensions
         unsigned int   position[ 2 ];                                           // Relative position
-        // bool custom;
+        
+        gui_texture* texture;
     public:
-        // gui_resource( std::string f );                                          // Loads file f if needed, using entire image for resource
-        gui_resource( std::string f,                                            // Loads file f if needed, using subsection of image for resource
+        gui_resource( layout& p,
+                      std::string f,
                       unsigned int x,
                       unsigned int y,
                       unsigned int w,
                       unsigned int h );
-        ~gui_resource();                                                        // Cleans up image if needed
+        ~gui_resource();
         
         std::pair< unsigned int, unsigned int > getDimensions();
         

@@ -10,9 +10,9 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include "bqt_layout.hpp"
 #include "../bqt_windowevent.hpp"
 #include "../bqt_mutex.hpp"
-#include "../bqt_layout.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -35,6 +35,7 @@ namespace bqt
                         int y,
                         unsigned int w,
                         unsigned int h );
+        virtual ~layout_element() {};
         
         void setRealDimensions( unsigned int w, unsigned int h );
         virtual std::pair< unsigned int, unsigned int > getRealDimensions();    // Used to arrange elements
