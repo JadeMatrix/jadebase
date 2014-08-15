@@ -26,7 +26,8 @@
 #include "bqt_platform.h"
 #include "bqt_canvas.hpp"
 #include "bqt_task.hpp"
-#include "bqt_mutex.hpp"
+#include "threading/bqt_mutex.hpp"
+// #include "threading/bqt_rwlock.hpp"
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
 // #include "gui/bqt_layout.hpp"
@@ -43,16 +44,20 @@ namespace bqt
 {
     class window
     {
-    private:
-        bqt_platform_window_t platform_window;
+    protected:
+        mutex window_mutex;
         
-        unsigned int pending_redraws;
+        /* Window infrastructure **********************************************//******************************************************************************/
+        
+        bqt_platform_window_t platform_window;
         
         std::string title;
         unsigned int dimensions[2];
         int position[2];
         bool fullscreen;
         bool in_focus;
+        
+        unsigned int pending_redraws;
         
         struct
         {
@@ -72,16 +77,19 @@ namespace bqt
             bool restore    : 1;
         } updates;
         
-        float view_zoom;
-    protected:
-        // layout gui;
+        /* GUI infrastructure *************************************************//******************************************************************************/
         
-        mutex window_mutex;
+        // std::vector< layout_element* > elements;
+        
+        /**********************************************************************//******************************************************************************/
+        
         void init();
         
-        ~window();
+        void makeContextCurrent();
         
-        class redraw : public task
+        ~window();                                                              // Windows can only be destroyed by manipulate tasks
+        
+        class redraw : public task                                              // TODO: Rename to RedrawWindow_task
         {
         protected:
             window& target;
@@ -107,9 +115,7 @@ namespace bqt
         
         bqt_platform_window_t& getPlatformWindow();                             // TODO: make this const-correct
         
-        void makeContextCurrent();                                              // Utility for TASK_GPU stuff
-        
-        class manipulate : public task
+        class manipulate : public task                                          // TODO: Rename to ManipulateWindow_task
         {
             // TODO: Consider overriding new/delete for manipulates so we only
             // have one per window at any given time

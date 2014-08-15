@@ -15,8 +15,8 @@
 
 #include "bqt_taskutil.hpp"
 #include "bqt_task.hpp"
-#include "bqt_mutex.hpp"
-#include "bqt_condition.hpp"
+#include "threading/bqt_mutex.hpp"
+#include "threading/bqt_condition.hpp"
 
 /******************************************************************************//******************************************************************************/
 

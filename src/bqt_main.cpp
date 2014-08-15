@@ -16,7 +16,7 @@
 
 #include "bqt_launchargs.hpp"
 #include "bqt_exception.hpp"
-#include "bqt_threadutil.hpp"
+#include "threading/bqt_threadutil.hpp"
 #include "bqt_log.hpp"
 #include "bqt_taskexec.hpp"
 #include "bqt_version.hpp"

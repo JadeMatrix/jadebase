@@ -130,6 +130,38 @@ namespace bqt
         initOpenGL();
     }
     
+    void window::makeContextCurrent()
+    {
+        Display* x_display = getXDisplay();
+        glXMakeCurrent( x_display,
+                        platform_window.x_window,
+                        platform_window.glx_context );
+        
+        XFlush( x_display );
+    }
+    
+    window::~window()
+    {
+        #if defined PLATFORM_XWS_GNUPOSIX
+        
+        if( platform_window.good )
+        {
+            Display* x_display = getXDisplay();
+            
+            glXMakeCurrent( x_display, None, NULL );
+            glXDestroyContext( x_display, platform_window.glx_context );
+            XDestroyWindow( x_display, platform_window.x_window );
+            
+            platform_window.good = false;
+        }
+        
+        #else
+        
+        #error "Windows not implemented on non-X platforms"
+        
+        #endif
+    }
+    
     window::window() // : gui( this, BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
     {
         platform_window.good = false;
@@ -163,27 +195,6 @@ namespace bqt
         updates.minimize   = false;
         updates.maximize   = false;
         updates.restore    = false;
-    }
-    window::~window()
-    {
-        #if defined PLATFORM_XWS_GNUPOSIX
-        
-        if( platform_window.good )
-        {
-            Display* x_display = getXDisplay();
-            
-            glXMakeCurrent( x_display, None, NULL );
-            glXDestroyContext( x_display, platform_window.glx_context );
-            XDestroyWindow( x_display, platform_window.x_window );
-            
-            platform_window.good = false;
-        }
-        
-        #else
-        
-        #error "Windows not implemented on non-X platforms"
-        
-        #endif
     }
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
@@ -238,16 +249,6 @@ namespace bqt
             throw exception( "window::getPlatformWindow(): Window does not have a platform window yet" );
         else
             return platform_window;
-    }
-    
-    void window::makeContextCurrent()
-    {
-        Display* x_display = getXDisplay();
-        glXMakeCurrent( x_display,
-                        platform_window.x_window,
-                        platform_window.glx_context );
-        
-        XFlush( x_display );
     }
     
     // WINDOW::MANIPULATE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

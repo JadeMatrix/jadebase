@@ -16,8 +16,6 @@
 #include <map>
 #include <vector>
 
-#include <SDL2/SDL_events.h>
-
 #include "bqt_taskexec.hpp"
 #include "bqt_windowmanagement.hpp"
 #include "bqt_window.hpp"
@@ -25,7 +23,7 @@
 #include "bqt_platform.h"
 #include "bqt_exception.hpp"
 #include "bqt_launchargs.hpp"
-#include "bqt_mutex.hpp"
+#include "threading/bqt_mutex.hpp"
 #include "bqt_keycode.hpp"
 
 #include "bqt_log.hpp"

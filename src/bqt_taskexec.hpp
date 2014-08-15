@@ -14,7 +14,7 @@
 
 #include "bqt_taskutil.hpp"
 #include "bqt_task.hpp"
-#include "bqt_threadutil.hpp"
+#include "threading/bqt_threadutil.hpp"
 
 /******************************************************************************//******************************************************************************/
 

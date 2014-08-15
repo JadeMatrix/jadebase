@@ -20,12 +20,12 @@
 
 #include "bqt_taskqueue.hpp"
 #include "bqt_exception.hpp"
-#include "bqt_threadutil.hpp"
-#include "bqt_mutex.hpp"
-#include "bqt_thread.hpp"
+#include "threading/bqt_threadutil.hpp"
+#include "threading/bqt_mutex.hpp"
+#include "threading/bqt_thread.hpp"
 #include "bqt_log.hpp"
 #include "bqt_launchargs.hpp"
-#include "bqt_condition.hpp"
+#include "threading/bqt_condition.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

@@ -45,6 +45,8 @@ extern "C"
     
     #if defined PLATFORM_XWS_GNUPOSIX
     
+    #include <string.h>                                                         // For strerror_r()
+    
     #include <pthread.h>
     
     typedef struct
@@ -63,6 +65,12 @@ extern "C"
     {
         pthread_cond_t pt_cond;
     } bqt_platform_condition_t;
+    
+    typedef struct
+    {
+        pthread_rwlock_t pt_rwlock;
+        pthread_rwlockattr_t pt_attr;
+    } bqt_platform_rwlock_t;
     
     #include <X11/X.h>
     #include <GL/glxew.h>
@@ -96,6 +104,33 @@ extern "C"
     /* Apple Mac OS X *********************************************************//******************************************************************************/
     
     #elif defined PLATFORM_MACOSX
+    
+    #include <string.h>                                                         // For strerror_r()
+    
+    #include <pthread.h>
+    
+    typedef struct
+    {
+        pthread_t pt_thread;
+        pthread_attr_t pt_attr;
+    } bqt_platform_thread_t;
+    
+    typedef struct
+    {
+        pthread_mutex_t pt_mutex;
+        pthread_mutexattr_t pt_attr;
+    } bqt_platform_mutex_t;
+    
+    typedef struct 
+    {
+        pthread_cond_t pt_cond;
+    } bqt_platform_condition_t;
+    
+    typedef struct
+    {
+        pthread_rwlock_t pt_rwlock;
+        pthread_rwlockattr_t pt_attr;
+    } bqt_platform_rwlock_t;
     
     #error "Mac OS X not fully implemented as a platform yet"
     
