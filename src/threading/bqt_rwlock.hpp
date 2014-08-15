@@ -13,6 +13,7 @@
 
 #include "../bqt_platform.h"
 #include "bqt_threadutil.hpp"
+#include "bqt_scopedlock.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -35,22 +36,24 @@ namespace bqt
         void unlock() const;
     };
     
+    /* SCOPED_LOCK SPECIALIZATION *********************************************//******************************************************************************/
+    
     #define RW_READ  false
     #define RW_WRITE true
     
-    class scoped_lock_RWLOCK                                                    // TODO: Replace with scoped_lock<> from bqt_scopedlock.hpp
+    template<> class scoped_lock< rwlock >
     {
     private:
         rwlock& slrwl;
     public:
-        scoped_lock_RWLOCK( rwlock& r, bool m = RW_READ ) : slrwl( r )
+        scoped_lock( rwlock& r, bool m = RW_READ ) : slrwl( r )
         {
             if( m )
                 slrwl.lock_write();
             else
                 slrwl.lock_read();
         }
-        ~scoped_lock_RWLOCK()
+        ~scoped_lock()
         {
             slrwl.unlock();
         }

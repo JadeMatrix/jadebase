@@ -14,6 +14,7 @@
 #include "bqt_threadutil.hpp"
 #include "bqt_condition.hpp"
 #include "bqt_mutex.hpp"
+#include "bqt_scopedlock.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -38,6 +39,31 @@ namespace bqt
         void increase( unsigned int count = 1 );
         
         // TODO: operators instead?
+    };
+    
+    /* SCOPED_LOCK SPECIALIZATION *********************************************//******************************************************************************/
+    
+    template<> class scoped_lock< semaphore >
+    {
+    private:
+        semaphore& sls;
+        unsigned int count;
+    public:
+        scoped_lock( semaphore& m ) : sls( m ), count( 0 )
+        {
+            sls.acquireAll();
+        }
+        scoped_lock( semaphore& m, unsigned int c ) : sls( m ), count( c )
+        {
+            sls.acquire( count );
+        }
+        ~scoped_lock()
+        {
+            if( count )
+                sls.release( count );
+            else
+                sls.releaseAll();
+        }
     };
 }
 

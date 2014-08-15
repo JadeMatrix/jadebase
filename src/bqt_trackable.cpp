@@ -43,7 +43,7 @@ namespace bqt
     
     void trackable::registerChange( timestamp stamp )
     {
-        scoped_lock slock( history_mutex );
+        scoped_lock< mutex > slock( history_mutex );
         
         undo_stamps.push_back( stamp );
         undo_history.insert( std::pair< bqt::timestamp, bqt::trackable* >( stamp, this ) );
@@ -66,7 +66,7 @@ namespace bqt
     
     int undoLastChange()
     {
-        scoped_lock slock( history_mutex );
+        scoped_lock< mutex > slock( history_mutex );
         
         if( undo_stamps.empty() )
             return HIST_NONELEF;
@@ -112,7 +112,7 @@ namespace bqt
     }
     int redoLastChange()
     {
-        scoped_lock slock( history_mutex );
+        scoped_lock< mutex > slock( history_mutex );
         
         if( redo_stamps.empty() )
             return HIST_NONELEF;

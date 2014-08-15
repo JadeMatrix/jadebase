@@ -569,12 +569,12 @@ namespace
 
 void setQuitFlag()
 {
-    bqt::scoped_lock slock( quit_mutex );
+    bqt::scoped_lock< bqt::mutex > slock( quit_mutex );
     quit_flag = true;
 }
 bool getQuitFlag()
 {
-    bqt::scoped_lock slock( quit_mutex );
+    bqt::scoped_lock< bqt::mutex > slock( quit_mutex );
     return quit_flag;
 }
 
@@ -590,7 +590,7 @@ namespace bqt
             #warning Quitting does not check open documents
             if( false /* !closeAllDocuments() */ )
             {
-                scoped_lock slock( quit_mutex );
+                scoped_lock< mutex > slock( quit_mutex );
                 quit_flag = false;
                 
                 ff::write( bqt_out, "Quit interrupted\n" );

@@ -34,7 +34,7 @@ namespace bqt
         task* r = NULL;
         bool popping = true;
         
-        scoped_lock slock( tq_mutex );
+        scoped_lock< mutex > slock( tq_mutex );
         
         while( popping )
         {
@@ -49,11 +49,11 @@ namespace bqt
                     tq_cond.wait( tq_mutex );
                 else
                 {
-                    for( int i = 0; i < 3; i++ )                                // Iterate through priority levels
+                    for( int i = 0; i < 3; ++i )                                // Iterate through priority levels
                     {
                         for( std::list< task* >::iterator iter = data[ i ].begin();
                              iter != data[ i ].end();
-                             iter++ )                                           // Iterate through tasks in priority level
+                             ++iter )                                           // Iterate through tasks in priority level
                         {
                             if( ( *iter ) -> matchMask( mask ) )
                             {
@@ -83,7 +83,7 @@ namespace bqt
             throw exception( "task_queue::push(): Cannot push a null task" );
         
         {
-            scoped_lock slock( tq_mutex );
+            scoped_lock< mutex > slock( tq_mutex );
             
             if( status == OPEN )
             {
@@ -115,7 +115,7 @@ namespace bqt
     void task_queue::open()
     {
         {
-            scoped_lock slock( tq_mutex );
+            scoped_lock< mutex > slock( tq_mutex );
             status = OPEN;
         }
         
@@ -124,15 +124,15 @@ namespace bqt
     void task_queue::close()
     {
         {
-            scoped_lock slock( tq_mutex );
+            scoped_lock< mutex > slock( tq_mutex );
             
             status = CLOSED;
             
-            for( int i = 0; i < 3; i++ )
+            for( int i = 0; i < 3; ++i )
             {
                 for( std::list< task* >::iterator iter = data[ i ].begin();
                      iter != data[ i ].end();
-                     iter++ )
+                     ++iter )
                 {
                     delete *iter;                                               // Don't use list::erase(), it invalidates the iterator
                 }
@@ -144,7 +144,7 @@ namespace bqt
 
     int task_queue::size()
     {
-        scoped_lock slock( tq_mutex );
+        scoped_lock< mutex > slock( tq_mutex );
         return ( data[ 0 ].size() + data[ 1 ].size() + data[ 2 ].size() );
     }
 }

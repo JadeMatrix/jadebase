@@ -20,16 +20,23 @@ namespace bqt
     void thread::createPlatformThread( thread_func function, void* data )
     {
         if( has_thread )
-            throw bqt::exception( "thread::createPlatformThread(): Thread already running" );
+            throw exception( "thread::createPlatformThread(): Thread already running" );
         if( function == NULL )
-            throw bqt::exception( "thread::createPlatformThread(): function is NULL" );
+            throw exception( "thread::createPlatformThread(): function is NULL" );
         
-        pthread_attr_init( &platform_thread.pt_attr );
-        pthread_attr_setdetachstate( &platform_thread.pt_attr,
-                                     PTHREAD_CREATE_JOINABLE );                 // Create a 'joinable' attribute for the thread
+        int err;
         
-        if( pthread_create( &platform_thread.pt_thread, &platform_thread.pt_attr, function, data ) )
-            has_thread = false;
+        if( ( err = pthread_attr_init( &platform_thread.pt_attr ) ) )
+            throw exception( "thread::createPlatformThread(): Could not create attributes: " + errc2str( err ) );
+        if( ( err = pthread_attr_setdetachstate( &platform_thread.pt_attr,
+                                                 PTHREAD_CREATE_JOINABLE ) ) )  // Create a 'joinable' attribute for the thread
+            throw exception( "thread::createPlatformThread(): Could not set detach state: " + errc2str( err ) );
+        
+        if( ( err = pthread_create( &platform_thread.pt_thread, &platform_thread.pt_attr, function, data ) ) )
+        {
+            has_thread = false;                                                 // Keep state correct in case exception is caught
+            throw exception( "thread::createPlatformThread(): Could not create thread: " + errc2str( err ) );
+        }
         else
             has_thread = true;
     }
@@ -37,7 +44,12 @@ namespace bqt
     void thread::kill()
     {
         if( has_thread )
-            pthread_cancel( platform_thread.pt_thread );
+        {
+            int err;
+            
+            if( ( err = pthread_cancel( platform_thread.pt_thread ) ) )
+                throw exception( "thread::kill(): Failed to cancel thread: " + errc2str( err ) );
+        }
     }
     
     thread::thread()
@@ -111,7 +123,11 @@ namespace bqt
     {
         exit_code return_value;
         
-        pthread_join( platform_thread.pt_thread, &return_value );
+        int err;
+        
+        if( ( err = pthread_join( platform_thread.pt_thread, &return_value ) ) )
+            throw exception( "thread::wait(): Failed to join thread: " + errc2str( err ) );
+        
         has_thread = false;
         
         return return_value;

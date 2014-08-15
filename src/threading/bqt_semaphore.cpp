@@ -25,7 +25,7 @@ namespace bqt
     {
         try
         {
-            scoped_lock s_lock( s_mutex );
+            scoped_lock< mutex > s_lock( s_mutex );
         }
         catch( exception& e )
         {
@@ -61,7 +61,7 @@ namespace bqt
     {
         try
         {
-            scoped_lock s_lock( s_mutex );
+            scoped_lock< mutex > s_lock( s_mutex );
         }
         catch( exception& e )
         {
@@ -85,7 +85,7 @@ namespace bqt
     {
         try
         {
-            scoped_lock s_lock( s_mutex );
+            scoped_lock< mutex > s_lock( s_mutex );
         }
         catch( exception& e )
         {

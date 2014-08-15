@@ -55,7 +55,7 @@ namespace
     bqt::condition arrest_condition;
     bool arrestHook()
     {
-        bqt::scoped_lock slock( arrest_mutex );
+        bqt::scoped_lock< bqt::mutex > slock( arrest_mutex );
         
         if( arrested )
             arrest_condition.wait( arrest_mutex );
@@ -80,7 +80,7 @@ namespace
         if( bqt::isInitTaskSystem() )
         {
             {
-                bqt::scoped_lock slock( task_thread_count_mutex );
+                bqt::scoped_lock< bqt::mutex > slock( task_thread_count_mutex );
                 task_thread_count++;
             }
             
@@ -141,7 +141,7 @@ namespace
             }
             
             {
-                bqt::scoped_lock slock( task_thread_count_mutex );
+                bqt::scoped_lock< bqt::mutex > slock( task_thread_count_mutex );
                 task_thread_count--;
             }
             
@@ -236,14 +236,14 @@ namespace bqt
     
     void arrestTaskSystem()
     {
-        scoped_lock slock( arrest_mutex );
+        scoped_lock< mutex > slock( arrest_mutex );
         
         arrested = true;
         arrest_continue = true;
     }
     void releaseTaskSystem()
     {
-        scoped_lock slock( arrest_mutex );
+        scoped_lock< mutex > slock( arrest_mutex );
         
         arrested = false;
         
@@ -305,7 +305,7 @@ namespace bqt
     }
     long getTaskThreadCount()
     {
-        scoped_lock slock( task_thread_count_mutex );
+        scoped_lock< mutex > slock( task_thread_count_mutex );
         return task_thread_count;
     }
 }

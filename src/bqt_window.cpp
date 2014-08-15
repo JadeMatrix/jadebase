@@ -27,7 +27,7 @@ namespace bqt
     
     void window::init()
     {
-        scoped_lock slock( window_mutex );
+        scoped_lock< mutex > slock( window_mutex );
         
         #if defined PLATFORM_XWS_GNUPOSIX
         
@@ -199,18 +199,18 @@ namespace bqt
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
     {
-        scoped_lock slock( window_mutex );
+        scoped_lock< mutex > slock( window_mutex );
         return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
     }
     std::pair< int, int > window::getPosition()
     {
-        scoped_lock slock( window_mutex );
+        scoped_lock< mutex > slock( window_mutex );
         return std::pair< int, int >( position[ 0 ], position[ 1 ] );
     }
     
     void window::acceptEvent( window_event& e )
     {
-        scoped_lock slock( window_mutex );
+        scoped_lock< mutex > slock( window_mutex );
         
         switch( e.type )
         {
@@ -243,7 +243,7 @@ namespace bqt
     
     bqt_platform_window_t& window::getPlatformWindow()
     {
-        scoped_lock slock( window_mutex );
+        scoped_lock< mutex > slock( window_mutex );
         
         if( !platform_window.good )
             throw exception( "window::getPlatformWindow(): Window does not have a platform window yet" );
@@ -435,7 +435,7 @@ namespace bqt
         if( w < 1 || h < 1 )
             throw exception( "window::manipulate::setDimensions(): Width or height < 1" );
         
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> dimensions[ 0 ] = w;
         target -> dimensions[ 1 ] = h;
@@ -445,7 +445,7 @@ namespace bqt
     }
     void window::manipulate::setPosition( int x, int y )
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> position[ 0 ] = x;
         target -> position[ 1 ] = y;
@@ -456,7 +456,7 @@ namespace bqt
     
     void window::manipulate::setFullscreen( bool f )
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> fullscreen = true;
         target -> updates.fullscreen = true;
@@ -465,7 +465,7 @@ namespace bqt
     }
     void window::manipulate::setTitle( std::string t )
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> title = t;
         target -> updates.title = true;
@@ -475,13 +475,13 @@ namespace bqt
     
     // void window::manipulate::setFocus( bool f )
     // {
-    //     scoped_lock slock( target -> window_mutex );
+    //     scoped_lock< mutex > slock( target -> window_mutex );
         
     //     target -> in_focus = true;
     // }
     void window::manipulate::makeActive()
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.active = true;
         
@@ -490,7 +490,7 @@ namespace bqt
     
     void window::manipulate::center()
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.center = true;                                        // Don't calculate here, as that code may be thread-dependent
         
@@ -498,7 +498,7 @@ namespace bqt
     }
     void window::manipulate::minimize()
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.minimize = true;
         
@@ -506,7 +506,7 @@ namespace bqt
     }
     void window::manipulate::maximize()
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.maximize = true;
         
@@ -514,7 +514,7 @@ namespace bqt
     }
     void window::manipulate::restore()
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.restore = true;
         
@@ -522,7 +522,7 @@ namespace bqt
     }
     void window::manipulate::close()
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.close = true;
         
@@ -531,7 +531,7 @@ namespace bqt
     
     void window::manipulate::redraw()
     {
-        scoped_lock slock( target -> window_mutex );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.changed = true;
     }
@@ -540,13 +540,13 @@ namespace bqt
     
     window::redraw::redraw( window& t ) : target( t )
     {
-        scoped_lock slock( target.window_mutex );
+        scoped_lock< mutex > slock( target.window_mutex );
         
         target.pending_redraws++;
     }
     bool window::redraw::execute( task_mask* caller_mask )
     {
-        scoped_lock slock( target.window_mutex );
+        scoped_lock< mutex > slock( target.window_mutex );
         
         if( target.pending_redraws <= 1 )                                       // Only redraw if there are no other pending redraws for that window; this is
                                                                                 // safe because the redraw task is high-priority, so the task system will
