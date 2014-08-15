@@ -15,6 +15,7 @@
 #endif
 
 #include "../bqt_exception.hpp"
+#include "../bqt_log.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -47,14 +48,28 @@ namespace bqt
         }
     }
     
+    #if defined PLATFORM_XWS_GNUPOSIX || defined PLATFORM_MACOSX
+    
     std::string errc2str( int err )
     {
-        char buff[ 64 ];
+        char buff[ 32 ];
         
-        strerror_r( err, buff, 64 );
+        #if ( _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 ) && ! _GNU_SOURCE
+        
+        strerror_r( err, buff, 32 );
         
         return std::string( buff );
+        
+        #else
+        
+        return std::string( strerror_r( err, buff, 32 ) );
+        
+        #endif
     }
+    
+    #elif defined PLATFORM_WINDOWS
+    
+    #endif
 }
 
 

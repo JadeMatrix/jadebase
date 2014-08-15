@@ -9,6 +9,8 @@
 
 #include "bqt_rwlock.hpp"
 
+#include <errno.h>
+
 #include "../bqt_exception.hpp"
 
 /******************************************************************************//******************************************************************************/
@@ -41,28 +43,42 @@ namespace bqt
             throw exception( "rwlock::~rwlock(): Could not destroy rwlock attributes: " + errc2str( err ) );
     }
     
-    void rwlock::lock_read() const
+    bool rwlock::lock_read() const
     {
         int err;
         
         if( ( err = pthread_rwlock_rdlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) ) ) )
-            throw exception( "rwlock::lock_read(): Could not get a read lock: " + errc2str( err ) );
+        {
+            if( err != EDEADLK )                                                // This is OK, it just means this thread already has a lock
+                throw exception( "rwlock::lock_write(): Could not get a read lock: " + errc2str( err ) );
+            
+            return false;
+        }
+        
+        return true;
     }
     bool rwlock::try_read() const
     {
-        return pthread_rwlock_tryrdlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) );
+        return !pthread_rwlock_tryrdlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) );
     }
     
-    void rwlock::lock_write() const
+    bool rwlock::lock_write() const
     {
         int err;
         
         if( ( err = pthread_rwlock_wrlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) ) ) )
-            throw exception( "rwlock::lock_write(): Could not get a write lock: " + errc2str( err ) );
+        {
+            if( err != EDEADLK )                                                // This is OK, it just means this thread already has a lock
+                throw exception( "rwlock::lock_write(): Could not get a write lock: " + errc2str( err ) );
+            
+            return false;
+        }
+        
+        return true;
     }
     bool rwlock::try_write() const
     {
-        return pthread_rwlock_trywrlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) );
+        return !pthread_rwlock_trywrlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) );
     }
     
     void rwlock::unlock() const

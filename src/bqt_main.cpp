@@ -23,10 +23,11 @@
 #include "bqt_events.hpp"
 #include "bqt_gl.hpp"
 
-// TODO: Debug, remove later?
+// TODO: Debug, remove later
 #include "bqt_window.hpp"
 #include <cstdlib>
 #include <unistd.h>
+#include "threading/bqt_rwlock.hpp"
 
 /******************************************************************************//******************************************************************************/
 

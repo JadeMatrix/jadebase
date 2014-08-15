@@ -57,7 +57,7 @@ namespace bqt
     }
     bool mutex::try_lock() const
     {
-        return pthread_mutex_trylock( const_cast< pthread_mutex_t* >( &platform_mutex.pt_mutex ) );
+        return !pthread_mutex_trylock( const_cast< pthread_mutex_t* >( &platform_mutex.pt_mutex ) );
     }
     
     #else

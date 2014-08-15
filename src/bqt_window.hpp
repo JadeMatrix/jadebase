@@ -26,8 +26,7 @@
 #include "bqt_platform.h"
 #include "bqt_canvas.hpp"
 #include "bqt_task.hpp"
-#include "threading/bqt_mutex.hpp"
-// #include "threading/bqt_rwlock.hpp"
+#include "threading/bqt_rwlock.hpp"
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
 // #include "gui/bqt_layout.hpp"
@@ -45,7 +44,7 @@ namespace bqt
     class window
     {
     protected:
-        mutex window_mutex;
+        rwlock window_lock;
         
         /* Window infrastructure **********************************************//******************************************************************************/
         
