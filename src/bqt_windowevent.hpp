@@ -91,10 +91,10 @@ namespace bqt
         } data;
     };
     
-    class layout_element;
+    class gui_element;
     struct text_input
     {
-        layout_element* element;                                                // Text input always occurst after a layout_element requests it
+        gui_element* element;                                                   // Text input always occurst after a layout_element requests it
         std::string* utf8str;                                                   // Unfortunately have to use a string* here
     };
     

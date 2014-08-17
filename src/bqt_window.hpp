@@ -31,8 +31,8 @@
 #include "threading/bqt_rwlock.hpp"
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
-#include "gui/bqt_gui_resource_names.hpp"
 #include "gui/bqt_gui_texture.hpp"
+#include "gui/bqt_gui_resource_names.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -45,6 +45,7 @@
 namespace bqt
 {
     class gui_element;
+    class gui_resource;
     
     class window
     {
@@ -85,8 +86,8 @@ namespace bqt
         
         /* GUI infrastructure *************************************************//******************************************************************************/
         
-        std::map< bqt_platform_idevid_t, layout_element* > input_assoc;
-        std::vector< layout_element* > elements;
+        std::map< bqt_platform_idevid_t, gui_element* > input_assoc;
+        std::vector< gui_element* > elements;
         
         struct gui_texture_holder
         {
@@ -111,7 +112,7 @@ namespace bqt
         bool new_textures;
         bool old_textures;
         
-        // std::map< gui_resource_name, gui_resource* > named_resources;
+        std::map< gui_resource_name, gui_resource* > named_resources;
         
         /**********************************************************************//******************************************************************************/
         
@@ -119,20 +120,11 @@ namespace bqt
         
         void makeContextCurrent();                                              // Not thread-safe
         
-        void associateDevice( bqt_platform_idevid_t dev_id,
-                              layout_element* element );                        // Begins sending input events from the device directly to the element without
-                                                                                // passing through the element tree; deassociates if element is NULL.
-        
         void initNamedResources();
         
         void openUnopenedTextureFiles();
         void uploadUnuploadedTextures();
         void deleteUnreferencedTextures();
-        
-        gui_texture* acquireTexture( std::string filename );
-        void releaseTexture( gui_texture* t );
-        
-        // gui_resource* getNamedResource( gui_resource_name name );
         
         ~window();                                                              // Windows can only be destroyed by manipulate tasks
         
@@ -161,6 +153,15 @@ namespace bqt
         void acceptEvent( window_event& e );
         
         bqt_platform_window_t& getPlatformWindow();                             // TODO: make this const-correct
+        
+        void associateDevice( bqt_platform_idevid_t dev_id,
+                              gui_element* element );                           // Begins sending input events from the device directly to the element without
+                                                                                // passing through the element tree; deassociates if element is NULL.
+        
+        gui_texture* acquireTexture( std::string filename );
+        void releaseTexture( gui_texture* t );
+        
+        gui_resource* getNamedResource( gui_resource_name name );
         
         class manipulate : public task                                          // TODO: Rename to ManipulateWindow_task
         {
