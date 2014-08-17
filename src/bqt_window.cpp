@@ -18,6 +18,7 @@
 #include "bqt_preferences.hpp"
 #include "bqt_launchargs.hpp"
 #include "bqt_gl.hpp"
+#include "bqt_png.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -27,7 +28,7 @@ namespace bqt
     
     void window::init()
     {
-        scoped_lock< rwlock > slock( window_lock );
+        scoped_lock< rwlock > slock( window_lock, RW_WRITE );
         
         #if defined PLATFORM_XWS_GNUPOSIX
         
@@ -140,8 +141,219 @@ namespace bqt
         XFlush( x_display );
     }
     
+    // void window::associateDevice( bqt_platform_idevid_t dev_id,
+    //                               layout_element* element )
+    // {
+        
+    // }
+    
+    // void window::initNamedResources()
+    // {
+        
+    // }
+    
+    void window::openUnopenedTextureFiles()
+    {
+        if( new_textures )
+        {
+            for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+                 iter != resource_textures.end();
+                 ++iter )
+            {
+                if( iter -> second -> data == NULL
+                    && iter -> second -> texture -> gl_texture == 0x00 )
+                {
+                    png_file rsrc_file( iter -> first );
+                    
+                    std::pair< unsigned int, unsigned int > rsrc_dim = rsrc_file.getDimensions();
+                    
+                    iter -> second -> data = new unsigned char[ rsrc_dim.first * rsrc_dim.second * 4 ];
+                    
+                    if( iter -> second -> data == NULL )
+                        throw bqt::exception( "window::openUnopenedTextureFiles(): Could not allocate conversion space" );
+                    
+                    rsrc_file.toRGBABytes( iter -> second -> data );
+                    
+                    iter -> second -> texture -> dimensions[ 0 ] = rsrc_dim.first;
+                    iter -> second -> texture -> dimensions[ 1 ] = rsrc_dim.second;
+                    
+                    // ff::write( bqt_out,
+                    //            "Opening \"",
+                    //            iter -> first,
+                    //            "\" as a resource texture\n" );
+                }
+            }
+        }
+    }
+    void window::uploadUnuploadedTextures()
+    {
+        if( new_textures )
+        {
+            makeContextCurrent();
+            
+            for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+                 iter != resource_textures.end();
+                 ++iter )
+            {
+                if( iter -> second -> texture -> gl_texture == 0x00
+                    && iter -> second -> data != NULL )
+                {
+                    glGenTextures( 1, &( iter -> second -> texture -> gl_texture ) );
+                    
+                    if( iter -> second -> texture -> gl_texture == 0x00 )
+                        throw exception( "window::uploadUnuploadedTextures(): Could not generate texture" );
+                    
+                    glBindTexture( GL_TEXTURE_2D, iter -> second -> texture -> gl_texture );
+                    glTexImage2D( GL_TEXTURE_2D,
+                                  0,
+                                  GL_RGBA,
+                                  iter -> second -> texture -> dimensions[ 1 ],
+                                  iter -> second -> texture -> dimensions[ 0 ],
+                                  0,
+                                  GL_RGBA,
+                                  GL_UNSIGNED_BYTE,
+                                  iter -> second -> data );
+                    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+                    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+                    
+                    glBindTexture( GL_TEXTURE_2D, 0 );
+                    
+                    GLenum gl_error = glGetError();
+                    if( gl_error != GL_NO_ERROR )
+                    {
+                        bqt::exception e;
+                        ff::write( *e,
+                                   "LoadGUIResource_task::execute(): OpenGL error 0x",
+                                   ff::to_x( ( unsigned long )gl_error ),
+                                   " loading pixels from 0x",
+                                   ff::to_x( ( unsigned long )( iter -> second -> data ), HEX_WIDTH, HEX_WIDTH ),
+                                   " to texture 0x",
+                                   ff::to_x( iter -> second -> texture -> gl_texture, HEX_WIDTH, HEX_WIDTH ) );
+                        throw e;
+                    }
+                    
+                    // ff::write( bqt_out,
+                    //            "Creating \"",
+                    //            iter -> first,
+                    //            "\" as a resource texture 0x",
+                    //            ff::to_x( iter -> second -> texture -> gl_texture ),
+                    //            "\n" );
+                    
+                    delete[] iter -> second -> data;
+                    iter -> second -> data = NULL;
+                }
+            }
+            
+            new_textures = false;
+        }
+    }
+    void window::deleteUnreferencedTextures()
+    {
+        if( old_textures )
+        {
+            makeContextCurrent();
+            
+            for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+                 iter != resource_textures.end();
+                 /* NULL */ )
+            {
+                if( iter -> second -> ref_count < 1 )
+                {
+                    // ff::write( bqt_out,
+                    //            "Deleting \"",
+                    //            iter -> first,
+                    //            "\" as a resource texture 0x",
+                    //            ff::to_x( iter -> second -> texture -> gl_texture ),
+                    //            "\n" );
+                    
+                    if( iter -> second -> texture -> gl_texture != 0x00 )
+                        glDeleteTextures( 1, &( iter -> second -> texture -> gl_texture ) );
+                    
+                    delete iter -> second;
+                    
+                    resource_textures.erase( iter++ );
+                }
+                else
+                    ++iter;
+            }
+            
+            old_textures = false;
+        }
+    }
+    
+    gui_texture* window::acquireTexture( std::string filename )
+    {
+        scoped_lock< rwlock > slock( window_lock, RW_WRITE );
+        
+        gui_texture_holder* h;
+        
+        if( resource_textures.count( filename ) )
+            h = resource_textures[ filename ];
+        else
+        {
+            h = new gui_texture_holder();
+            resource_textures[ filename ] = h;
+            new_textures = true;
+        }
+        
+        h -> ref_count++;
+        
+        // ff::write( bqt_out,
+        //            "Acquiring texture \"",
+        //            filename,
+        //            "\" as 0x",
+        //            ff::to_x( ( unsigned long )( h -> texture ) ),
+        //            " (rc ",
+        //            h -> ref_count,
+        //            ")\n" );
+        
+        return h -> texture;
+    }
+    void window::releaseTexture( gui_texture* t )
+    {
+        scoped_lock< rwlock > slock( window_lock, RW_WRITE );
+        
+        for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+             iter != resource_textures.end();
+             ++iter )
+        {
+            if( iter -> second -> texture == t )
+            {
+                iter -> second -> ref_count--;
+                
+                // ff::write( bqt_out,
+                //            "Releasing texture \"",
+                //            iter -> first,
+                //            "\" as 0x",
+                //            ff::to_x( ( unsigned long )( iter -> second -> texture ) ),
+                //            " (rc ",
+                //            iter -> second -> ref_count,
+                //            ")\n" );
+                
+                if( iter -> second -> ref_count < 1 )
+                {
+                    old_textures = true;
+                    
+                    if( iter -> second -> ref_count < 0 )
+                        throw exception( "window::releaseTexture(): Texture reference count < 0" );
+                }
+                
+                return;
+            }
+        }
+        
+        throw exception( "window::releaseTexture(): No such texture" );
+    }
+    
+    // gui_resource* window::getNamedResource( gui_resource_name name )
+    // {
+        
+    // }
+    
     window::~window()
     {
+        scoped_lock< rwlock > slock( window_lock, RW_WRITE );                   // If we really need this we have bigger problems
+        
         #if defined PLATFORM_XWS_GNUPOSIX
         
         if( platform_window.good )
@@ -195,22 +407,26 @@ namespace bqt
         updates.minimize   = false;
         updates.maximize   = false;
         updates.restore    = false;
+        updates.redraw     = false;
+        
+        new_textures = false;
+        old_textures = false;
     }
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
     {
-        scoped_lock< rwlock > slock( window_lock );
+        scoped_lock< rwlock > slock( window_lock, RW_READ );
         return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
     }
     std::pair< int, int > window::getPosition()
     {
-        scoped_lock< rwlock > slock( window_lock );
+        scoped_lock< rwlock > slock( window_lock, RW_READ );
         return std::pair< int, int >( position[ 0 ], position[ 1 ] );
     }
     
     void window::acceptEvent( window_event& e )
     {
-        scoped_lock< rwlock > slock( window_lock );
+        scoped_lock< rwlock > slock( window_lock, RW_WRITE );
         
         switch( e.type )
         {
@@ -236,14 +452,24 @@ namespace bqt
             break;
         }
         
-        // gui.acceptEvent( e );
+        // Devel
+        if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
+            setQuitFlag();
         
-        submitTask( new redraw( *this ) );
+        if( e.type == KEYCOMMAND && e.key.key == KEY_T && e.key.up )
+            acquireTexture( "make/BQTDraw/Resources/gui_resources.png" );
+        
+        if( e.type == KEYCOMMAND && e.key.key == KEY_Y && e.key.up )
+            releaseTexture( resource_textures.begin() -> second -> texture );
+        
+        manipulate* m = new manipulate( this );
+        m -> redraw();
+        submitTask( m );
     }
     
     bqt_platform_window_t& window::getPlatformWindow()
     {
-        scoped_lock< rwlock > slock( window_lock );
+        scoped_lock< rwlock > slock( window_lock, RW_READ );
         
         if( !platform_window.good )
             throw exception( "window::getPlatformWindow(): Window does not have a platform window yet" );
@@ -275,6 +501,8 @@ namespace bqt
         
         if( target -> updates.close )
         {
+            #warning window::manipulate::execute() does not clean up GUI
+            
             // if( !( target -> gui.isClean() ) )
             // {
             //     target -> gui.startClean();
@@ -295,6 +523,8 @@ namespace bqt
         }
         else
         {
+            target -> openUnopenedTextureFiles();
+            
             if( target -> updates.changed )
             {
                 Display* x_display = getXDisplay();
@@ -416,6 +646,13 @@ namespace bqt
                     redraw_window = true;
                 }
                 
+                if( target -> updates.redraw )
+                {
+                    target -> updates.redraw = false;
+                    
+                    redraw_window = true;
+                }
+                
                 target -> updates.changed = false;
                 
                 XFlush( x_display );
@@ -435,7 +672,7 @@ namespace bqt
         if( w < 1 || h < 1 )
             throw exception( "window::manipulate::setDimensions(): Width or height < 1" );
         
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> dimensions[ 0 ] = w;
         target -> dimensions[ 1 ] = h;
@@ -445,7 +682,7 @@ namespace bqt
     }
     void window::manipulate::setPosition( int x, int y )
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> position[ 0 ] = x;
         target -> position[ 1 ] = y;
@@ -456,7 +693,7 @@ namespace bqt
     
     void window::manipulate::setFullscreen( bool f )
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> fullscreen = true;
         target -> updates.fullscreen = true;
@@ -465,7 +702,7 @@ namespace bqt
     }
     void window::manipulate::setTitle( std::string t )
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> title = t;
         target -> updates.title = true;
@@ -475,13 +712,13 @@ namespace bqt
     
     // void window::manipulate::setFocus( bool f )
     // {
-    //     scoped_lock< rwlock > slock( target -> window_lock );
+    //     scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
     //     target -> in_focus = true;
     // }
     void window::manipulate::makeActive()
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> updates.active = true;
         
@@ -490,7 +727,7 @@ namespace bqt
     
     void window::manipulate::center()
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> updates.center = true;                                        // Don't calculate here, as that code may be thread-dependent
         
@@ -498,7 +735,7 @@ namespace bqt
     }
     void window::manipulate::minimize()
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> updates.minimize = true;
         
@@ -506,7 +743,7 @@ namespace bqt
     }
     void window::manipulate::maximize()
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> updates.maximize = true;
         
@@ -514,7 +751,7 @@ namespace bqt
     }
     void window::manipulate::restore()
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> updates.restore = true;
         
@@ -522,7 +759,7 @@ namespace bqt
     }
     void window::manipulate::close()
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
         
         target -> updates.close = true;
         
@@ -531,7 +768,9 @@ namespace bqt
     
     void window::manipulate::redraw()
     {
-        scoped_lock< rwlock > slock( target -> window_lock );
+        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        
+        target -> updates.redraw = true;
         
         target -> updates.changed = true;
     }
@@ -540,13 +779,18 @@ namespace bqt
     
     window::redraw::redraw( window& t ) : target( t )
     {
-        scoped_lock< rwlock > slock( target.window_lock );
+        scoped_lock< rwlock > slock( target.window_lock, RW_WRITE );
         
         target.pending_redraws++;
     }
     bool window::redraw::execute( task_mask* caller_mask )
     {
-        scoped_lock< rwlock > slock( target.window_lock );
+        scoped_lock< rwlock > slock( target.window_lock, RW_READ );
+        
+        target.makeContextCurrent();
+        
+        target.deleteUnreferencedTextures();
+        target.uploadUnuploadedTextures();
         
         if( target.pending_redraws <= 1 )                                       // Only redraw if there are no other pending redraws for that window; this is
                                                                                 // safe because the redraw task is high-priority, so the task system will
@@ -554,10 +798,6 @@ namespace bqt
         {
             if( target.pending_redraws != 1 )                                   // Sanity check
                 throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
-            
-            ff::write( bqt_out, "Redrawing window\n" );
-            
-            target.makeContextCurrent();
             
             // glLoadIdentity();
             glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
@@ -572,7 +812,30 @@ namespace bqt
             
             glEnable( GL_TEXTURE_2D );
             
-            // target.gui.draw();
+            {
+                for( std::map< std::string, gui_texture_holder* >::iterator iter = target.resource_textures.begin();
+                     iter != target.resource_textures.end();
+                     ++iter )
+                {
+                    glBindTexture( GL_TEXTURE_2D, iter -> second -> texture -> gl_texture );
+                    
+                    glBegin( GL_QUADS );
+                    {
+                        glTexCoord2f( 0.0, 0.0 );
+                        glVertex2i( 0, 0 );
+                        
+                        glTexCoord2f( 0.0, 1.0 );
+                        glVertex2i( 0, iter -> second -> texture -> dimensions[ 1 ] );
+                        
+                        glTexCoord2f( 1.0, 1.0 );
+                        glVertex2i( iter -> second -> texture -> dimensions[ 0 ], iter -> second -> texture -> dimensions[ 1 ] );
+                        
+                        glTexCoord2f( 1.0, 0.0 );
+                        glVertex2i( iter -> second -> texture -> dimensions[ 0 ], 0 );
+                    }
+                    glEnd();
+                }
+            }
             
             #if defined PLATFORM_XWS_GNUPOSIX
             

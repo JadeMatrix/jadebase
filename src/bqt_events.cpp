@@ -38,6 +38,12 @@ namespace
     std::map< Window, bqt::window::manipulate* > window_manipulates;            // Waiting room so we don't submit more than we need
                                                                                 // TODO: Remove when we overload new for manipulates
     
+    #ifdef PLATFORM_XWS_GNUPOSIX
+    
+    bool x_keyrepeat_on = true;                                                 // So we don't keep trying to turn it off
+    
+    #endif
+    
     // INPUT DEVICES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     #ifdef PLATFORM_XWS_GNUPOSIX
@@ -599,6 +605,13 @@ namespace bqt
             {
                 closeTabletDevices();
                 closeAllWindows();
+                
+                if( !x_keyrepeat_on )
+                {
+                    XAutoRepeatOn( getXDisplay() );
+                    x_keyrepeat_on = true;
+                }
+                
                 submitTask( new StopTaskSystem_task() );
             }
         }
@@ -606,6 +619,12 @@ namespace bqt
         {
             XEvent x_event;
             Display* x_display = getXDisplay();
+            
+            if( x_keyrepeat_on )
+            {
+                XAutoRepeatOff( x_display );                                    // Key repeat is handled in-application if necessary
+                x_keyrepeat_on = false;
+            }
             
             {                                                                   // Check to see if we want to refresh device list
                 int new_device_count;

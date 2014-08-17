@@ -4,15 +4,13 @@
 /* 
  * bqt_gui_texture.hpp
  * 
- * About
+ * Simple wrapper for OpenGL textures
  * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "../bqt_gl.hpp"
-#include "../bqt_png.hpp"
-#include "../bqt_mutex.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -23,7 +21,13 @@ namespace bqt
         GLuint gl_texture;
         unsigned int dimensions[ 2 ];
         
-        gui_texture();
+        gui_texture()
+        {
+            gl_texture = 0x00;
+            
+            dimensions[ 0 ] = 0;
+            dimensions[ 1 ] = 0;
+        }
     };
 }
 
