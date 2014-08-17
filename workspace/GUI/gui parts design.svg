@@ -2951,11 +2951,11 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="4"
-     inkscape:cx="-302.07931"
-     inkscape:cy="1138.4211"
+     inkscape:cx="-239.44246"
+     inkscape:cy="1157.9794"
      inkscape:document-units="px"
-     inkscape:current-layer="layer4"
-     showgrid="true"
+     inkscape:current-layer="layer2"
+     showgrid="false"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
@@ -8287,7 +8287,7 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Masks"
-     style="display:inline">
+     style="display:none">
     <rect
        inkscape:export-ydpi="90"
        inkscape:export-xdpi="90"

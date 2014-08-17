@@ -19,6 +19,7 @@
 #include "bqt_launchargs.hpp"
 #include "bqt_gl.hpp"
 #include "bqt_png.hpp"
+#include "gui/bqt_gui_element.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -129,6 +130,8 @@ namespace bqt
         registerWindow( *this );
         
         initOpenGL();
+        
+        initNamedResources();
     }
     
     void window::makeContextCurrent()
@@ -141,16 +144,21 @@ namespace bqt
         XFlush( x_display );
     }
     
-    // void window::associateDevice( bqt_platform_idevid_t dev_id,
-    //                               layout_element* element )
-    // {
+    void window::associateDevice( bqt_platform_idevid_t dev_id,
+                                  layout_element* element )
+    {
+        scoped_lock< rwlock > scoped_lock( window_lock, RW_WRITE );
         
-    // }
+        if( element == NULL && input_assoc.count( dev_id ) )
+            input_assoc.erase( dev_id );
+        else
+            input_assoc[ dev_id ] = element;
+    }
     
-    // void window::initNamedResources()
-    // {
+    void window::initNamedResources()
+    {
         
-    // }
+    }
     
     void window::openUnopenedTextureFiles()
     {
