@@ -22,6 +22,8 @@
 #include "gui/bqt_gui_element.hpp"
 #include "gui/bqt_gui_resource.hpp"
 
+#include "gui/bqt_gui_button.hpp"
+
 /******************************************************************************//******************************************************************************/
 
 #if DEBUG
@@ -549,6 +551,9 @@ namespace bqt
         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
             setQuitFlag();
         
+        if( e.type == KEYCOMMAND && e.key.key == KEY_B )
+            elements.push_back( new button( *this, 10, 10, 40, 20 ) );
+        
         manipulate* m = new manipulate( this );
         m -> redraw();
         submitTask( m );
@@ -1006,15 +1011,6 @@ namespace bqt
             glClear( GL_COLOR_BUFFER_BIT );
             
             glEnable( GL_TEXTURE_2D );
-            
-            {
-                for( std::map< gui_resource_name, gui_resource* >::iterator iter = target.named_resources.begin();
-                     iter != target.named_resources.end();
-                     ++iter )
-                {
-                    iter -> second -> draw();
-                }
-            }
             
             for( int i = 0; i < target.elements.size(); ++i )
                 target.elements[ i ] -> draw();

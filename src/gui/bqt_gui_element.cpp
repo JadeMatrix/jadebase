@@ -19,11 +19,8 @@ namespace bqt
                  unsigned int w,
                  unsigned int h ) : parent( parent )
     {
-        position[ 0 ] = x;
-        position[ 1 ] = y;
-        
-        dimensions[ 0 ] = w;
-        dimensions[ 1 ] = h;
+        setPosition( x, y );
+        setRealDimensions( w, h );
         
         event_fallthrough = true;
     }
