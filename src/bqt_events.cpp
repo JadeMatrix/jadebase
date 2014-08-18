@@ -197,13 +197,78 @@ namespace
             return;
         }
         
+        #warning Click events don't cancel
+        
         switch( x_event.type )
         {
         case ButtonPress:
+            {
+                XButtonPressedEvent& x_bpevent( *( ( XButtonPressedEvent* )&x_event ) );
+                
+                w_event.type = bqt::CLICK;
+                
+                w_event.click.state = bqt::click::DOWN;
+                
+                w_event.click.position[ 0 ] = x_bpevent.x_root;
+                w_event.click.position[ 1 ] = x_bpevent.y_root;
+                
+                w_event.click.shift = ( bool )( x_bpevent.state & ShiftMask );
+                w_event.click.ctrl  = ( bool )( x_bpevent.state & ControlMask );
+                w_event.click.alt   = ( bool )( x_bpevent.state & Mod1Mask );
+                w_event.click.super = ( bool )( x_bpevent.state & Mod4Mask );
+                
+                #ifdef PLATFORM_MACOSX
+                w_event.click.cmd = w_event.click.super;
+                #else
+                w_event.click.cmd = w_event.click.ctrl;
+                #endif
+                
+                w_event.click.click = 0x00;
+                
+                if( x_bpevent.button == Button1 )                               // Button1 = left click
+                    w_event.click.click |= CLICK_PRIMARY;
+                if( x_bpevent.button == Button3 )                               // Button3 = right click
+                    w_event.click.click |= CLICK_SECONDARY;
+                if( x_bpevent.button == Button2 )                               // Button2 = middle click
+                    w_event.click.click |= CLICK_ALT;
+            }
             break;
         case ButtonRelease:
+            {
+                XButtonReleasedEvent& x_brevent( *( ( XButtonReleasedEvent* )&x_event ) );
+                
+                w_event.type = bqt::CLICK;
+                
+                w_event.click.state = bqt::click::UP;
+                
+                w_event.click.position[ 0 ] = x_brevent.x_root;
+                w_event.click.position[ 1 ] = x_brevent.y_root;
+                
+                w_event.click.shift = ( bool )( x_brevent.state & ShiftMask );
+                w_event.click.ctrl  = ( bool )( x_brevent.state & ControlMask );
+                w_event.click.alt   = ( bool )( x_brevent.state & Mod1Mask );
+                w_event.click.super = ( bool )( x_brevent.state & Mod4Mask );
+                
+                #ifdef PLATFORM_MACOSX
+                w_event.click.cmd = w_event.click.super;
+                #else
+                w_event.click.cmd = w_event.click.ctrl;
+                #endif
+                
+                w_event.click.click = 0x00;
+                
+                if( x_brevent.button == Button1 )
+                    w_event.click.click |= CLICK_PRIMARY;
+                if( x_brevent.button == Button3 )
+                    w_event.click.click |= CLICK_SECONDARY;
+                if( x_brevent.button == Button2 )
+                    w_event.click.click |= CLICK_ALT;
+            }
             break;
         case MotionNotify:
+            {
+                // w_event.type = bqt::CLICK;
+            }
             break;
         default:
             {

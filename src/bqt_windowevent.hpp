@@ -135,6 +135,7 @@ namespace bqt
     {
         NONE,
         STROKE,
+        CLICK,
         DROP,
         KEYCOMMAND,
         COMMAND,

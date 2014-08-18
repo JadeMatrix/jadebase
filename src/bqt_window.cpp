@@ -537,6 +537,12 @@ namespace bqt
             e_position[ 0 ] = e.stroke.position[ 0 ];
             e_position[ 1 ] = e.stroke.position[ 1 ];
             break;
+        case CLICK:
+            e.click.position[ 0 ] -= position[ 0 ];
+            e.click.position[ 1 ] -= position[ 1 ];
+            e_position[ 0 ] = e.click.position[ 0 ];
+            e_position[ 1 ] = e.click.position[ 1 ];
+            break;
         case DROP:
             e.drop.position[ 0 ] -= position[ 0 ];
             e.drop.position[ 1 ] -= position[ 1 ];
@@ -559,6 +565,7 @@ namespace bqt
             break;
         }
         
+        // for( int i = elements.size(); i > 0; --i )                              // Iterate newest (topmost) first
         for( int i = 0; i < elements.size(); ++i )
         {
             if( no_position )
@@ -586,7 +593,7 @@ namespace bqt
         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
             setQuitFlag();
         
-        if( e.type == KEYCOMMAND && e.key.key == KEY_B )
+        if( e.type == KEYCOMMAND && e.key.key == KEY_B && e.key.up )
         {
             ff::write( bqt_out, "Creating a button\n" );
             elements.push_back( new button( *this, 10, 10, 60, 40 ) );

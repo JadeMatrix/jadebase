@@ -182,54 +182,75 @@ namespace bqt
         
         switch( e.type )
         {
-        // case STROKE:
-        //     {
-        //         if( e.stroke.pressure > 0.0f )
-        //         {
-                    
-        //         }
-        //     }
-        case KEYCOMMAND:
-            if( e.key.key == KEY_Space && !e.key.up )
+        case CLICK:
+            if( e.click.click & CLICK_PRIMARY )
             {
                 switch( state )
                 {
                 case OFF_UP:
-                    state = OFF_DOWN;
-                    parent.requestRedraw();
-                    break;
-                case ON_UP:
-                    state = ON_DOWN;
-                    parent.requestRedraw();
+                    if( e.click.state == click::DOWN )
+                    {
+                        state = OFF_DOWN;
+                        parent.requestRedraw();
+                    }
                     break;
                 case OFF_DOWN:
+                    {
+                        switch( e.click.state )
+                        {
+                            case click::CANCEL:
+                                state = OFF_UP;
+                                parent.requestRedraw();
+                                break;
+                            case click::DOWN:
+                                // Ignore
+                                break;
+                            case click::UP:
+                                state = ON_UP;
+                                parent.requestRedraw();
+                                break;
+                            default:
+                                throw exception( "button::acceptEvent(): Unknown click state" );
+                        }
+                    }
+                    break;
+                case ON_UP:
+                    if( e.click.state == click::DOWN )
+                    {
+                        state = ON_DOWN;
+                        parent.requestRedraw();
+                    }
+                    break;
                 case ON_DOWN:
-                    // Ignore
+                    {
+                        switch( e.click.state )
+                        {
+                            case click::CANCEL:
+                                state = ON_UP;
+                                parent.requestRedraw();
+                                break;
+                            case click::DOWN:
+                                // Ignore
+                                break;
+                            case click::UP:
+                                state = OFF_UP;
+                                parent.requestRedraw();
+                                break;
+                            default:
+                                throw exception( "button::acceptEvent(): Unknown click state" );
+                        }
+                    }
                     break;
                 default:
-                    throw exception( "button::acceptEvent(): Unknown state" );
+                    throw exception( "button::acceptEvent(): Unknown button state" );
                 }
             }
-            if( e.key.key == KEY_Space && e.key.up )
+            else
             {
-                switch( state )
-                {
-                case OFF_DOWN:
-                    state = ON_UP;
-                    parent.requestRedraw();
-                    break;
-                case ON_DOWN:
-                    state = OFF_UP;
-                    parent.requestRedraw();
-                    break;
-                case OFF_UP:
-                case ON_UP:
-                    // Ignore
-                    break;
-                default:
-                    throw exception( "button::acceptEvent(): Unknown state" );
-                }
+                if( ( e.click.click & CLICK_SECONDARY ) && e.click.state == click::DOWN )
+                    ff::write( bqt_out, "Got a right click on a button\n" );
             }
+            return true;
         default:
             return false;
         }
