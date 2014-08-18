@@ -628,7 +628,36 @@ namespace bqt
             
             {                                                                   // Check to see if we want to refresh device list
                 int new_device_count;
-                XFreeDeviceList( XListInputDevices( x_display, &new_device_count ) );   // No clear way of getting just the count
+                
+                #if 0
+                
+                int dmx_event_basep;                                            // Unused
+                int dmx_error_basep;                                            // Unused
+                static bool dmx_unavailable_flag = false;
+                
+                if( DMXQueryExtension( x_display, &dmx_event_basep, &dmx_error_basep ) )
+                {
+                    if( !DMXGetInputCount( x_display, &new_device_count ) )
+                        throw exception( "HandleEvents_task::execute(): Could not get input device count" );
+                }
+                else
+                {
+                    if( !dmx_unavailable_flag && getDevMode() )
+                    {
+                        ff::write( bqt_out, "DMX unavailable\n" );
+                        dmx_unavailable_flag = true;
+                    }
+                    
+                    XFreeDeviceList( XListInputDevices( x_display,
+                                                        &new_device_count ) );
+                }
+                
+                #else
+                
+                XFreeDeviceList( XListInputDevices( x_display,
+                                                    &new_device_count ) );      // No clear way of getting just the count
+                
+                #endif
                 
                 if( new_device_count != x_device_count )
                 {
@@ -644,9 +673,6 @@ namespace bqt
                 
                 switch( x_event.type )
                 {
-                // case DevicePresenceNotify:
-                //     ff::write( bqt_out, "DevicePresenceNotify\n" );
-                    // XDeviceListChangeEvent: http://www.x.org/wiki/XInputSpec/
                 case KeyPress:
                 case KeyRelease:
                     handleKeyEvent( x_event );

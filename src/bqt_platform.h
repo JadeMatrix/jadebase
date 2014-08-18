@@ -75,6 +75,9 @@ extern "C"
     #include <X11/X.h>
     #include <GL/glxew.h>
     #include <X11/extensions/XInput.h>
+    #if 0
+    #include <X11/extensions/dmxext.h>
+    #endif
     
     #define X_PROTOCOL_COUNT 1                                                  // We only need one for now to catch window closes from the WM
     typedef struct

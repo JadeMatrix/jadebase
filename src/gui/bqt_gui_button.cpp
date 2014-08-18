@@ -240,6 +240,8 @@ namespace bqt
         scoped_lock< rwlock > slock_b( button_lock, RW_READ );
         scoped_lock< rwlock > slock_r( button_rsrc_lock, RW_READ );
         
+        button_set& window_bset( button_sets[ &parent ] );
+        
         state_set* top_set;
         state_set* center_set;
         state_set* bottom_set;
@@ -247,24 +249,24 @@ namespace bqt
         switch( state )
         {
         case OFF_UP:
-            top_set    = &button_sets[ &parent ].rounded_set.off_up;
-            center_set = &button_sets[ &parent ].rounded_set.off_up;
-            bottom_set = &button_sets[ &parent ].rounded_set.off_up;
+            top_set    = &window_bset.rounded_set.off_up;
+            center_set = &window_bset.rounded_set.off_up;
+            bottom_set = &window_bset.rounded_set.off_up;
             break;
         case OFF_DOWN:
-            top_set    = &button_sets[ &parent ].rounded_set.off_down;
-            center_set = &button_sets[ &parent ].rounded_set.off_down;
-            bottom_set = &button_sets[ &parent ].rounded_set.off_down;
+            top_set    = &window_bset.rounded_set.off_down;
+            center_set = &window_bset.rounded_set.off_down;
+            bottom_set = &window_bset.rounded_set.off_down;
             break;
         case ON_UP:
-            top_set    = &button_sets[ &parent ].rounded_set.on_up;
-            center_set = &button_sets[ &parent ].rounded_set.on_up;
-            bottom_set = &button_sets[ &parent ].rounded_set.on_up;
+            top_set    = &window_bset.rounded_set.on_up;
+            center_set = &window_bset.rounded_set.on_up;
+            bottom_set = &window_bset.rounded_set.on_up;
             break;
         case ON_DOWN:
-            top_set    = &button_sets[ &parent ].rounded_set.on_down;
-            center_set = &button_sets[ &parent ].rounded_set.on_down;
-            bottom_set = &button_sets[ &parent ].rounded_set.on_down;
+            top_set    = &window_bset.rounded_set.on_down;
+            center_set = &window_bset.rounded_set.on_down;
+            bottom_set = &window_bset.rounded_set.on_down;
             break;
         default:
             throw exception( "button::draw(): Unknown state" );

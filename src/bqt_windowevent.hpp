@@ -58,6 +58,26 @@ namespace bqt
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
     };
     
+    struct click
+    {
+        click_type click;
+        
+        bool shift : 1;
+        bool ctrl  : 1;
+        bool alt   : 1;
+        bool super : 1;
+        bool cmd   : 1;
+        
+        int position[ 2 ];
+        
+        enum
+        {
+            CANCEL,
+            DOWN,
+            UP
+        } state;
+    };
+    
     // class droppable;
     struct drop_item
     {
@@ -128,6 +148,7 @@ namespace bqt
         union
         {
             stroke_waypoint stroke;
+            click click;
             drop_item drop;
             key_command key;
             command cmd;

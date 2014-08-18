@@ -25,21 +25,13 @@ namespace bqt
         window& parent;
         gui_texture* texture;
         
-        bool rect_is_converted;
+        GLuint gl_dlist;
+        bool dlist_created;
         
-        union
-        {
-            struct
-            {
-                unsigned int   position[ 2 ];
-                unsigned int dimensions[ 2 ];
-            } i;
-            struct
-            {
-                float   position[ 2 ];
-                float dimensions[ 2 ];
-            } f;
-        } rect;                                                                 // Relative dimensions & position
+        unsigned int   position[ 2 ];
+        unsigned int dimensions[ 2 ];
+        
+        void createDisplayList();
     public:
         gui_resource( window& parent,
                       std::string f,
