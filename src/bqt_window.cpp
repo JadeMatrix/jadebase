@@ -523,28 +523,63 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( window_lock, RW_WRITE );
         
+        bool no_position = false;
+        
+        std::pair< int, int > element_position;
+        std::pair< unsigned int, unsigned int > element_dimensions;
+        int e_position[ 2 ];
+        
         switch( e.type )
         {
         case STROKE:
             e.stroke.position[ 0 ] -= position[ 0 ];
             e.stroke.position[ 1 ] -= position[ 1 ];
+            e_position[ 0 ] = e.stroke.position[ 0 ];
+            e_position[ 1 ] = e.stroke.position[ 1 ];
             break;
         case DROP:
             e.drop.position[ 0 ] -= position[ 0 ];
             e.drop.position[ 1 ] -= position[ 1 ];
+            e_position[ 0 ] = e.drop.position[ 0 ];
+            e_position[ 1 ] = e.drop.position[ 1 ];
             break;
         case KEYCOMMAND:
         case COMMAND:
         case TEXT:
-            // No adjustment needed for these
+            no_position = true;
             break;
         case PINCH:
             e.pinch.position[ 0 ] -= position[ 0 ];
             e.pinch.position[ 1 ] -= position[ 1 ];
+            e_position[ 0 ] = e.pinch.position[ 0 ];
+            e_position[ 1 ] = e.pinch.position[ 1 ];
             break;
         default:
             throw exception( "window::acceptEvent(): Unknown event type" );
             break;
+        }
+        
+        for( int i = 0; i < elements.size(); ++i )
+        {
+            if( no_position )
+            {
+                if( elements[ i ] -> acceptEvent( e ) )
+                    break;
+            }
+            else
+            {
+                element_position   = elements[ i ] -> getPosition();
+                element_dimensions = elements[ i ] -> getVisualDimensions();
+                
+                if( e_position[ 0 ] >= element_position.first
+                    && e_position[ 1 ] >= element_position.second
+                    && e_position[ 0 ] <= element_position.first + element_dimensions.first
+                    && e_position[ 1 ] <= element_position.second + element_dimensions.second )
+                {
+                    if( elements[ i ] -> acceptEvent( e ) )
+                        break;
+                }
+            }
         }
         
         // Devel
@@ -552,11 +587,11 @@ namespace bqt
             setQuitFlag();
         
         if( e.type == KEYCOMMAND && e.key.key == KEY_B )
-            elements.push_back( new button( *this, 10, 10, 40, 20 ) );
-        
-        manipulate* m = new manipulate( this );
-        m -> redraw();
-        submitTask( m );
+        {
+            ff::write( bqt_out, "Creating a button\n" );
+            elements.push_back( new button( *this, 10, 10, 60, 40 ) );
+            requestRedraw();
+        }
     }
     
     bqt_platform_window_t& window::getPlatformWindow()
@@ -657,6 +692,16 @@ namespace bqt
                        "window::getNamedResource(): No resource with name 0x",
                        ff::to_x( ( unsigned long )name ) );
             throw e;
+        }
+    }
+    
+    void window::requestRedraw()
+    {
+        scoped_lock< rwlock > slock( window_lock, RW_READ );
+        
+        if( pending_redraws < 1 )
+        {
+            submitTask( new redraw( *this ) );
         }
     }
     

@@ -1,7 +1,7 @@
 /* 
  * bqt_gui_button.cpp
  * 
- * About
+ * Implements bqt_gui_button.hpp
  * 
  */
 
@@ -9,16 +9,15 @@
 
 #include "bqt_gui_button.hpp"
 
-#include "../threading/bqt_mutex.hpp"
+#include <map>
+
 #include "../bqt_log.hpp"
+#include "../bqt_exception.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
 {
-    bqt::mutex button_rsrc_mutex;
-    bool button_rsrc_init = false;
-    
     struct state_set
     {
         bqt::gui_resource* top_left;
@@ -40,8 +39,15 @@ namespace
         state_set on_down;
     };
     
-    shape_set round_set;
-    shape_set square_set;
+    struct button_set
+    {
+        shape_set rounded_set;
+        shape_set squared_set;
+    };
+    
+    bqt::rwlock button_rsrc_lock;
+    std::map< bqt::window*, button_set > button_sets;
+    std::map< bqt::window*, int > button_set_counts;
 }
 
 /******************************************************************************//******************************************************************************/
@@ -56,92 +62,103 @@ namespace bqt
     {
         state = OFF_UP;
         
-        scoped_lock< mutex > slock( button_rsrc_mutex );
+        scoped_lock< rwlock > slock( button_rsrc_lock, RW_WRITE );
         
-        if( !button_rsrc_init )
+        if( !button_sets.count( &parent ) )
         {
-            round_set.off_up.top_left      = parent.getNamedResource( rounded_button_off_up_top_left );
-            round_set.off_up.top_center    = parent.getNamedResource( rounded_button_off_up_top_center );
-            round_set.off_up.top_right     = parent.getNamedResource( rounded_button_off_up_top_right );
-            round_set.off_up.center_left   = parent.getNamedResource( rounded_button_off_up_center_left );
-            round_set.off_up.center_center = parent.getNamedResource( rounded_button_off_up_center_center );
-            round_set.off_up.center_right  = parent.getNamedResource( rounded_button_off_up_center_right );
-            round_set.off_up.bottom_left   = parent.getNamedResource( rounded_button_off_up_bottom_left );
-            round_set.off_up.bottom_center = parent.getNamedResource( rounded_button_off_up_bottom_center );
-            round_set.off_up.bottom_right  = parent.getNamedResource( rounded_button_off_up_bottom_right );
+            button_sets[ &parent ].rounded_set.off_up.top_left      = parent.getNamedResource( rounded_button_off_up_top_left );
+            button_sets[ &parent ].rounded_set.off_up.top_center    = parent.getNamedResource( rounded_button_off_up_top_center );
+            button_sets[ &parent ].rounded_set.off_up.top_right     = parent.getNamedResource( rounded_button_off_up_top_right );
+            button_sets[ &parent ].rounded_set.off_up.center_left   = parent.getNamedResource( rounded_button_off_up_center_left );
+            button_sets[ &parent ].rounded_set.off_up.center_center = parent.getNamedResource( rounded_button_off_up_center_center );
+            button_sets[ &parent ].rounded_set.off_up.center_right  = parent.getNamedResource( rounded_button_off_up_center_right );
+            button_sets[ &parent ].rounded_set.off_up.bottom_left   = parent.getNamedResource( rounded_button_off_up_bottom_left );
+            button_sets[ &parent ].rounded_set.off_up.bottom_center = parent.getNamedResource( rounded_button_off_up_bottom_center );
+            button_sets[ &parent ].rounded_set.off_up.bottom_right  = parent.getNamedResource( rounded_button_off_up_bottom_right );
+
+            button_sets[ &parent ].rounded_set.off_down.top_left      = parent.getNamedResource( rounded_button_off_down_top_left );
+            button_sets[ &parent ].rounded_set.off_down.top_center    = parent.getNamedResource( rounded_button_off_down_top_center );
+            button_sets[ &parent ].rounded_set.off_down.top_right     = parent.getNamedResource( rounded_button_off_down_top_right );
+            button_sets[ &parent ].rounded_set.off_down.center_left   = parent.getNamedResource( rounded_button_off_down_center_left );
+            button_sets[ &parent ].rounded_set.off_down.center_center = parent.getNamedResource( rounded_button_off_down_center_center );
+            button_sets[ &parent ].rounded_set.off_down.center_right  = parent.getNamedResource( rounded_button_off_down_center_right );
+            button_sets[ &parent ].rounded_set.off_down.bottom_left   = parent.getNamedResource( rounded_button_off_down_bottom_left );
+            button_sets[ &parent ].rounded_set.off_down.bottom_center = parent.getNamedResource( rounded_button_off_down_bottom_center );
+            button_sets[ &parent ].rounded_set.off_down.bottom_right  = parent.getNamedResource( rounded_button_off_down_bottom_right );
+
+            button_sets[ &parent ].rounded_set.on_up.top_left      = parent.getNamedResource( rounded_button_on_up_top_left );
+            button_sets[ &parent ].rounded_set.on_up.top_center    = parent.getNamedResource( rounded_button_on_up_top_center );
+            button_sets[ &parent ].rounded_set.on_up.top_right     = parent.getNamedResource( rounded_button_on_up_top_right );
+            button_sets[ &parent ].rounded_set.on_up.center_left   = parent.getNamedResource( rounded_button_on_up_center_left );
+            button_sets[ &parent ].rounded_set.on_up.center_center = parent.getNamedResource( rounded_button_on_up_center_center );
+            button_sets[ &parent ].rounded_set.on_up.center_right  = parent.getNamedResource( rounded_button_on_up_center_right );
+            button_sets[ &parent ].rounded_set.on_up.bottom_left   = parent.getNamedResource( rounded_button_on_up_bottom_left );
+            button_sets[ &parent ].rounded_set.on_up.bottom_center = parent.getNamedResource( rounded_button_on_up_bottom_center );
+            button_sets[ &parent ].rounded_set.on_up.bottom_right  = parent.getNamedResource( rounded_button_on_up_bottom_right );
+
+            button_sets[ &parent ].rounded_set.on_down.top_left      = parent.getNamedResource( rounded_button_on_down_top_left );
+            button_sets[ &parent ].rounded_set.on_down.top_center    = parent.getNamedResource( rounded_button_on_down_top_center );
+            button_sets[ &parent ].rounded_set.on_down.top_right     = parent.getNamedResource( rounded_button_on_down_top_right );
+            button_sets[ &parent ].rounded_set.on_down.center_left   = parent.getNamedResource( rounded_button_on_down_center_left );
+            button_sets[ &parent ].rounded_set.on_down.center_center = parent.getNamedResource( rounded_button_on_down_center_center );
+            button_sets[ &parent ].rounded_set.on_down.center_right  = parent.getNamedResource( rounded_button_on_down_center_right );
+            button_sets[ &parent ].rounded_set.on_down.bottom_left   = parent.getNamedResource( rounded_button_on_down_bottom_left );
+            button_sets[ &parent ].rounded_set.on_down.bottom_center = parent.getNamedResource( rounded_button_on_down_bottom_center );
+            button_sets[ &parent ].rounded_set.on_down.bottom_right  = parent.getNamedResource( rounded_button_on_down_bottom_right );
+
+            button_sets[ &parent ].squared_set.off_up.top_left      = parent.getNamedResource( squared_button_off_up_top_left );
+            button_sets[ &parent ].squared_set.off_up.top_center    = parent.getNamedResource( squared_button_off_up_top_center );
+            button_sets[ &parent ].squared_set.off_up.top_right     = parent.getNamedResource( squared_button_off_up_top_right );
+            button_sets[ &parent ].squared_set.off_up.center_left   = parent.getNamedResource( squared_button_off_up_center_left );
+            button_sets[ &parent ].squared_set.off_up.center_center = parent.getNamedResource( squared_button_off_up_center_center );
+            button_sets[ &parent ].squared_set.off_up.center_right  = parent.getNamedResource( squared_button_off_up_center_right );
+            button_sets[ &parent ].squared_set.off_up.bottom_left   = parent.getNamedResource( squared_button_off_up_bottom_left );
+            button_sets[ &parent ].squared_set.off_up.bottom_center = parent.getNamedResource( squared_button_off_up_bottom_center );
+            button_sets[ &parent ].squared_set.off_up.bottom_right  = parent.getNamedResource( squared_button_off_up_bottom_right );
+
+            button_sets[ &parent ].squared_set.off_down.top_left      = parent.getNamedResource( squared_button_off_down_top_left );
+            button_sets[ &parent ].squared_set.off_down.top_center    = parent.getNamedResource( squared_button_off_down_top_center );
+            button_sets[ &parent ].squared_set.off_down.top_right     = parent.getNamedResource( squared_button_off_down_top_right );
+            button_sets[ &parent ].squared_set.off_down.center_left   = parent.getNamedResource( squared_button_off_down_center_left );
+            button_sets[ &parent ].squared_set.off_down.center_center = parent.getNamedResource( squared_button_off_down_center_center );
+            button_sets[ &parent ].squared_set.off_down.center_right  = parent.getNamedResource( squared_button_off_down_center_right );
+            button_sets[ &parent ].squared_set.off_down.bottom_left   = parent.getNamedResource( squared_button_off_down_bottom_left );
+            button_sets[ &parent ].squared_set.off_down.bottom_center = parent.getNamedResource( squared_button_off_down_bottom_center );
+            button_sets[ &parent ].squared_set.off_down.bottom_right  = parent.getNamedResource( squared_button_off_down_bottom_right );
+
+            button_sets[ &parent ].squared_set.on_up.top_left      = parent.getNamedResource( squared_button_on_up_top_left );
+            button_sets[ &parent ].squared_set.on_up.top_center    = parent.getNamedResource( squared_button_on_up_top_center );
+            button_sets[ &parent ].squared_set.on_up.top_right     = parent.getNamedResource( squared_button_on_up_top_right );
+            button_sets[ &parent ].squared_set.on_up.center_left   = parent.getNamedResource( squared_button_on_up_center_left );
+            button_sets[ &parent ].squared_set.on_up.center_center = parent.getNamedResource( squared_button_on_up_center_center );
+            button_sets[ &parent ].squared_set.on_up.center_right  = parent.getNamedResource( squared_button_on_up_center_right );
+            button_sets[ &parent ].squared_set.on_up.bottom_left   = parent.getNamedResource( squared_button_on_up_bottom_left );
+            button_sets[ &parent ].squared_set.on_up.bottom_center = parent.getNamedResource( squared_button_on_up_bottom_center );
+            button_sets[ &parent ].squared_set.on_up.bottom_right  = parent.getNamedResource( squared_button_on_up_bottom_right );
+
+            button_sets[ &parent ].squared_set.on_down.top_left      = parent.getNamedResource( squared_button_on_down_top_left );
+            button_sets[ &parent ].squared_set.on_down.top_center    = parent.getNamedResource( squared_button_on_down_top_center );
+            button_sets[ &parent ].squared_set.on_down.top_right     = parent.getNamedResource( squared_button_on_down_top_right );
+            button_sets[ &parent ].squared_set.on_down.center_left   = parent.getNamedResource( squared_button_on_down_center_left );
+            button_sets[ &parent ].squared_set.on_down.center_center = parent.getNamedResource( squared_button_on_down_center_center );
+            button_sets[ &parent ].squared_set.on_down.center_right  = parent.getNamedResource( squared_button_on_down_center_right );
+            button_sets[ &parent ].squared_set.on_down.bottom_left   = parent.getNamedResource( squared_button_on_down_bottom_left );
+            button_sets[ &parent ].squared_set.on_down.bottom_center = parent.getNamedResource( squared_button_on_down_bottom_center );
+            button_sets[ &parent ].squared_set.on_down.bottom_right  = parent.getNamedResource( squared_button_on_down_bottom_right );
             
-            // round_set.off_down.top_left      = parent.getNamedResource(  );
-            // round_set.off_down.top_center    = parent.getNamedResource(  );
-            // round_set.off_down.top_right     = parent.getNamedResource(  );
-            // round_set.off_down.center_left   = parent.getNamedResource(  );
-            // round_set.off_down.center_center = parent.getNamedResource(  );
-            // round_set.off_down.center_right  = parent.getNamedResource(  );
-            // round_set.off_down.bottom_left   = parent.getNamedResource(  );
-            // round_set.off_down.bottom_center = parent.getNamedResource(  );
-            // round_set.off_down.bottom_right  = parent.getNamedResource(  );
-            
-            // round_set.on_up.top_left      = parent.getNamedResource(  );
-            // round_set.on_up.top_center    = parent.getNamedResource(  );
-            // round_set.on_up.top_right     = parent.getNamedResource(  );
-            // round_set.on_up.center_left   = parent.getNamedResource(  );
-            // round_set.on_up.center_center = parent.getNamedResource(  );
-            // round_set.on_up.center_right  = parent.getNamedResource(  );
-            // round_set.on_up.bottom_left   = parent.getNamedResource(  );
-            // round_set.on_up.bottom_center = parent.getNamedResource(  );
-            // round_set.on_up.bottom_right  = parent.getNamedResource(  );
-            
-            // round_set.on_down.top_left      = parent.getNamedResource(  );
-            // round_set.on_down.top_center    = parent.getNamedResource(  );
-            // round_set.on_down.top_right     = parent.getNamedResource(  );
-            // round_set.on_down.center_left   = parent.getNamedResource(  );
-            // round_set.on_down.center_center = parent.getNamedResource(  );
-            // round_set.on_down.center_right  = parent.getNamedResource(  );
-            // round_set.on_down.bottom_left   = parent.getNamedResource(  );
-            // round_set.on_down.bottom_center = parent.getNamedResource(  );
-            // round_set.on_down.bottom_right  = parent.getNamedResource(  );
-            
-            // square_set.off_up.top_left      = parent.getNamedResource(  );
-            // square_set.off_up.top_center    = parent.getNamedResource(  );
-            // square_set.off_up.top_right     = parent.getNamedResource(  );
-            // square_set.off_up.center_left   = parent.getNamedResource(  );
-            // square_set.off_up.center_center = parent.getNamedResource(  );
-            // square_set.off_up.center_right  = parent.getNamedResource(  );
-            // square_set.off_up.bottom_left   = parent.getNamedResource(  );
-            // square_set.off_up.bottom_center = parent.getNamedResource(  );
-            // square_set.off_up.bottom_right  = parent.getNamedResource(  );
-            
-            // square_set.off_down.top_left      = parent.getNamedResource(  );
-            // square_set.off_down.top_center    = parent.getNamedResource(  );
-            // square_set.off_down.top_right     = parent.getNamedResource(  );
-            // square_set.off_down.center_left   = parent.getNamedResource(  );
-            // square_set.off_down.center_center = parent.getNamedResource(  );
-            // square_set.off_down.center_right  = parent.getNamedResource(  );
-            // square_set.off_down.bottom_left   = parent.getNamedResource(  );
-            // square_set.off_down.bottom_center = parent.getNamedResource(  );
-            // square_set.off_down.bottom_right  = parent.getNamedResource(  );
-            
-            // square_set.on_up.top_left      = parent.getNamedResource(  );
-            // square_set.on_up.top_center    = parent.getNamedResource(  );
-            // square_set.on_up.top_right     = parent.getNamedResource(  );
-            // square_set.on_up.center_left   = parent.getNamedResource(  );
-            // square_set.on_up.center_center = parent.getNamedResource(  );
-            // square_set.on_up.center_right  = parent.getNamedResource(  );
-            // square_set.on_up.bottom_left   = parent.getNamedResource(  );
-            // square_set.on_up.bottom_center = parent.getNamedResource(  );
-            // square_set.on_up.bottom_right  = parent.getNamedResource(  );
-            
-            // square_set.on_down.top_left      = parent.getNamedResource(  );
-            // square_set.on_down.top_center    = parent.getNamedResource(  );
-            // square_set.on_down.top_right     = parent.getNamedResource(  );
-            // square_set.on_down.center_left   = parent.getNamedResource(  );
-            // square_set.on_down.center_center = parent.getNamedResource(  );
-            // square_set.on_down.center_right  = parent.getNamedResource(  );
-            // square_set.on_down.bottom_left   = parent.getNamedResource(  );
-            // square_set.on_down.bottom_center = parent.getNamedResource(  );
-            // square_set.on_down.bottom_right  = parent.getNamedResource(  );
-            
-            button_rsrc_init = true;
+            button_set_counts[ &parent ] = 1;
         }
+        else
+            button_set_counts[ &parent ]++;
+    }
+    button::~button()
+    {
+        scoped_lock< rwlock > slock( button_rsrc_lock, RW_WRITE );
+        
+        button_set_counts[ &parent ]--;
+        
+        if( button_set_counts[ &parent ] < 1 )
+            button_set_counts.erase( &parent );
     }
     
     void button::setRealDimensions( unsigned int w, unsigned int h )
@@ -161,14 +178,97 @@ namespace bqt
     
     bool button::acceptEvent( window_event& e )
     {
-        ff::write( bqt_out, "Button recieved an event\n" );
+        scoped_lock< rwlock > slock_b( button_lock, RW_WRITE );
         
-        return false;
+        switch( e.type )
+        {
+        // case STROKE:
+        //     {
+        //         if( e.stroke.pressure > 0.0f )
+        //         {
+                    
+        //         }
+        //     }
+        case KEYCOMMAND:
+            if( e.key.key == KEY_Space && !e.key.up )
+            {
+                switch( state )
+                {
+                case OFF_UP:
+                    state = OFF_DOWN;
+                    parent.requestRedraw();
+                    break;
+                case ON_UP:
+                    state = ON_DOWN;
+                    parent.requestRedraw();
+                    break;
+                case OFF_DOWN:
+                case ON_DOWN:
+                    // Ignore
+                    break;
+                default:
+                    throw exception( "button::acceptEvent(): Unknown state" );
+                }
+            }
+            if( e.key.key == KEY_Space && e.key.up )
+            {
+                switch( state )
+                {
+                case OFF_DOWN:
+                    state = ON_UP;
+                    parent.requestRedraw();
+                    break;
+                case ON_DOWN:
+                    state = OFF_UP;
+                    parent.requestRedraw();
+                    break;
+                case OFF_UP:
+                case ON_UP:
+                    // Ignore
+                    break;
+                default:
+                    throw exception( "button::acceptEvent(): Unknown state" );
+                }
+            }
+        default:
+            return false;
+        }
     }
     
     void button::draw()
     {
-        scoped_lock< rwlock > sclock( button_lock, RW_READ );
+        scoped_lock< rwlock > slock_b( button_lock, RW_READ );
+        scoped_lock< rwlock > slock_r( button_rsrc_lock, RW_READ );
+        
+        state_set* top_set;
+        state_set* center_set;
+        state_set* bottom_set;
+        
+        switch( state )
+        {
+        case OFF_UP:
+            top_set    = &button_sets[ &parent ].rounded_set.off_up;
+            center_set = &button_sets[ &parent ].rounded_set.off_up;
+            bottom_set = &button_sets[ &parent ].rounded_set.off_up;
+            break;
+        case OFF_DOWN:
+            top_set    = &button_sets[ &parent ].rounded_set.off_down;
+            center_set = &button_sets[ &parent ].rounded_set.off_down;
+            bottom_set = &button_sets[ &parent ].rounded_set.off_down;
+            break;
+        case ON_UP:
+            top_set    = &button_sets[ &parent ].rounded_set.on_up;
+            center_set = &button_sets[ &parent ].rounded_set.on_up;
+            bottom_set = &button_sets[ &parent ].rounded_set.on_up;
+            break;
+        case ON_DOWN:
+            top_set    = &button_sets[ &parent ].rounded_set.on_down;
+            center_set = &button_sets[ &parent ].rounded_set.on_down;
+            bottom_set = &button_sets[ &parent ].rounded_set.on_down;
+            break;
+        default:
+            throw exception( "button::draw(): Unknown state" );
+        }
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         
@@ -177,9 +277,9 @@ namespace bqt
             {
                 glTranslatef( BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );
                 glScalef( dimensions[ 0 ] - BUTTON_MIN_WIDTH, 1.0f, 1.0f );
-                round_set.off_up.top_center -> draw();
+                top_set -> top_center -> draw();
                 glTranslatef( 0.0f, dimensions[ 1 ] - BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
-                round_set.off_up.bottom_center -> draw();
+                bottom_set -> bottom_center -> draw();
             }
             glPopMatrix();
             
@@ -187,9 +287,9 @@ namespace bqt
             {
                 glTranslatef( 0.0f, BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
                 glScalef( 1.0f, dimensions[ 1 ] - BUTTON_MIN_HEIGHT, 1.0f );
-                round_set.off_up.center_left -> draw();
+                center_set -> center_left -> draw();
                 glTranslatef( dimensions[ 0 ] - BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );
-                round_set.off_up.center_right -> draw();
+                center_set -> center_right -> draw();
             }
             glPopMatrix();
             
@@ -197,19 +297,19 @@ namespace bqt
             {
                 glTranslatef( BUTTON_MIN_WIDTH / 2.0f, BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
                 glScalef( dimensions[ 0 ] - BUTTON_MIN_WIDTH, dimensions[ 1 ] - BUTTON_MIN_HEIGHT, 1.0f );
-                round_set.off_up.center_center -> draw();
+                center_set -> center_center -> draw();
             }
             glPopMatrix();
             
             glPushMatrix(); // Corners
             {
-                round_set.off_up.top_left -> draw();
+                top_set -> top_left -> draw();
                 glTranslatef( dimensions[ 0 ] - BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );
-                round_set.off_up.top_right -> draw();
+                top_set -> top_right -> draw();
                 glTranslatef( 0.0f, dimensions[ 1 ] - BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
-                round_set.off_up.bottom_right -> draw();
+                bottom_set -> bottom_right -> draw();
                 glTranslatef( ( dimensions[ 0 ] - BUTTON_MIN_WIDTH / 2.0f ) * -1.0f, 0.0f, 0.0f );
-                round_set.off_up.bottom_left -> draw();
+                bottom_set -> bottom_left -> draw();
             }
             glPopMatrix();
         }

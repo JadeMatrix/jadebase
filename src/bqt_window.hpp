@@ -163,6 +163,8 @@ namespace bqt
         
         gui_resource* getNamedResource( gui_resource_name name );
         
+        void requestRedraw();
+        
         class manipulate : public task                                          // TODO: Rename to ManipulateWindow_task
         {
             // TODO: Consider overriding new/delete for manipulates so we only

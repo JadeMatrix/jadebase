@@ -165,7 +165,9 @@ namespace bqt
         KEY_Quote,
         KEY_LessThan,
         KEY_GreaterThan,
-        KEY_QuestionMark
+        KEY_QuestionMark,
+        
+        KEY_Space
         
         // TODO: add support for international keyboards
     };

@@ -41,6 +41,7 @@ namespace bqt
                 int y = 0,
                 unsigned int w = BUTTON_MIN_WIDTH,
                 unsigned int h = BUTTON_MIN_HEIGHT );
+        ~button();
         
         void setRealDimensions( unsigned int w, unsigned int h );
         

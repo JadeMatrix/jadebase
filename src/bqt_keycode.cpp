@@ -152,6 +152,9 @@ namespace bqt
         if( k == XK_question )
             return KEY_QuestionMark;
         
+        if( k == XK_KP_Space || k == XK_space )
+            return KEY_Space;
+        
         return KEY_INVALID;
         
         #else
