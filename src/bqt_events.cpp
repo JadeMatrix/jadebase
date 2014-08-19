@@ -3,7 +3,7 @@
  * 
  * Clicks & strokes are both converted to stroke events & passed to windows,
  * as it is entirely up to the window to check the event position(s) and thus to
- * decide whether it is a drag or a click.
+ * decide whether it is a drag or a stroke.
  * 
  * Also implements setQuitFlag() and getQuitFlag() from bqt_platform.h
  * 
@@ -15,6 +15,7 @@
 
 #include <map>
 #include <vector>
+#include <cmath>
 
 #include "bqt_taskexec.hpp"
 #include "bqt_windowmanagement.hpp"
@@ -38,7 +39,26 @@ namespace
     std::map< Window, bqt::window::manipulate* > window_manipulates;            // Waiting room so we don't submit more than we need
                                                                                 // TODO: Remove when we overload new for manipulates
     
+    std::map< bqt_platform_idevid_t,
+              bqt::stroke_waypoint,
+              bool ( * )( const bqt_platform_idevid_t&, const bqt_platform_idevid_t& ) > prev_motion_events( &bqt_platform_idevid_t_comp );
+    
     #ifdef PLATFORM_XWS_GNUPOSIX
+    
+    bqt_platform_idevid_t dummy_idevid = { false, 0x02 };                       // Could have used 0x00, but xinput lists Virtual Core Pointer as 2
+    bqt::stroke_waypoint initial_waypoint = { dummy_idevid,
+                                              0x00,
+                                              false,
+                                              false,
+                                              false,
+                                              false,
+                                              false,
+                                              { -INFINITY, -INFINITY },         // Element masking checks left-right, so we want to fail early
+                                              { -INFINITY, -INFINITY },
+                                              0.0f,
+                                              { 0.0f, 0.0f },
+                                              0.0f,
+                                              0.0f };
     
     bool x_keyrepeat_on = true;                                                 // So we don't keep trying to turn it off
     
@@ -197,77 +217,121 @@ namespace
             return;
         }
         
-        #warning Click events don't cancel
-        
         switch( x_event.type )
         {
         case ButtonPress:
             {
                 XButtonPressedEvent& x_bpevent( *( ( XButtonPressedEvent* )&x_event ) );
                 
-                w_event.type = bqt::CLICK;
+                w_event.type = bqt::STROKE;
                 
-                w_event.click.state = bqt::click::DOWN;
+                w_event.stroke.dev_id = dummy_idevid;                           
                 
-                w_event.click.position[ 0 ] = x_bpevent.x_root;
-                w_event.click.position[ 1 ] = x_bpevent.y_root;
+                w_event.stroke.position[ 0 ] = x_bpevent.x_root;
+                w_event.stroke.position[ 1 ] = x_bpevent.y_root;
                 
-                w_event.click.shift = ( bool )( x_bpevent.state & ShiftMask );
-                w_event.click.ctrl  = ( bool )( x_bpevent.state & ControlMask );
-                w_event.click.alt   = ( bool )( x_bpevent.state & Mod1Mask );
-                w_event.click.super = ( bool )( x_bpevent.state & Mod4Mask );
+                w_event.stroke.shift = ( bool )( x_bpevent.state & ShiftMask );
+                w_event.stroke.ctrl  = ( bool )( x_bpevent.state & ControlMask );
+                w_event.stroke.alt   = ( bool )( x_bpevent.state & Mod1Mask );
+                w_event.stroke.super = ( bool )( x_bpevent.state & Mod4Mask );
                 
                 #ifdef PLATFORM_MACOSX
-                w_event.click.cmd = w_event.click.super;
+                w_event.stroke.cmd = w_event.stroke.super;
                 #else
-                w_event.click.cmd = w_event.click.ctrl;
+                w_event.stroke.cmd = w_event.stroke.ctrl;
                 #endif
                 
-                w_event.click.click = 0x00;
-                
+                w_event.stroke.click = 0x00;
                 if( x_bpevent.button == Button1 )                               // Button1 = left click
-                    w_event.click.click |= CLICK_PRIMARY;
+                    w_event.stroke.click |= CLICK_PRIMARY;
                 if( x_bpevent.button == Button3 )                               // Button3 = right click
-                    w_event.click.click |= CLICK_SECONDARY;
+                    w_event.stroke.click |= CLICK_SECONDARY;
                 if( x_bpevent.button == Button2 )                               // Button2 = middle click
-                    w_event.click.click |= CLICK_ALT;
+                    w_event.stroke.click |= CLICK_ALT;
+                
+                w_event.stroke.prev_pos[ 0 ] = -INFINITY;
+                w_event.stroke.prev_pos[ 1 ] = -INFINITY;
+                prev_motion_events[ w_event.stroke.dev_id ] = w_event.stroke;
             }
             break;
         case ButtonRelease:
             {
                 XButtonReleasedEvent& x_brevent( *( ( XButtonReleasedEvent* )&x_event ) );
                 
-                w_event.type = bqt::CLICK;
+                w_event.type = bqt::STROKE;
                 
-                w_event.click.state = bqt::click::UP;
+                w_event.stroke.dev_id = dummy_idevid;                           
                 
-                w_event.click.position[ 0 ] = x_brevent.x_root;
-                w_event.click.position[ 1 ] = x_brevent.y_root;
+                w_event.stroke.position[ 0 ] = x_brevent.x_root;
+                w_event.stroke.position[ 1 ] = x_brevent.y_root;
                 
-                w_event.click.shift = ( bool )( x_brevent.state & ShiftMask );
-                w_event.click.ctrl  = ( bool )( x_brevent.state & ControlMask );
-                w_event.click.alt   = ( bool )( x_brevent.state & Mod1Mask );
-                w_event.click.super = ( bool )( x_brevent.state & Mod4Mask );
+                w_event.stroke.shift = ( bool )( x_brevent.state & ShiftMask );
+                w_event.stroke.ctrl  = ( bool )( x_brevent.state & ControlMask );
+                w_event.stroke.alt   = ( bool )( x_brevent.state & Mod1Mask );
+                w_event.stroke.super = ( bool )( x_brevent.state & Mod4Mask );
                 
                 #ifdef PLATFORM_MACOSX
-                w_event.click.cmd = w_event.click.super;
+                w_event.stroke.cmd = w_event.stroke.super;
                 #else
-                w_event.click.cmd = w_event.click.ctrl;
+                w_event.stroke.cmd = w_event.stroke.ctrl;
                 #endif
                 
-                w_event.click.click = 0x00;
+                w_event.stroke.click = 0x00;
+                // if( x_brevent.button == Button1 )
+                //     w_event.stroke.click |= CLICK_PRIMARY;
+                // if( x_brevent.button == Button3 )
+                //     w_event.stroke.click |= CLICK_SECONDARY;
+                // if( x_brevent.button == Button2 )
+                //     w_event.stroke.click |= CLICK_ALT;
                 
-                if( x_brevent.button == Button1 )
-                    w_event.click.click |= CLICK_PRIMARY;
-                if( x_brevent.button == Button3 )
-                    w_event.click.click |= CLICK_SECONDARY;
-                if( x_brevent.button == Button2 )
-                    w_event.click.click |= CLICK_ALT;
+                bqt::stroke_waypoint& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
+                w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
+                w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
+                prev_motion_events.erase( w_event.stroke.dev_id );
             }
             break;
         case MotionNotify:
             {
-                // w_event.type = bqt::CLICK;
+                XMotionEvent& x_mevent( *( ( XMotionEvent* )&x_event ) );
+                
+                w_event.type = bqt::STROKE;
+                
+                w_event.stroke.dev_id = dummy_idevid;                           
+                
+                if( x_mevent.state & Button1Mask )
+                    w_event.stroke.click |= CLICK_PRIMARY;
+                if( x_mevent.state & Button3Mask )
+                    w_event.stroke.click |= CLICK_SECONDARY;
+                if( x_mevent.state & Button2Mask )
+                    w_event.stroke.click |= CLICK_ALT;
+                
+                w_event.stroke.shift = ( bool )( x_mevent.state & ShiftMask );
+                w_event.stroke.ctrl  = ( bool )( x_mevent.state & ControlMask );
+                w_event.stroke.alt   = ( bool )( x_mevent.state & Mod1Mask );
+                w_event.stroke.super = ( bool )( x_mevent.state & Mod4Mask );
+                
+                #ifdef PLATFORM_MACOSX
+                w_event.stroke.cmd = w_event.stroke.super;
+                #else
+                w_event.stroke.cmd = w_event.stroke.ctrl;
+                #endif
+                
+                w_event.stroke.position[ 0 ] = x_mevent.x_root;
+                w_event.stroke.position[ 1 ] = x_mevent.y_root;
+                
+                w_event.stroke.pressure = 1.0f;
+                
+                w_event.stroke.tilt[ 0 ] = 0.0f;
+                w_event.stroke.tilt[ 1 ] = 0.0f;
+                
+                w_event.stroke.rotation = 0.0f;
+                
+                w_event.stroke.wheel = 0.0f;
+                
+                bqt::stroke_waypoint& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
+                w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
+                w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
+                prev_waypoint = w_event.stroke;
             }
             break;
         default:
@@ -297,7 +361,8 @@ namespace
                     {
                         w_event.type = bqt::STROKE;
                         
-                        w_event.stroke.dev_id = x_tablet_devices[ i ].x_devid;
+                        w_event.stroke.dev_id.x_real_dev = true;
+                        w_event.stroke.dev_id.x_devid = x_tablet_devices[ i ].x_devid;
                         
                         if( x_tablet_devices[ i ].type == ERASER_STYLUS )
                             w_event.stroke.click = CLICK_ERASE;
@@ -348,6 +413,11 @@ namespace
                             w_event.stroke.wheel = 0.0;
                             w_event.stroke.rotation = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
                         }
+                        
+                        bqt::stroke_waypoint& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
+                        w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
+                        w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
+                        prev_waypoint = w_event.stroke;
                         
                         break;
                     }
@@ -471,6 +541,9 @@ namespace
             x_screen_res[ 1 ] = HeightMMOfScreen( x_screen_ptr ) / HeightOfScreen( x_screen_ptr );
         }
         
+        if( !prev_motion_events.count( dummy_idevid ) )
+            prev_motion_events[ dummy_idevid ] = initial_waypoint;
+        
         // Much thanks to
         // http://mobileim.googlecode.com/svn/MeeGo/meegoTraning/MeeGo_Traing_Doc_0119/meego_trn/meego-quality-assurance-mcts/mcts-blts/blts-x11/src/xinput_tests.c
         // for demonstrating how to use XDeviceInfo.
@@ -543,7 +616,6 @@ namespace
                             }
                             break;
                         default:
-                            ff::write( bqt_out, "unknown class\n" );
                             break;                                              // Ignore default
                         }
                         x_any = ( XAnyClassPtr )( ( char* )x_any + x_any -> length );   // THIS IS HOW YOU'RE SUPPOSED TO DO IT?
@@ -552,7 +624,7 @@ namespace
                     DeviceMotionNotify( detail.x_device,
                                         detail.x_motioneventtype,
                                         x_eventclass_list[ x_eventclass_count ] );
-                    ++x_eventclass_count;                                       // DeviceMotionNotify() is a macro, so increment outside
+                    ++x_eventclass_count;                                       // DeviceMotionNotify() is a macro; we have to increment outside
                     
                     if( x_eventclass_count >= x_eventclass_size )
                     {
@@ -584,6 +656,14 @@ namespace
                         ff::write( bqt_out, "Warning: Device \"", detail.name, "\" has a larger resolution than the screen\n" );
                     }
                     
+                    bqt_platform_idevid_t platform_devid;
+                    
+                    platform_devid.x_real_dev = true;
+                    platform_devid.x_devid = detail.x_devid;
+                    
+                    if( !prev_motion_events.count( platform_devid ) )           // Add previous up motion events
+                        prev_motion_events[ platform_devid ] = initial_waypoint;
+                    
                     new_devices.push_back( detail );
                     
                 next_device:
@@ -608,6 +688,14 @@ namespace
         if( getDevMode() )
             for( int i = 0; i < new_devices.size(); ++i )
             {
+                bqt_platform_idevid_t platform_devid;
+                
+                platform_devid.x_real_dev = true;
+                platform_devid.x_devid = new_devices[ i ].x_devid;
+                
+                if( prev_motion_events.count( platform_devid ) )                // Clean up previous motion events
+                    prev_motion_events.erase( platform_devid );
+                
                 // ff::write( bqt_out, "Testing XCloseDevice\n" );
                 // XCloseDevice( x_display, new_devices[ i ].x_device );
                 ff::write( bqt_out, "Leaking device \"", new_devices[ i ].name, "\" (unplugged?)\n" );
@@ -622,6 +710,14 @@ namespace
         
         for( int i = 0; i < x_tablet_devices.size(); i++ )
         {
+            bqt_platform_idevid_t platform_devid;
+            
+            platform_devid.x_real_dev = true;
+            platform_devid.x_devid = x_tablet_devices[ i ].x_devid;
+            
+            if( prev_motion_events.count( platform_devid ) )                    // Clean up previous motion events
+                prev_motion_events.erase( platform_devid );
+            
             XCloseDevice( x_display, x_tablet_devices[ i ].x_device );
             
             if( getDevMode() )

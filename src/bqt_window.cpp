@@ -141,6 +141,15 @@ namespace bqt
         initOpenGL();
         
         initNamedResources();
+        
+        // Devel
+        {
+            elements.push_back( new button( *this, 10, 10, 60, 40 ) );
+            elements.push_back( new button( *this, 100, 10, 40, 20 ) );
+            elements.push_back( new button( *this, 100, 30, 40, 20 ) );
+            
+            requestRedraw();
+        }
     }
     
     void window::makeContextCurrent()
@@ -469,7 +478,7 @@ namespace bqt
         #endif
     }
     
-    window::window() // : gui( this, BQT_WINDOW_DEFAULT_WIDTH, BQT_WINDOW_DEFAULT_HEIGHT )
+    window::window() : input_assoc( bqt_platform_idevid_t_comp )
     {
         platform_window.good = false;
         
@@ -534,14 +543,10 @@ namespace bqt
         case STROKE:
             e.stroke.position[ 0 ] -= position[ 0 ];
             e.stroke.position[ 1 ] -= position[ 1 ];
+            e.stroke.prev_pos[ 0 ] -= position[ 0 ];
+            e.stroke.prev_pos[ 1 ] -= position[ 1 ];
             e_position[ 0 ] = e.stroke.position[ 0 ];
             e_position[ 1 ] = e.stroke.position[ 1 ];
-            break;
-        case CLICK:
-            e.click.position[ 0 ] -= position[ 0 ];
-            e.click.position[ 1 ] -= position[ 1 ];
-            e_position[ 0 ] = e.click.position[ 0 ];
-            e_position[ 1 ] = e.click.position[ 1 ];
             break;
         case DROP:
             e.drop.position[ 0 ] -= position[ 0 ];
@@ -566,7 +571,8 @@ namespace bqt
         }
         
         // for( int i = elements.size(); i > 0; --i )                              // Iterate newest (topmost) first
-        for( int i = 0; i < elements.size(); ++i )
+        // for( int i = 0; i < elements.size(); ++i )
+        for( int i = elements.size() - 1; i >= 0; -- i )
         {
             if( no_position )
             {
@@ -578,10 +584,19 @@ namespace bqt
                 element_position   = elements[ i ] -> getPosition();
                 element_dimensions = elements[ i ] -> getVisualDimensions();
                 
-                if( e_position[ 0 ] >= element_position.first
-                    && e_position[ 1 ] >= element_position.second
-                    && e_position[ 0 ] <= element_position.first + element_dimensions.first
-                    && e_position[ 1 ] <= element_position.second + element_dimensions.second )
+                if( ( e.type == STROKE
+                      && pointInsideRect( e.stroke.prev_pos[ 0 ],
+                                          e.stroke.prev_pos[ 1 ],
+                                          element_position.first,
+                                          element_position.second,
+                                          element_dimensions.first,
+                                          element_dimensions.second ) )
+                    || pointInsideRect( e_position[ 0 ],
+                                        e_position[ 1 ],
+                                        element_position.first,
+                                        element_position.second,
+                                        element_dimensions.first,
+                                        element_dimensions.second ) )
                 {
                     if( elements[ i ] -> acceptEvent( e ) )
                         break;
@@ -592,13 +607,6 @@ namespace bqt
         // Devel
         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
             setQuitFlag();
-        
-        if( e.type == KEYCOMMAND && e.key.key == KEY_B && e.key.up )
-        {
-            ff::write( bqt_out, "Creating a button\n" );
-            elements.push_back( new button( *this, 10, 10, 60, 40 ) );
-            requestRedraw();
-        }
     }
     
     bqt_platform_window_t& window::getPlatformWindow()

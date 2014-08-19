@@ -32,8 +32,6 @@ namespace bqt
     class button : public gui_element
     {
     protected:
-        rwlock button_lock;
-        
         button_state state;
     public:
         button( window& parent,

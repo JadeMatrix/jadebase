@@ -94,7 +94,18 @@ extern "C"
     
     Display* getXDisplay();
     
-    typedef XID bqt_platform_idevid_t;
+    typedef struct
+    {
+        bool x_real_dev;                                                        // We want to be able to associate a dummy ID with the core pointer
+        union
+        {
+            unsigned int bqt_devid;
+            XID x_devid;
+        };
+    } bqt_platform_idevid_t;
+    
+    bool bqt_platform_idevid_t_comp( const bqt_platform_idevid_t& left,
+                                     const bqt_platform_idevid_t& right );
     
     typedef unsigned int bqt_platform_keycode_t;                                // XLib's keycode type
     
@@ -138,6 +149,11 @@ extern "C"
     #error "Mac OS X not fully implemented as a platform yet"
     
     #endif
+    
+    // bool bqt_platform_idevid_t_comp( const bqt_platform_idevid_t& left, const bqt_platform_idevid_t& right )
+    // {
+    //     return left < right;
+    // }
     
     /* General ****************************************************************//******************************************************************************/
     

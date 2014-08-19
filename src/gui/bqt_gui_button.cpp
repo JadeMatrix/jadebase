@@ -163,7 +163,7 @@ namespace bqt
     
     void button::setRealDimensions( unsigned int w, unsigned int h )
     {
-        scoped_lock< rwlock > slock( button_lock, RW_WRITE );
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
         if( w < BUTTON_MIN_WIDTH )
             dimensions[ 0 ] = BUTTON_MIN_WIDTH;
@@ -178,77 +178,103 @@ namespace bqt
     
     bool button::acceptEvent( window_event& e )
     {
-        scoped_lock< rwlock > slock_b( button_lock, RW_WRITE );
+        scoped_lock< rwlock > slock_b( element_lock, RW_WRITE );
         
         switch( e.type )
         {
-        case CLICK:
-            if( e.click.click & CLICK_PRIMARY )
+        case STROKE:
+            // TODO: Consider using a series of if statements here, as in
+            // the very unlikely case that the event.stroke's position and
+            // prev_pos are the same & both outside the button (window::
+            // acceptEvent() should prevent this) the button state will bug
+            // out.
+            
+            switch( state )
             {
-                switch( state )
+            case OFF_UP:
+                if( ( e.stroke.click & CLICK_PRIMARY )
+                    && pointInsideRect( e.stroke.position[ 0 ],
+                                        e.stroke.position[ 1 ],
+                                        position[ 0 ],
+                                        position[ 1 ],
+                                        dimensions[ 0 ],
+                                        dimensions[ 1 ] ) )
                 {
-                case OFF_UP:
-                    if( e.click.state == click::DOWN )
-                    {
-                        state = OFF_DOWN;
-                        parent.requestRedraw();
-                    }
-                    break;
-                case OFF_DOWN:
-                    {
-                        switch( e.click.state )
-                        {
-                            case click::CANCEL:
-                                state = OFF_UP;
-                                parent.requestRedraw();
-                                break;
-                            case click::DOWN:
-                                // Ignore
-                                break;
-                            case click::UP:
-                                state = ON_UP;
-                                parent.requestRedraw();
-                                break;
-                            default:
-                                throw exception( "button::acceptEvent(): Unknown click state" );
-                        }
-                    }
-                    break;
-                case ON_UP:
-                    if( e.click.state == click::DOWN )
-                    {
-                        state = ON_DOWN;
-                        parent.requestRedraw();
-                    }
-                    break;
-                case ON_DOWN:
-                    {
-                        switch( e.click.state )
-                        {
-                            case click::CANCEL:
-                                state = ON_UP;
-                                parent.requestRedraw();
-                                break;
-                            case click::DOWN:
-                                // Ignore
-                                break;
-                            case click::UP:
-                                state = OFF_UP;
-                                parent.requestRedraw();
-                                break;
-                            default:
-                                throw exception( "button::acceptEvent(): Unknown click state" );
-                        }
-                    }
-                    break;
-                default:
-                    throw exception( "button::acceptEvent(): Unknown button state" );
+                    state = OFF_DOWN;
+                    parent.requestRedraw();
                 }
-            }
-            else
-            {
-                if( ( e.click.click & CLICK_SECONDARY ) && e.click.state == click::DOWN )
-                    ff::write( bqt_out, "Got a right click on a button\n" );
+                break;
+            case OFF_DOWN:
+                if( ( e.stroke.click & CLICK_PRIMARY )
+                    && !pointInsideRect( e.stroke.position[ 0 ],
+                                         e.stroke.position[ 1 ],
+                                         position[ 0 ],
+                                         position[ 1 ],
+                                         dimensions[ 0 ],
+                                         dimensions[ 1 ] ) )                    // Works because we still get strokes that have just gone out of the mask
+                {
+                    state = OFF_UP;                                             // Cancel the button press
+                    parent.requestRedraw();
+                    break;
+                }
+                
+                if( !( e.stroke.click & CLICK_PRIMARY )
+                    && pointInsideRect( e.stroke.position[ 0 ],
+                                        e.stroke.position[ 1 ],
+                                        position[ 0 ],
+                                        position[ 1 ],
+                                        dimensions[ 0 ],
+                                        dimensions[ 1 ] ) )
+                {
+                    state = ON_UP;
+                    parent.requestRedraw();
+                    break;
+                }
+                
+                break;
+            case ON_UP:
+                if( ( e.stroke.click & CLICK_PRIMARY )
+                    && pointInsideRect( e.stroke.position[ 0 ],
+                                        e.stroke.position[ 1 ],
+                                        position[ 0 ],
+                                        position[ 1 ],
+                                        dimensions[ 0 ],
+                                        dimensions[ 1 ] ) )
+                {
+                    state = ON_DOWN;
+                    parent.requestRedraw();
+                }
+                break;
+            case ON_DOWN:
+                if( ( e.stroke.click & CLICK_PRIMARY )
+                    && !pointInsideRect( e.stroke.position[ 0 ],
+                                         e.stroke.position[ 1 ],
+                                         position[ 0 ],
+                                         position[ 1 ],
+                                         dimensions[ 0 ],
+                                         dimensions[ 1 ] ) )
+                {
+                    state = ON_UP;
+                    parent.requestRedraw();
+                    break;
+                }
+                
+                if( !( e.stroke.click & CLICK_PRIMARY )
+                    && pointInsideRect( e.stroke.position[ 0 ],
+                                        e.stroke.position[ 1 ],
+                                        position[ 0 ],
+                                        position[ 1 ],
+                                        dimensions[ 0 ],
+                                        dimensions[ 1 ] ) )
+                {
+                    state = OFF_UP;
+                    parent.requestRedraw();
+                    break;
+                }
+                
+                break;
+            default:
+                throw exception( "button::acceptEvent(): Unknown button state" );
             }
             return true;
         default:
@@ -258,7 +284,7 @@ namespace bqt
     
     void button::draw()
     {
-        scoped_lock< rwlock > slock_b( button_lock, RW_READ );
+        scoped_lock< rwlock > slock_b( element_lock, RW_READ );
         scoped_lock< rwlock > slock_r( button_rsrc_lock, RW_READ );
         
         button_set& window_bset( button_sets[ &parent ] );

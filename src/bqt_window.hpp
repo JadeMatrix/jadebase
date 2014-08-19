@@ -86,7 +86,9 @@ namespace bqt
         
         /* GUI infrastructure *************************************************//******************************************************************************/
         
-        std::map< bqt_platform_idevid_t, gui_element* > input_assoc;
+        std::map< bqt_platform_idevid_t,
+                  gui_element*,
+                  bool ( * )( const bqt_platform_idevid_t&, const bqt_platform_idevid_t& ) > input_assoc;
         std::vector< gui_element* > elements;
         
         struct gui_texture_holder

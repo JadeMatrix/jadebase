@@ -51,31 +51,12 @@ namespace bqt
         bool cmd   : 1;                                                         // Platform command key: CTRL on Windows/Linux, Command on OS X
         
         float   position[ 2 ];                                                  // Position [ x, y ] relative to screen (fractional if supported)
+        float   prev_pos[ 2 ];                                                  // Previous position [ x, y ], { NaN, NaN } if no previous
         float   pressure;                                                       // Pressure, ( 0.0 ... 1.0 )
         int         tilt[ 2 ];                                                  // Tilt [ x, y ], ( -1.0 ... 1.0 )
         float   rotation;                                                       // Rotation (0.0 up to but not including 1.0 is a full rotation, can contain
                                                                                 // multiple rotations but usually not)
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
-    };
-    
-    struct click
-    {
-        click_type click;
-        
-        bool shift : 1;
-        bool ctrl  : 1;
-        bool alt   : 1;
-        bool super : 1;
-        bool cmd   : 1;
-        
-        int position[ 2 ];
-        
-        enum
-        {
-            CANCEL,
-            DOWN,
-            UP
-        } state;
     };
     
     // class droppable;
@@ -135,7 +116,6 @@ namespace bqt
     {
         NONE,
         STROKE,
-        CLICK,
         DROP,
         KEYCOMMAND,
         COMMAND,
@@ -149,7 +129,6 @@ namespace bqt
         union
         {
             stroke_waypoint stroke;
-            click click;
             drop_item drop;
             key_command key;
             command cmd;
@@ -158,7 +137,18 @@ namespace bqt
         };
     };
     
+    // UTILITY /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     std::string wevent2str( window_event& e );
+    
+    inline bool pointInsideRect( long p_x, long p_y,
+                                 long r_x, long r_y, long r_w, long r_h )
+    {
+        return(    p_x >= r_x
+                && p_y >= r_y
+                && p_x <  r_x + r_w
+                && p_y <  r_y + r_h );
+    }
 }
 
 /******************************************************************************//******************************************************************************/
