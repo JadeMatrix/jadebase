@@ -19,6 +19,7 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include <string>
+#include <cmath>
 
 #include "bqt_keycode.hpp"
 #include "bqt_platform.h"
@@ -148,6 +149,13 @@ namespace bqt
                 && p_y >= r_y
                 && p_x <  r_x + r_w
                 && p_y <  r_y + r_h );
+    }
+    
+    inline bool pointInsideCircle( long p_x, long p_y,
+                                   long c_x, long c_y, long c_r )               // c_x & c_y are the center of the circle
+    {
+        return ( p_x - c_x ) * ( p_x - c_x ) + ( p_y - c_y ) * ( p_y - c_y )
+               <= c_r * c_r;
     }
 }
 

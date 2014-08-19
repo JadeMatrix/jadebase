@@ -1,8 +1,8 @@
-#ifndef BQT_GUI_BUTTON_HPP
-#define BQT_GUI_BUTTON_HPP
+#ifndef BQT_GUI_DIAL_HPP
+#define BQT_GUI_DIAL_HPP
 
 /* 
- * bqt_gui_button.hpp
+ * bqt_gui_dial.hpp
  * 
  * About
  * 
@@ -11,35 +11,38 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "bqt_gui_element.hpp"
+#include "../threading/bqt_rwlock.hpp"
 
 /******************************************************************************//******************************************************************************/
 
-#define BUTTON_MIN_WIDTH  12
-#define BUTTON_MIN_HEIGHT 14
+#define DIAL_LARGE_DIAMETER 42
+#define DIAL_SMALL_DIAMETER 22
+
+#define DIAL_MAX_VALUE      1.0f
+#define DIAL_MIN_VALUE     -1.0f
+#define DIAL_DEFAULT_VALUE  0.0f
+
+#define DIAL_DRAG_FACTOR    40.0f
 
 namespace bqt
 {
-    enum button_state
-    {
-        OFF_UP,
-        OFF_DOWN,
-        ON_UP,
-        ON_DOWN
-    };
-    
-    class button : public gui_element
+    class dial : public gui_element
     {
     protected:
-        button_state state;
+        float value;
+        bool small;
+        bool capturing;
+        float capture_start[ 2 ];
     public:
-        button( window& parent,
-                int x = 0,
-                int y = 0,
-                unsigned int w = BUTTON_MIN_WIDTH,
-                unsigned int h = BUTTON_MIN_HEIGHT );
-        ~button();
+        dial( window& parent,
+              int x = 0,
+              int y = 0,
+              bool s = false,
+              float v = DIAL_DEFAULT_VALUE );
+        ~dial();
         
-        void setRealDimensions( unsigned int w, unsigned int h );
+        float getValue();
+        void setValue( float v );
         
         bool acceptEvent( window_event& e );
         

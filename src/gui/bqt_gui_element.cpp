@@ -13,6 +13,14 @@
 
 namespace bqt
 {
+    void gui_element::setRealDimensions( unsigned int w, unsigned int h )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        dimensions[ 0 ] = w;
+        dimensions[ 1 ] = h;
+    }
+    
     gui_element::gui_element( window& parent,
                  int x,
                  int y,
@@ -43,13 +51,6 @@ namespace bqt
         return std::pair< int, int >( position[ 0 ], position[ 1 ] );
     }
     
-    void gui_element::setRealDimensions( unsigned int w, unsigned int h )
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        dimensions[ 0 ] = w;
-        dimensions[ 1 ] = h;
-    }
     std::pair< unsigned int, unsigned int > gui_element::getRealDimensions()
     {
         scoped_lock< rwlock > slock( element_lock, RW_READ );

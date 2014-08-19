@@ -23,6 +23,7 @@
 #include "gui/bqt_gui_resource.hpp"
 
 #include "gui/bqt_gui_button.hpp"
+#include "gui/bqt_gui_dial.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -145,8 +146,12 @@ namespace bqt
         // Devel
         {
             elements.push_back( new button( *this, 10, 10, 60, 40 ) );
-            elements.push_back( new button( *this, 100, 10, 40, 20 ) );
-            elements.push_back( new button( *this, 100, 30, 40, 20 ) );
+            elements.push_back( new button( *this, 72, 10, 26, 40 ) );
+            elements.push_back( new button( *this, 100, 10, 40, 19 ) );
+            elements.push_back( new button( *this, 100, 31, 40, 19 ) );
+            
+            elements.push_back( new dial( *this, 10, 70 ) );
+            elements.push_back( new dial( *this, 62, 70, true ) );
             
             requestRedraw();
         }
@@ -570,9 +575,14 @@ namespace bqt
             break;
         }
         
-        // for( int i = elements.size(); i > 0; --i )                              // Iterate newest (topmost) first
-        // for( int i = 0; i < elements.size(); ++i )
-        for( int i = elements.size() - 1; i >= 0; -- i )
+        if( e.type == STROKE
+            && input_assoc.count( e.stroke.dev_id ) )
+        {
+            input_assoc[ e.stroke.dev_id ] -> acceptEvent( e );
+            return;
+        }
+        
+        for( int i = elements.size() - 1; i >= 0; -- i )                        // Iterate newest (topmost) first
         {
             if( no_position )
             {
@@ -624,7 +634,7 @@ namespace bqt
     {
         scoped_lock< rwlock > scoped_lock( window_lock, RW_WRITE );
         
-        if( element == NULL && input_assoc.count( dev_id ) )
+        if( element == NULL )
             input_assoc.erase( dev_id );
         else
             input_assoc[ dev_id ] = element;
