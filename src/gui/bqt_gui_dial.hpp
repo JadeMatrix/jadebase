@@ -22,7 +22,7 @@
 #define DIAL_MIN_VALUE     -1.0f
 #define DIAL_DEFAULT_VALUE  0.0f
 
-#define DIAL_DRAG_FACTOR    40.0f
+#define DIAL_DRAG_FACTOR    80.0f
 
 namespace bqt
 {
@@ -31,8 +31,13 @@ namespace bqt
     protected:
         float value;
         bool small;
-        bool capturing;
-        float capture_start[ 2 ];
+        enum
+        {
+            NONE,
+            VERTICAL,
+            CIRCULAR
+        } capturing;
+        float capture_start[ 3 ];
     public:
         dial( window& parent,
               int x = 0,

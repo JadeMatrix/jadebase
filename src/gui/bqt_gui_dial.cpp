@@ -11,6 +11,9 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
 
 #include "bqt_gui_resource.hpp"
 #include "../bqt_log.hpp"
@@ -53,7 +56,7 @@ namespace bqt
     {
         value = v;
         small = s;
-        capturing = false;
+        capturing = NONE;
         
         scoped_lock< rwlock > slock( dial_rsrc_lock, RW_WRITE );
         
@@ -106,19 +109,30 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
+        float radius = dimensions[ 0 ] / 2.0f;
+        
         if( e.type == STROKE )
         {
-            if( capturing )
+            if( capturing != NONE )
             {
                 if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled
                 {
-                    capturing = false;
+                    capturing = NONE;
                     parent.associateDevice( e.stroke.dev_id, NULL );
                     return false;
                 }
                 else
                 {
-                    setValue( ( e.stroke.position[ 1 ] - capture_start[ 1 ] ) / DIAL_DRAG_FACTOR );
+                    if( capturing == VERTICAL )
+                        setValue( capture_start[ 2 ]
+                                  + ( e.stroke.position[ 1 ] - capture_start[ 1 ] )
+                                  / DIAL_DRAG_FACTOR );
+                    else
+                        // atan2 takes y/x, but since our origin is at the top,
+                        // we switch that around and multiply y by -1
+                        setValue( capture_start[ 2 ]
+                                  + atan2(   e.stroke.position[ 0 ] - position[ 0 ] - radius,
+                                           ( e.stroke.position[ 1 ] - position[ 1 ] - radius ) * -1.0f ) / M_PI );
                     
                     parent.requestRedraw();
                     
@@ -130,14 +144,26 @@ namespace bqt
                 if( ( e.stroke.click & CLICK_PRIMARY )
                     && pointInsideCircle( e.stroke.position[ 0 ],
                                           e.stroke.position[ 1 ],
-                                          position[ 0 ],
-                                          position[ 1 ],
-                                          dimensions[ 0 ] ) )
+                                          position[ 0 ] + radius,
+                                          position[ 1 ] + radius,
+                                          radius ) )
                 {
-                    capturing = true;
+                    if( small || pointInsideCircle( e.stroke.position[ 0 ],
+                                                    e.stroke.position[ 1 ],
+                                                    position[ 0 ] + radius,
+                                                    position[ 1 ] + radius,
+                                                    radius - 15.0f ) )
+                    {
+                        capturing = VERTICAL;
+                    }
+                    else
+                    {
+                        capturing = CIRCULAR;
+                    }
                     
                     capture_start[ 0 ] = e.stroke.position[ 0 ];
                     capture_start[ 1 ] = e.stroke.position[ 1 ];
+                    capture_start[ 2 ] = value;
                     
                     parent.associateDevice( e.stroke.dev_id, this );
                     
@@ -146,13 +172,6 @@ namespace bqt
                 else
                     return false;
             }
-        }
-        
-        if( e.type == KEYCOMMAND && e.key.key == KEY_D && e.key.up )
-        {
-            value += 0.1f;
-            parent.requestRedraw();
-            return true;
         }
         
         return false;

@@ -191,7 +191,7 @@ namespace bqt
             // TODO: Consider using a series of if statements here, as in
             // the very unlikely case that the event.stroke's position and
             // prev_pos are the same & both outside the button (window::
-            // acceptEvent() should prevent this) the button state will bug
+            // acceptEvent() should prevent this) as the button state will bug
             // out.
             
             switch( state )
