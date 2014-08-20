@@ -63,7 +63,7 @@ namespace bqt
     // class droppable;
     struct drop_item
     {
-        int position[ 0 ];
+        int position[ 2 ];
         // droppable* item;
     };
     
@@ -111,6 +111,19 @@ namespace bqt
         int position[ 2 ];                                                      // Absolute position in-window
     };
     
+    struct scroll_input
+    {
+        int position[ 2 ];
+        
+        float amount[ 2 ];                                                      // Distance scrolled in pixels on each axis
+        
+        bool shift : 1;
+        bool ctrl  : 1;
+        bool alt   : 1;
+        bool super : 1;
+        bool cmd   : 1;
+    };
+    
     // WINDOW EVENT ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     enum wevent_type
@@ -121,7 +134,8 @@ namespace bqt
         KEYCOMMAND,
         COMMAND,
         TEXT,
-        PINCH
+        PINCH,
+        SCROLL
     };
     
     struct window_event
@@ -135,6 +149,7 @@ namespace bqt
             command cmd;
             text_input text;
             pinch_input pinch;
+            scroll_input scroll;
         };
     };
     

@@ -179,6 +179,8 @@ namespace bqt
             dimensions[ 1 ] = BUTTON_MIN_HEIGHT;
         else
             dimensions[ 1 ] = h;
+        
+        parent.requestRedraw();
     }
     
     bool button::acceptEvent( window_event& e )
@@ -283,7 +285,7 @@ namespace bqt
             }
             return true;
         default:
-            return false;
+            return !event_fallthrough;
         }
     }
     

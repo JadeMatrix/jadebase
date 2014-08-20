@@ -109,6 +109,33 @@ namespace bqt
                        " rotation ",
                        e.pinch.rotation );
             break;
+        case SCROLL:
+            {
+                ff::write( str,
+                           "SCROLL: " );
+                
+                if( e.scroll.shift )
+                    ff::write( str, "Shift " );
+                if( e.scroll.ctrl )
+                    ff::write( str, "Ctrl " );
+                if( e.scroll.alt )
+                    ff::write( str, "Alt " );
+                if( e.scroll.super )
+                    ff::write( str, "Super " );
+                // if( e.scroll.cmd )
+                //     ff::write( str, "" );
+                
+                ff::write( str,
+                           "@ ",
+                           e.scroll.position[ 0 ],
+                           ",",
+                           e.scroll.position[ 1 ],
+                           " vertical ",
+                           e.scroll.amount[ 1 ],
+                           " vertical ",
+                           e.scroll.amount[ 0 ] );
+            }
+            break;
         default:
             ff::write( str, "Invalid type" );
             break;

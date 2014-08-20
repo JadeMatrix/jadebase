@@ -16,7 +16,7 @@ extern "C"
 {
 #endif
     
-    bool bqt_platform_idevid_t_comp( const bqt_platform_idevid_t& left, const bqt_platform_idevid_t& right )
+    int bqt_platform_idevid_t_comp( const bqt_platform_idevid_t left, const bqt_platform_idevid_t right )
     {
         if( left.x_real_dev == right.x_real_dev )                               // bqt_platform_idevid_t::x_real_dev is a bool, so this works as XNOR
         {
@@ -25,9 +25,9 @@ extern "C"
         else
         {
             if( left.x_real_dev )                                               // Real Xlib device IDs are considered 'greater than' dummy IDs
-                return false;
+                return 0;
             else
-                return true;
+                return 1;
         }
     }
     

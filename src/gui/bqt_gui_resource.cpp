@@ -17,13 +17,13 @@ namespace bqt
 {
     void gui_resource::createDisplayList()
     {
-        float f_position  [ 2 ];
-        float f_dimensions[ 2 ];
+        double f_position  [ 2 ];
+        double f_dimensions[ 2 ];
         
-        f_position  [ 0 ] = ( float )position  [ 0 ] / texture -> dimensions[ 1 ];
-        f_position  [ 1 ] = ( float )position  [ 1 ] / texture -> dimensions[ 0 ];
-        f_dimensions[ 0 ] = ( float )dimensions[ 0 ] / texture -> dimensions[ 1 ];
-        f_dimensions[ 1 ] = ( float )dimensions[ 1 ] / texture -> dimensions[ 0 ];
+        f_position  [ 0 ] = ( double )position  [ 0 ] / ( double )( texture -> dimensions[ 1 ] );
+        f_position  [ 1 ] = ( double )position  [ 1 ] / ( double )( texture -> dimensions[ 0 ] );
+        f_dimensions[ 0 ] = ( double )dimensions[ 0 ] / ( double )( texture -> dimensions[ 1 ] );
+        f_dimensions[ 1 ] = ( double )dimensions[ 1 ] / ( double )( texture -> dimensions[ 0 ] );
         
         gl_dlist = glGenLists( 1 );
         
@@ -33,19 +33,21 @@ namespace bqt
             
             glBegin( GL_QUADS );
             {
-                glTexCoord2f( f_position[ 0 ], f_position[ 1 ] );
+                glTexCoord2d( f_position[ 0 ], f_position[ 1 ] );
                 glVertex2f( 0, 0 );
                 
-                glTexCoord2f( f_position[ 0 ], f_position[ 1 ] + f_dimensions[ 1 ] );
+                glTexCoord2d( f_position[ 0 ], f_position[ 1 ] + f_dimensions[ 1 ] );
                 glVertex2f( 0, dimensions[ 1 ] );
                 
-                glTexCoord2f( f_position[ 0 ] + f_dimensions[ 0 ], f_position[ 1 ] + f_dimensions[ 1 ] );
+                glTexCoord2d( f_position[ 0 ] + f_dimensions[ 0 ], f_position[ 1 ] + f_dimensions[ 1 ] );
                 glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
                 
-                glTexCoord2f( f_position[ 0 ] + f_dimensions[ 0 ], f_position[ 1 ] );
+                glTexCoord2d( f_position[ 0 ] + f_dimensions[ 0 ], f_position[ 1 ] );
                 glVertex2f( dimensions[ 0 ], 0 );
             }
             glEnd();
+            
+            glBindTexture( GL_TEXTURE_2D, 0x00 );                               // Unbind texture
         }
         glEndList();
         

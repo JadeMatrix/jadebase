@@ -29,8 +29,8 @@ namespace bqt
         int position[ 2 ];
         unsigned int dimensions[ 2 ];
         
-        bool event_fallthrough;                                                 // Allow events to fall through if not accepted; true by default, should remain
-                                                                                // true for wrapper elements
+        bool event_fallthrough;                                                 // Allow events to fall through if not accepted; true by default, should be
+                                                                                // false for groups
         
         virtual void setRealDimensions( unsigned int w, unsigned int h );       // Not all elements have flexible dimensions
     public:
@@ -41,8 +41,9 @@ namespace bqt
                      unsigned int h );
         virtual ~gui_element();
         
-        void setPosition( int x, int y );
-        std::pair< int, int > getPosition();
+        void setRealPosition( int x, int y );
+        std::pair< int, int > getRealPosition();
+        virtual std::pair< int, int > getVisualPosition();
         
         virtual std::pair< unsigned int, unsigned int > getRealDimensions();    // Used to arrange elements
         virtual std::pair< unsigned int, unsigned int > getVisualDimensions();  // Used to generate area for event capturing

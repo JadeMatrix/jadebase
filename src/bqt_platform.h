@@ -82,7 +82,7 @@ extern "C"
     #define X_PROTOCOL_COUNT 1                                                  // We only need one for now to catch window closes from the WM
     typedef struct
     {
-        bool                     good;
+        int                      good;                                          // 'bool'
         Window                 x_window;
         XWindowAttributes      x_window_attr;
         GLXContext           glx_context;
@@ -96,7 +96,7 @@ extern "C"
     
     typedef struct
     {
-        bool x_real_dev;                                                        // We want to be able to associate a dummy ID with the core pointer
+        int x_real_dev;                                                         // 'bool': We want to be able to associate a dummy ID with the core pointer
         union
         {
             unsigned int bqt_devid;
@@ -104,8 +104,10 @@ extern "C"
         };
     } bqt_platform_idevid_t;
     
-    bool bqt_platform_idevid_t_comp( const bqt_platform_idevid_t& left,
-                                     const bqt_platform_idevid_t& right );
+    int bqt_platform_idevid_t_comp( const bqt_platform_idevid_t left,           // Returns 'bool'
+                                    const bqt_platform_idevid_t right );
+    typedef int ( * bqt_platform_idevid_t_comp_t )( const bqt_platform_idevid_t,
+                                                    const bqt_platform_idevid_t );
     
     typedef unsigned int bqt_platform_keycode_t;                                // XLib's keycode type
     
@@ -150,17 +152,12 @@ extern "C"
     
     #endif
     
-    // bool bqt_platform_idevid_t_comp( const bqt_platform_idevid_t& left, const bqt_platform_idevid_t& right )
-    // {
-    //     return left < right;
-    // }
-    
     /* General ****************************************************************//******************************************************************************/
     
     // TODO: Move to a different header?
     
     void setQuitFlag();
-    bool getQuitFlag();
+    int getQuitFlag();                                                          // 'bool'
 
 #ifdef __cplusplus
 }

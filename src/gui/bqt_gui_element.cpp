@@ -19,6 +19,8 @@ namespace bqt
         
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
+        
+        parent.requestRedraw();
     }
     
     gui_element::gui_element( window& parent,
@@ -27,7 +29,7 @@ namespace bqt
                  unsigned int w,
                  unsigned int h ) : parent( parent )
     {
-        setPosition( x, y );
+        setRealPosition( x, y );
         setRealDimensions( w, h );
         
         event_fallthrough = true;
@@ -37,18 +39,24 @@ namespace bqt
         /* Empty */
     }
     
-    void gui_element::setPosition( int x, int y )
+    void gui_element::setRealPosition( int x, int y )
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
         position[ 0 ] = x;
         position[ 1 ] = y;
+        
+        parent.requestRedraw();
     }
-    std::pair< int, int > gui_element::getPosition()
+    std::pair< int, int > gui_element::getRealPosition()
     {
         scoped_lock< rwlock > slock( element_lock, RW_READ );
         
         return std::pair< int, int >( position[ 0 ], position[ 1 ] );
+    }
+    std::pair< int, int > gui_element::getVisualPosition()
+    {
+        return getRealPosition();
     }
     
     std::pair< unsigned int, unsigned int > gui_element::getRealDimensions()

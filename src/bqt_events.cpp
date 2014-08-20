@@ -26,6 +26,7 @@
 #include "bqt_launchargs.hpp"
 #include "threading/bqt_mutex.hpp"
 #include "bqt_keycode.hpp"
+#include "bqt_preferences.hpp"
 
 #include "bqt_log.hpp"
 
@@ -41,7 +42,7 @@ namespace
     
     std::map< bqt_platform_idevid_t,
               bqt::stroke_waypoint,
-              bool ( * )( const bqt_platform_idevid_t&, const bqt_platform_idevid_t& ) > prev_motion_events( &bqt_platform_idevid_t_comp );
+              bqt_platform_idevid_t_comp_t > prev_motion_events( &bqt_platform_idevid_t_comp );
     
     #ifdef PLATFORM_XWS_GNUPOSIX
     
@@ -223,40 +224,82 @@ namespace
             {
                 XButtonPressedEvent& x_bpevent( *( ( XButtonPressedEvent* )&x_event ) );
                 
-                w_event.type = bqt::STROKE;
-                
-                w_event.stroke.dev_id = dummy_idevid;                           
-                
-                w_event.stroke.position[ 0 ] = x_bpevent.x_root;
-                w_event.stroke.position[ 1 ] = x_bpevent.y_root;
-                
-                w_event.stroke.shift = ( bool )( x_bpevent.state & ShiftMask );
-                w_event.stroke.ctrl  = ( bool )( x_bpevent.state & ControlMask );
-                w_event.stroke.alt   = ( bool )( x_bpevent.state & Mod1Mask );
-                w_event.stroke.super = ( bool )( x_bpevent.state & Mod4Mask );
-                
-                #ifdef PLATFORM_MACOSX
-                w_event.stroke.cmd = w_event.stroke.super;
-                #else
-                w_event.stroke.cmd = w_event.stroke.ctrl;
-                #endif
-                
-                w_event.stroke.click = 0x00;
-                if( x_bpevent.button == Button1 )                               // Button1 = left click
-                    w_event.stroke.click |= CLICK_PRIMARY;
-                if( x_bpevent.button == Button3 )                               // Button3 = right click
-                    w_event.stroke.click |= CLICK_SECONDARY;
-                if( x_bpevent.button == Button2 )                               // Button2 = middle click
-                    w_event.stroke.click |= CLICK_ALT;
-                
-                w_event.stroke.prev_pos[ 0 ] = -INFINITY;
-                w_event.stroke.prev_pos[ 1 ] = -INFINITY;
-                prev_motion_events[ w_event.stroke.dev_id ] = w_event.stroke;
+                switch( x_bpevent.button )
+                {
+                case Button1:
+                case Button2:
+                case Button3:
+                    {
+                        w_event.type = bqt::STROKE;
+                        
+                        w_event.stroke.dev_id = dummy_idevid;                           
+                        
+                        w_event.stroke.position[ 0 ] = x_bpevent.x_root;
+                        w_event.stroke.position[ 1 ] = x_bpevent.y_root;
+                        
+                        w_event.stroke.shift = ( bool )( x_bpevent.state & ShiftMask );
+                        w_event.stroke.ctrl  = ( bool )( x_bpevent.state & ControlMask );
+                        w_event.stroke.alt   = ( bool )( x_bpevent.state & Mod1Mask );
+                        w_event.stroke.super = ( bool )( x_bpevent.state & Mod4Mask );
+                        
+                        #ifdef PLATFORM_MACOSX
+                        w_event.stroke.cmd = w_event.stroke.super;
+                        #else
+                        w_event.stroke.cmd = w_event.stroke.ctrl;
+                        #endif
+                        
+                        // Perhaps use x_bpevent.state here instead
+                        w_event.stroke.click = 0x00;
+                        if( x_bpevent.button == Button1 )                       // Button1 = left click
+                            w_event.stroke.click |= CLICK_PRIMARY;
+                        if( x_bpevent.button == Button3 )                       // Button3 = right click
+                            w_event.stroke.click |= CLICK_SECONDARY;
+                        if( x_bpevent.button == Button2 )                       // Button2 = middle click
+                            w_event.stroke.click |= CLICK_ALT;
+                        
+                        w_event.stroke.prev_pos[ 0 ] = -INFINITY;
+                        w_event.stroke.prev_pos[ 1 ] = -INFINITY;
+                        prev_motion_events[ w_event.stroke.dev_id ] = w_event.stroke;
+                    }
+                    break;
+                case Button4:
+                case Button5:
+                    {
+                        w_event.type = bqt::SCROLL;
+                        
+                        w_event.scroll.position[ 0 ] = x_bpevent.x_root;
+                        w_event.scroll.position[ 1 ] = x_bpevent.y_root;
+                        
+                        w_event.scroll.amount[ 0 ] = 0.0f;                      // No horizontal scroll from mouse wheels
+                        if( x_bpevent.button == Button4 )
+                            w_event.scroll.amount[ 1 ] = 1.0f;                  // Scroll wheel up
+                        else
+                            w_event.scroll.amount[ 1 ] = -1.0f;                 // Scroll wheel down
+                        
+                        w_event.scroll.shift = ( bool )( x_bpevent.state & ShiftMask );
+                        w_event.scroll.ctrl  = ( bool )( x_bpevent.state & ControlMask );
+                        w_event.scroll.alt   = ( bool )( x_bpevent.state & Mod1Mask );
+                        w_event.scroll.super = ( bool )( x_bpevent.state & Mod4Mask );
+                        
+                        #ifdef PLATFORM_MACOSX
+                        w_event.scroll.cmd = w_event.scroll.super;
+                        #else
+                        w_event.scroll.cmd = w_event.scroll.ctrl;
+                        #endif
+                    }
+                    break;
+                default:
+                    // Ignore
+                    break;
+                }
             }
             break;
         case ButtonRelease:
             {
                 XButtonReleasedEvent& x_brevent( *( ( XButtonReleasedEvent* )&x_event ) );
+                
+                if( x_brevent.button == Button4 || x_brevent.button == Button5 )
+                    break;                                                      // Ignore scroll button up events
                 
                 w_event.type = bqt::STROKE;
                 
@@ -739,10 +782,10 @@ void setQuitFlag()
     bqt::scoped_lock< bqt::mutex > slock( quit_mutex );
     quit_flag = true;
 }
-bool getQuitFlag()
+int getQuitFlag()
 {
     bqt::scoped_lock< bqt::mutex > slock( quit_mutex );
-    return quit_flag;
+    return ( int )quit_flag;
 }
 
 namespace bqt
@@ -783,6 +826,7 @@ namespace bqt
             
             if( x_keyrepeat_on )
             {
+                #warning Key repeating disabled globally
                 XAutoRepeatOff( x_display );                                    // Key repeat is handled in-application if necessary
                 x_keyrepeat_on = false;
             }

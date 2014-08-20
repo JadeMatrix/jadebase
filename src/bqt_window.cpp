@@ -24,6 +24,8 @@
 
 #include "gui/bqt_gui_button.hpp"
 #include "gui/bqt_gui_dial.hpp"
+#include "gui/bqt_gui_tabset.hpp"
+#include "gui/bqt_gui_group.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -145,13 +147,23 @@ namespace bqt
         
         // Devel
         {
-            elements.push_back( new button( *this, 10, 10, 60, 40 ) );
-            elements.push_back( new button( *this, 72, 10, 26, 40 ) );
-            elements.push_back( new button( *this, 100, 10, 40, 19 ) );
-            elements.push_back( new button( *this, 100, 31, 40, 19 ) );
+            group* test_group_a = new group( *this, 0, 0, 256, 256 );
+            group* test_group_b = new group( *this, 0, 0, 256, 256 );
             
-            elements.push_back( new dial( *this, 10, 70 ) );
-            elements.push_back( new dial( *this, 62, 70, true ) );
+            test_group_a -> addElement( new button( *this, 10, 10, 60, 40 ) );
+            test_group_a -> addElement( new button( *this, 72, 10, 26, 40 ) );
+            test_group_a -> addElement( new button( *this, 100, 10, 40, 19 ) );
+            test_group_a -> addElement( new button( *this, 100, 31, 40, 19 ) );
+            
+            test_group_b -> addElement( new dial( *this, 10, 70 ) );
+            test_group_b -> addElement( new dial( *this, 62, 70, true ) );
+            
+            tabset* test_tabset = new tabset( *this, 0, 0, 256, 256 );
+            
+            test_tabset -> addTab( test_group_a, "test tab A" );
+            test_tabset -> addTab( test_group_b, "test tab B" );
+            
+            elements.push_back( test_tabset );
             
             requestRedraw();
         }
@@ -244,10 +256,10 @@ namespace bqt
         named_resources[ tab_active_left ] = new gui_resource( *this, GUI_RESOURCE_FILE, 0, 60, 6, 30 );
         named_resources[ tab_active_center ] = new gui_resource( *this, GUI_RESOURCE_FILE, 6, 60, 1, 30 );
         named_resources[ tab_active_right ] = new gui_resource( *this, GUI_RESOURCE_FILE, 7, 60, 6, 30 );
-        named_resources[ tab_inactive_left ] = new gui_resource( *this, GUI_RESOURCE_FILE, 13, 60, 6, 30 );
-        named_resources[ tab_inactive_center ] = new gui_resource( *this, GUI_RESOURCE_FILE, 19, 60, 1, 30 );
-        named_resources[ tab_inactive_right ] = new gui_resource( *this, GUI_RESOURCE_FILE, 20, 60, 6, 30 );
-        named_resources[ tab_fill ] = new gui_resource( *this, GUI_RESOURCE_FILE, 26, 60, 1, 30 );
+        named_resources[ tab_inactive_left ] = new gui_resource( *this, GUI_RESOURCE_FILE, 14, 60, 6, 30 );
+        named_resources[ tab_inactive_center ] = new gui_resource( *this, GUI_RESOURCE_FILE, 20, 60, 1, 30 );
+        named_resources[ tab_inactive_right ] = new gui_resource( *this, GUI_RESOURCE_FILE, 21, 60, 6, 30 );
+        named_resources[ tab_fill ] = new gui_resource( *this, GUI_RESOURCE_FILE, 13, 60, 1, 30 );
         named_resources[ tab_control_active_close_up ] = new gui_resource( *this, GUI_RESOURCE_FILE, 38, 110, 20, 23 );
         named_resources[ tab_control_active_close_over ] = new gui_resource( *this, GUI_RESOURCE_FILE, 58, 110, 20, 23 );
         named_resources[ tab_control_active_close_down ] = new gui_resource( *this, GUI_RESOURCE_FILE, 78, 110, 20, 23 );
@@ -318,12 +330,12 @@ namespace bqt
         named_resources[ checkbox_part_down ] = new gui_resource( *this, GUI_RESOURCE_FILE, 116, 40, 17, 20 );
         named_resources[ checkbox_on_up ] = new gui_resource( *this, GUI_RESOURCE_FILE, 133, 20, 17, 20 );
         named_resources[ checkbox_on_down ] = new gui_resource( *this, GUI_RESOURCE_FILE, 133, 40, 17, 20 );
-        named_resources[ slider_empty_left ] = new gui_resource( *this, GUI_RESOURCE_FILE, 30, 74, 2, 4 );
-        named_resources[ slider_empty_fill ] = new gui_resource( *this, GUI_RESOURCE_FILE, 29, 74, 1, 4 );
-        named_resources[ slider_empty_right ] = new gui_resource( *this, GUI_RESOURCE_FILE, 27, 74, 2, 4 );
-        named_resources[ slider_full_left ] = new gui_resource( *this, GUI_RESOURCE_FILE, 30, 78, 2, 4 );
-        named_resources[ slider_full_fill ] = new gui_resource( *this, GUI_RESOURCE_FILE, 29, 78, 1, 4 );
-        named_resources[ slider_full_right ] = new gui_resource( *this, GUI_RESOURCE_FILE, 27, 78, 2, 4 );
+        named_resources[ slider_empty_left ] = new gui_resource( *this, GUI_RESOURCE_FILE, 30, 44, 2, 4 );
+        named_resources[ slider_empty_fill ] = new gui_resource( *this, GUI_RESOURCE_FILE, 29, 44, 1, 4 );
+        named_resources[ slider_empty_right ] = new gui_resource( *this, GUI_RESOURCE_FILE, 27, 44, 2, 4 );
+        named_resources[ slider_full_left ] = new gui_resource( *this, GUI_RESOURCE_FILE, 30, 48, 2, 4 );
+        named_resources[ slider_full_fill ] = new gui_resource( *this, GUI_RESOURCE_FILE, 29, 48, 1, 4 );
+        named_resources[ slider_full_right ] = new gui_resource( *this, GUI_RESOURCE_FILE, 27, 48, 2, 4 );
         named_resources[ dial_large_dial ] = new gui_resource( *this, GUI_RESOURCE_FILE, 0, 156, 42, 42 );
         named_resources[ dial_large_dot ] = new gui_resource( *this, GUI_RESOURCE_FILE, 42, 156, 6, 6 );
         named_resources[ dial_small_dial ] = new gui_resource( *this, GUI_RESOURCE_FILE, 0, 198, 22, 22 );
@@ -537,6 +549,13 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( window_lock, RW_WRITE );
         
+        // Devel
+        if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
+        {
+            setQuitFlag();
+            return;
+        }
+        
         bool no_position = false;
         
         std::pair< int, int > element_position;
@@ -570,6 +589,12 @@ namespace bqt
             e_position[ 0 ] = e.pinch.position[ 0 ];
             e_position[ 1 ] = e.pinch.position[ 1 ];
             break;
+        case SCROLL:
+            e.scroll.position[ 0 ] -= position[ 0 ];
+            e.scroll.position[ 1 ] -= position[ 1 ];
+            e_position[ 0 ] = e.scroll.position[ 0 ];
+            e_position[ 1 ] = e.scroll.position[ 1 ];
+            break;
         default:
             throw exception( "window::acceptEvent(): Unknown event type" );
             break;
@@ -591,7 +616,7 @@ namespace bqt
             }
             else
             {
-                element_position   = elements[ i ] -> getPosition();
+                element_position   = elements[ i ] -> getVisualPosition();
                 element_dimensions = elements[ i ] -> getVisualDimensions();
                 
                 if( ( e.type == STROKE
@@ -613,10 +638,6 @@ namespace bqt
                 }
             }
         }
-        
-        // Devel
-        if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
-            setQuitFlag();
     }
     
     bqt_platform_window_t& window::getPlatformWindow()
@@ -1077,7 +1098,7 @@ namespace bqt
             glEnable( GL_BLEND );
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
             
-            glClearColor( 0.3, 0.3, 0.3, 1.0 );
+            glClearColor( 0.05f, 0.05f, 0.05f, 1.0f );
             glClear( GL_COLOR_BUFFER_BIT );
             
             glEnable( GL_TEXTURE_2D );

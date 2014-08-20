@@ -16,7 +16,6 @@
 #endif
 
 #include "bqt_gui_resource.hpp"
-#include "../bqt_log.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -68,6 +67,8 @@ namespace bqt
             window_set.large.dot  = parent.getNamedResource( dial_large_dot  );
             window_set.small.dial = parent.getNamedResource( dial_small_dial );
             window_set.small.dot  = parent.getNamedResource( dial_small_dot  );
+            
+            window_set.count = 1;
         }
         else
             size_sets[ &parent ].count++;
@@ -119,7 +120,7 @@ namespace bqt
                 {
                     capturing = NONE;
                     parent.associateDevice( e.stroke.dev_id, NULL );
-                    return false;
+                    return true;                                                // Accept event because we used it
                 }
                 else
                 {
@@ -167,14 +168,30 @@ namespace bqt
                     
                     parent.associateDevice( e.stroke.dev_id, this );
                     
+                    // Don't need a redraw request
+                    
                     return true;
                 }
                 else
-                    return false;
+                    return !event_fallthrough;
+            }
+        }
+        else
+        {
+            if( e.type == SCROLL
+                && pointInsideCircle( e.scroll.position[ 0 ],
+                                      e.scroll.position[ 1 ],
+                                      position[ 0 ] + radius,
+                                      position[ 1 ] + radius,
+                                      radius ) )
+            {
+                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR * 1.0f ) );
+                parent.requestRedraw();
+                return true;
             }
         }
         
-        return false;
+        return !event_fallthrough;
     }
     
     void dial::draw()

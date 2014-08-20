@@ -88,7 +88,7 @@ namespace bqt
         
         std::map< bqt_platform_idevid_t,
                   gui_element*,
-                  bool ( * )( const bqt_platform_idevid_t&, const bqt_platform_idevid_t& ) > input_assoc;
+                  bqt_platform_idevid_t_comp_t > input_assoc;
         std::vector< gui_element* > elements;
         
         struct gui_texture_holder
