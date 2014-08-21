@@ -186,7 +186,10 @@ namespace bqt
         tabs.push_back( new_data );
         
         if( current_tab < 0 )
+        {
             current_tab = 0;
+            tabs[ current_tab ].contents -> shown();
+        }
         
         reorganizeTabs();                                                       // Calls parent.requestRedraw()
     }
@@ -194,20 +197,32 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
+        int i = 0;
         for( std::vector< tab_data >::iterator iter = tabs.begin();
              iter != tabs.end();
              ++iter )
         {
             if( iter -> contents == g )
             {
-                if( tabs[ current_tab ].contents == g
-                    && current_tab == tabs.size() - 1 )                         // Select a new current tab as the one to the right if it exists, otherwise to
-                                                                                // the left (which implicity selects none if there are no more tabs)
+                if( i < current_tab )                                           // If removed tab is to the left of current
                 {
-                    --current_tab;
-                    
-                    if( current_tab >= 0 )
-                        tabs[ current_tab ].contents -> shown();
+                    --current_tab;                                              // ... current's new position is one to the left
+                }
+                else
+                {
+                    if( i == current_tab )                                      // If we are removing the current tab
+                    {
+                        if( current_tab < tabs.size() - 1 )                     // If current is not at the far right
+                            tabs[ current_tab + 1 ].contents -> shown();        // ... select the next to the right as the new current (index remains the same)
+                        else
+                        {
+                            --current_tab;                                      // ... otherwise select the one to the left
+                            if( current_tab >= 0 )
+                                tabs[ current_tab ].contents -> shown();
+                            else
+                                current_tab = -1;                               // ... unless there are no more tabs, then we have no current
+                        }
+                    }                                                           // Removing a tab to the right of current does not affect current
                 }
                 
                 tabs.erase( iter );
@@ -216,6 +231,8 @@ namespace bqt
                 
                 return;
             }
+            
+            ++i;
         }
         
         throw exception( "tabset::removeTab(): No such tab" );
@@ -244,26 +261,30 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
+        if( current_tab >= 0 )
+            tabs[ current_tab ].contents -> hidden();
+        
         current_tab = getTabIndex( g );
+        g -> shown();
         
         parent.requestRedraw();
     }
-    void tabset::moveTabToLeft( group* g )
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+    // void tabset::moveTabToLeft( group* g )
+    // {
+    //     scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
         
         
-        parent.requestRedraw();
-    }
-    void tabset::moveTabToRight( group* g )
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+    //     parent.requestRedraw();
+    // }
+    // void tabset::moveTabToRight( group* g )
+    // {
+    //     scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
         
         
-        parent.requestRedraw();
-    }
+    //     parent.requestRedraw();
+    // }
     
     bool tabset::acceptEvent( window_event& e )
     {

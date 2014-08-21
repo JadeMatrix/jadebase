@@ -75,8 +75,8 @@ namespace bqt
         void setTabTitle( group* g, std::string t );
         void setTabSafe( group* g, bool safe );
         void makeTabCurrent( group* g );
-        void moveTabToLeft( group* g );
-        void moveTabToRight( group* g );
+        // void moveTabToLeft( group* g );
+        // void moveTabToRight( group* g );
         
         bool acceptEvent( window_event& e );
         
