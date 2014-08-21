@@ -232,7 +232,7 @@ namespace bqt
     
     bool group::acceptEvent( window_event& e )
     {
-        return acceptEvent_copy( e );
+        return acceptEvent_copy( e );                                           // Easy way of changing offsets without editing original
     }
     
     void group::draw()

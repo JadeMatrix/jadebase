@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "../bqt_window.hpp"
-#include "bqt_gui_texture.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -23,27 +22,17 @@ namespace bqt
     {
     protected:
         window& parent;
-        gui_texture* texture;
         
-        GLuint gl_dlist;
-        bool dlist_created;
-        
-        unsigned int   position[ 2 ];
         unsigned int dimensions[ 2 ];
-        
-        void createDisplayList();
     public:
-        gui_resource( window& parent,
-                      std::string f,
-                      unsigned int x,
-                      unsigned int y,
+        gui_resource( window& p,
                       unsigned int w,
                       unsigned int h );
-        ~gui_resource();
+        virtual ~gui_resource();
         
-        std::pair< unsigned int, unsigned int > getDimensions();
+        virtual std::pair< unsigned int, unsigned int > getDimensions();
         
-        void draw();
+        virtual void draw() = 0;
     };
 }
 
