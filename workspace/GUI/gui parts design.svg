@@ -3167,8 +3167,8 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="859.45281"
-     inkscape:cy="566.58493"
+     inkscape:cx="-396.69045"
+     inkscape:cy="1162.6616"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
@@ -3251,6 +3251,13 @@
      id="layer2"
      inkscape:label="Window"
      style="display:inline">
+    <rect
+       style="color:#000000;fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248134999999927;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect9309"
+       width="27"
+       height="3"
+       x="-410"
+       y="-349" />
     <g
        id="g7956"
        transform="translate(-192,-71)">
@@ -7441,19 +7448,24 @@
        d="m -360,-397 4,3.5 -4,3.5 0,-7 z"
        id="path5434"
        inkscape:connector-curvature="0" />
-    <rect
+    <path
        style="color:#000000;fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       d="m -404,-375 c -3.324,0 -6,2.676 -6,6 l 0,20 13,0 0,-20 c 0,-3.324 -2.676,-6 -6,-6 z"
        id="rect3439-8"
-       width="27"
-       height="3"
-       x="-410"
-       y="-349" />
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ssccsss" />
     <path
        sodipodi:nodetypes="ssccccccsss"
        inkscape:connector-curvature="0"
        id="path3444-6"
        d="m -404,-373.5 c -2.76142,0 -5,1.73858 -5,4.5 l 0,19 -1,0 0,3 27,0 0,-3 -15,0 0,-19 c 0,-2.76142 -2.23858,-4.5 -5,-4.5 z"
        style="color:#000000;fill:url(#linearGradient5541);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    <path
+       sodipodi:nodetypes="ssccsss"
+       inkscape:connector-curvature="0"
+       id="path9328"
+       d="m -390,-375 c -3.324,0 -6,2.676 -6,6 l 0,20 13,0 0,-20 c 0,-3.324 -2.676,-6 -6,-6 z"
+       style="color:#000000;fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
     <path
        id="path4940-8"
        style="color:#000000;fill:#808080;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
@@ -9321,7 +9333,8 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Masks"
-     style="display:inline">
+     style="display:inline"
+     sodipodi:insensitive="true">
     <rect
        inkscape:export-ydpi="90"
        inkscape:export-xdpi="90"
