@@ -57,6 +57,8 @@ namespace bqt
         void shown();
         void hidden();
         
+        void close();
+        
         bool acceptEvent( window_event& e );
         
         void draw();

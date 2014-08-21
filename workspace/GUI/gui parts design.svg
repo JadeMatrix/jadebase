@@ -3138,6 +3138,26 @@
        y1="72.134666"
        x2="1082.5"
        y2="57.913048" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4483-1-6-8"
+       id="linearGradient3457-9-2"
+       x1="105"
+       y1="21"
+       x2="105"
+       y2="45"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient4483-1-6-8">
+      <stop
+         style="stop-color:#666666;stop-opacity:1"
+         offset="0"
+         id="stop4485-0-79-8" />
+      <stop
+         style="stop-color:#4d4d4d;stop-opacity:1;"
+         offset="1"
+         id="stop4487-0-73-8" />
+    </linearGradient>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -3147,11 +3167,11 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="-261.0512"
-     inkscape:cy="972.12658"
+     inkscape:cx="859.45281"
+     inkscape:cy="566.58493"
      inkscape:document-units="px"
-     inkscape:current-layer="layer4"
-     showgrid="true"
+     inkscape:current-layer="layer2"
+     showgrid="false"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
@@ -3163,7 +3183,7 @@
      inkscape:window-y="24"
      inkscape:window-maximized="1"
      inkscape:snap-bbox="true"
-     showguides="false"
+     showguides="true"
      inkscape:guide-bbox="true"
      inkscape:snap-nodes="true"
      inkscape:object-paths="false">
@@ -3184,6 +3204,10 @@
        orientation="0,1"
        position="326,516"
        id="guide4441" />
+    <sodipodi:guide
+       orientation="1,0"
+       position="193,906"
+       id="guide8534" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -3226,8 +3250,7 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="Window"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <g
        id="g7956"
        transform="translate(-192,-71)">
@@ -7422,14 +7445,14 @@
        style="color:#000000;fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="rect3439-8"
        width="27"
-       height="30"
+       height="3"
        x="-410"
-       y="-376" />
+       y="-349" />
     <path
        sodipodi:nodetypes="ssccccccsss"
        inkscape:connector-curvature="0"
        id="path3444-6"
-       d="m -404,-373 c -2.76142,0 -5,1.23858 -5,4 l 0,19 -1,0 0,3 27,0 0,-3 -15,0 0,-19 c 0,-2.76142 -2.23858,-4 -5,-4 z"
+       d="m -404,-373.5 c -2.76142,0 -5,1.73858 -5,4.5 l 0,19 -1,0 0,3 27,0 0,-3 -15,0 0,-19 c 0,-2.76142 -2.23858,-4.5 -5,-4.5 z"
        style="color:#000000;fill:url(#linearGradient5541);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
     <path
        id="path4940-8"
@@ -7441,7 +7464,7 @@
        sodipodi:nodetypes="ccccccc"
        inkscape:connector-curvature="0"
        style="color:#000000;fill:url(#linearGradient5550);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       d="m -390,-373 c -2.76142,0 -5,1.23858 -5,4 l 0,18 11,0 0,-18 c 0,-2.76142 -2.23858,-4 -5,-4 z"
+       d="m -390,-373.5 c -2.76142,0 -5,1.73858 -5,4.5 l 0,18 11,0 0,-18 c 0,-2.76142 -2.23858,-4.5 -5,-4.5 z"
        id="path3459-5" />
     <path
        style="color:#000000;fill:#666666;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:11.37248135;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
@@ -11050,5 +11073,89 @@
        inkscape:export-filename="/home/jadematrix/Developer/BQTDraw/resources/BQTDraw_splash.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
+    <rect
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect8510"
+       width="25"
+       height="30"
+       x="-335"
+       y="-271" />
+    <rect
+       y="-271"
+       x="-310"
+       height="30"
+       width="25"
+       id="rect8512"
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    <rect
+       y="-271"
+       x="-285"
+       height="30"
+       width="25"
+       id="rect8514"
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    <rect
+       y="-271"
+       x="-260"
+       height="30"
+       width="25"
+       id="rect8516"
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    <rect
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect8518"
+       width="25"
+       height="30"
+       x="-235"
+       y="-271" />
+    <rect
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect8520"
+       width="25"
+       height="30"
+       x="-210"
+       y="-271" />
+    <rect
+       y="-241"
+       x="-335"
+       height="30"
+       width="25"
+       id="rect8522"
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    <rect
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect8524"
+       width="25"
+       height="30"
+       x="-310"
+       y="-241" />
+    <rect
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect8526"
+       width="25"
+       height="30"
+       x="-285"
+       y="-241" />
+    <rect
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect8528"
+       width="25"
+       height="30"
+       x="-260"
+       y="-241" />
+    <rect
+       y="-241"
+       x="-235"
+       height="30"
+       width="25"
+       id="rect8530"
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    <rect
+       y="-241"
+       x="-210"
+       height="30"
+       width="25"
+       id="rect8532"
+       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
   </g>
 </svg>

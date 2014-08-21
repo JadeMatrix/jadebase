@@ -270,11 +270,11 @@ namespace
                         w_event.scroll.position[ 0 ] = x_bpevent.x_root;
                         w_event.scroll.position[ 1 ] = x_bpevent.y_root;
                         
-                        w_event.scroll.amount[ 0 ] = 0.0f;                      // No horizontal scroll from mouse wheels
-                        if( x_bpevent.button == Button4 )
-                            w_event.scroll.amount[ 1 ] = 1.0f;                  // Scroll wheel up
-                        else
-                            w_event.scroll.amount[ 1 ] = -1.0f;                 // Scroll wheel down
+                        w_event.scroll.amount[ 0 ] = NAN;                       // No horizontal scroll from mouse wheels
+                        if( x_bpevent.button == Button4 )                       // Scroll wheel up, ie scroll down
+                            w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
+                        else                                                    // Scroll wheel down, ie scroll up
+                            w_event.scroll.amount[ 1 ] = -1.0f * bqt::getWheelScrollDistance();
                         
                         w_event.scroll.shift = ( bool )( x_bpevent.state & ShiftMask );
                         w_event.scroll.ctrl  = ( bool )( x_bpevent.state & ControlMask );

@@ -29,31 +29,6 @@ namespace bqt
     class tabset : public gui_element
     {
     protected:
-        /* Sub-elements *******************************************************/
-        
-        // class tab_button : public gui_element
-        // {
-        // protected:
-        //     tab& parent_tab;
-        // public:
-        //     tab_button( tab& p );
-        //     bool acceptEvent( window_event& e );
-        //     void draw();
-        // };
-        
-        // class tab : public gui_element
-        // {
-        // protected:
-        //     tabset& parent_set;
-        //     tab_button button;
-        // public:
-        //     tab( tabset& p );
-        //     bool acceptEvent( window_event& e );
-        //     void draw();
-        // };
-        
-        /**********************************************************************/
-        
         struct tab_data
         {
             // tab* head;
@@ -75,11 +50,12 @@ namespace bqt
         };
         std::vector< tab_data > tabs;
         int current_tab;
+        float total_tab_width;
         
         int bar_scroll;
         
         bool capturing;
-        float capture_start[ 2 ];
+        float capture_start[ 3 ];
         
         int getTabIndex( group* g );
         void reorganizeTabs();

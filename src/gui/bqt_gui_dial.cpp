@@ -16,6 +16,7 @@
 #endif
 
 #include "bqt_gui_resource.hpp"
+#include "../bqt_preferences.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -118,6 +119,7 @@ namespace bqt
             {
                 if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled
                 {
+                    ff::write( bqt_out, "Dial released stroke\n" );
                     capturing = NONE;
                     parent.associateDevice( e.stroke.dev_id, NULL );
                     return true;                                                // Accept event because we used it
@@ -127,7 +129,7 @@ namespace bqt
                     if( capturing == VERTICAL )
                         setValue( capture_start[ 2 ]
                                   + ( e.stroke.position[ 1 ] - capture_start[ 1 ] )
-                                  / DIAL_DRAG_FACTOR );
+                                  / ( DIAL_DRAG_FACTOR * -1.0f ) );
                     else
                         // atan2 takes y/x, but since our origin is at the top,
                         // we switch that around and multiply y by -1
@@ -162,6 +164,8 @@ namespace bqt
                         capturing = CIRCULAR;
                     }
                     
+                    ff::write( bqt_out, "Dial captured stroke\n" );
+                    
                     capture_start[ 0 ] = e.stroke.position[ 0 ];
                     capture_start[ 1 ] = e.stroke.position[ 1 ];
                     capture_start[ 2 ] = value;
@@ -185,7 +189,7 @@ namespace bqt
                                       position[ 1 ] + radius,
                                       radius ) )
             {
-                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR * 1.0f ) );
+                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR / getWheelScrollDistance() ) );
                 parent.requestRedraw();
                 return true;
             }

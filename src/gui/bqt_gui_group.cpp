@@ -227,6 +227,13 @@ namespace bqt
         // inform lua_state
     }
     
+    void group::close()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        // inform lua_state
+    }
+    
     bool group::acceptEvent( window_event& e )
     {
         return acceptEvent_copy( e );

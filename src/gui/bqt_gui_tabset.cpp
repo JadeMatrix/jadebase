@@ -1,13 +1,16 @@
 /* 
  * bqt_gui_tabset.cpp
  * 
- * About
+ * reorganizeTabs() current does not allow the captured tab to follow the cursor
+ * except in steps.
  * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "bqt_gui_tabset.hpp"
+
+#include <cmath>
 
 #include "bqt_gui_resource.hpp"
 #include "../bqt_exception.hpp"
@@ -66,20 +69,25 @@ namespace bqt
     {
         if( tabs.size() )
         {
-            tabs[ 0 ].position = 0;
+            total_tab_width = 0;
             
-            if( tabs[ 0 ].width < TABSET_MIN_TAB_WIDTH )
-                tabs[ 0 ].width = TABSET_MIN_TAB_WIDTH;
-            // TODO: Recalculate width of [ 0 ] based on title
-            
-            for( int i = 1; i < tabs.size(); ++i )
+            for( int i = 0; i < tabs.size(); ++i )
             {
-                tabs[ i ].position = tabs[ i - 1 ].position + tabs[ i - 1 ].width;
+                if( !( capturing && i == current_tab ) )
+                    tabs[ i ].position = total_tab_width;                       // Don't set the position of the tab we're currently dragging
                 
                 if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
                     tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
                 // TODO: Recalculate width of [ i ] based on title
+                
+                total_tab_width += tabs[ i ].width;
             }
+            
+            if( bar_scroll > total_tab_width - dimensions[ 0 ] )
+                bar_scroll = total_tab_width - dimensions[ 0 ];
+            
+            if( bar_scroll < 0 )
+                bar_scroll = 0;
         }
         
         parent.requestRedraw();
@@ -92,7 +100,7 @@ namespace bqt
                     unsigned int h ) : gui_element( parent, x, y, w, h + TABSET_BAR_HEIGHT )
     {
         current_tab = -1;
-        
+        total_tab_width = 0;
         bar_scroll = 0;
         
         capturing = false;
@@ -156,7 +164,7 @@ namespace bqt
             tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
         }
         
-        parent.requestRedraw();
+        reorganizeTabs();                                                       // Calls parent.requestRedraw()
     }
     
     void tabset::addTab( group* g, std::string t )
@@ -217,85 +225,178 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
-        if( e.type == STROKE )
+        switch( e.type )
         {
-            if( capturing )
-            {
-                if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled
+            case STROKE:
                 {
-                    capturing = false;
-                    parent.associateDevice( e.stroke.dev_id, NULL );
-                    return true;                                                // Accept event because we used it
-                }
-                else
-                {
-                    
-                }
-            }
-            else
-            {
-                if( ( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ],
-                                        e.stroke.position[ 1 ],
-                                        position[ 0 ],
-                                        position[ 1 ],
-                                        dimensions[ 0 ],
-                                        TABSET_BAR_HEIGHT ) )                   // Get event if in BAR
-                {
-                    for( int i = 0; i < tabs.size(); ++ i )
+                    if( capturing )
                     {
-                        if( pointInsideRect( e.stroke.position[ 0 ],
-                                             e.stroke.position[ 1 ],
-                                             tabs[ i ].position + bar_scroll,
-                                             position[ 1 ],
-                                             tabs[ i ].width,
-                                             TABSET_TAB_HEIGHT ) )              // Click if on TAB
+                        if( e.stroke.click & CLICK_PRIMARY )
                         {
-                            if( i != current_tab )
+                            if( current_tab < 0 || current_tab >= tabs.size() )
+                                throw exception( "tabset::acceptEvent(): Capturing without valid tab" );
+                            
+                            tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - capture_start[ 0 ];
+                            
+                            if( tabs[ current_tab ].position < 0 )
+                                tabs[ current_tab ].position = 0;
+                            
+                            if( current_tab > 0
+                                && tabs[ current_tab ].position
+                                   <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width )
                             {
-                                current_tab = i;
-                                parent.requestRedraw();
+                                tab_data temp = tabs[ current_tab - 1 ];
+                                tabs[ current_tab - 1 ] = tabs[ current_tab ];
+                                tabs[ current_tab ] = temp;
+                                
+                                current_tab--;
+                            }
+                            else
+                            {
+                                if( current_tab < tabs.size() - 1
+                                    && tabs[ current_tab ].position
+                                       >= tabs[ current_tab + 1 ].position )
+                                {
+                                    tab_data temp = tabs[ current_tab + 1 ];
+                                    tabs[ current_tab + 1 ] = tabs[ current_tab ];
+                                    tabs[ current_tab ] = temp;
+                                    
+                                    current_tab++;
+                                }
                             }
                             
-                            // capturing = true;
-                            // capture_start[ 0 ] = e.stroke.position[ 0 ];
-                            // capture_start[ 1 ] = e.stroke.position[ 1 ];
-                            
-                            // parent.associateDevice( e.stroke.dev_id, this );
+                            reorganizeTabs();                                           // Calls parent.requestRedraw()
                             
                             return true;
                         }
+                        else
+                        {
+                            capturing = false;
+                            parent.associateDevice( e.stroke.dev_id, NULL );
+                            reorganizeTabs();
+                        }
                     }
-                    
-                    return !event_fallthrough;
+                    else
+                    {
+                        if( pointInsideRect( e.stroke.position[ 0 ],
+                                             e.stroke.position[ 1 ],
+                                             position[ 0 ],
+                                             position[ 1 ],
+                                             dimensions[ 0 ],
+                                             TABSET_BAR_HEIGHT ) )              // Stroke inside tab bar
+                        {
+                            for( int i = 0; i < tabs.size(); ++i )
+                            {
+                                if( e.stroke.position[ 0 ] >= tabs[ i ].position + bar_scroll
+                                    && e.stroke.position[ 0 ] < tabs[ i ].position + bar_scroll + tabs[ i ].width
+                                    && e.stroke.position[ 1 ] < TABSET_TAB_HEIGHT )
+                                {
+                                    if( pointInsideCircle( e.stroke.position[ 0 ],
+                                                           e.stroke.position[ 1 ],
+                                                           tabs[ i ].position + tabs[ i ].width - 13,
+                                                           13,
+                                                           7 ) )                // Current stroke in button
+                                    {
+                                        if( e.stroke.click & CLICK_PRIMARY )
+                                        {
+                                            tabs[ i ].button_state = tab_data::DOWN;
+                                            parent.requestRedraw();
+                                        }
+                                        else
+                                        {
+                                            if( tabs[ i ].button_state == tab_data::DOWN )
+                                            {                                   // Close tab
+                                                tabs[ i ].contents -> close();
+                                                removeTab( tabs[ i ].contents );// Calls other utilities for cleanup
+                                            }
+                                            else                                // Just a mouseover
+                                            {
+                                                tabs[ i ].button_state = tab_data::OVER;
+                                                parent.requestRedraw();
+                                            }
+                                        }
+                                        
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        if( pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                                               e.stroke.prev_pos[ 1 ],
+                                                               tabs[ i ].position + tabs[ i ].width - 13,
+                                                               13,
+                                                               7 ) )            // Previous stroke in button
+                                        {
+                                            tabs[ i ].button_state = tab_data::UP;
+                                            parent.requestRedraw();
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            if( e.stroke.click & CLICK_PRIMARY )// Start tab dragging
+                                            {
+                                                current_tab = i;
+                                                
+                                                capturing = true;
+                                                capture_start[ 0 ] = e.stroke.position[ 0 ];
+                                                capture_start[ 1 ] = e.stroke.position[ 1 ];
+                                                capture_start[ 2 ] = tabs[ i ].position;
+                                                
+                                                parent.associateDevice( e.stroke.dev_id, this );
+                                                
+                                                parent.requestRedraw();
+                                            }
+                                            
+                                            return true;                        // Either way we used the event
+                                        }
+                                    }
+                                }                                               // Will return in some way if true
+                            }
+                            
+                            return true;                                        // Stroke in bar but not on a tab
+                        }
+                        
+                        // Let event fall through to curren tab's contents
+                    }
                 }
-                
-                // Let event fall down to current tabs' contents
-            }
-        }
-        else
-        {
-            if( e.type == SCROLL
-                && pointInsideRect( e.scroll.position[ 0 ],
-                                    e.scroll.position[ 1 ],
-                                    position[ 0 ],
-                                    position[ 1 ],
-                                    dimensions[ 0 ],
-                                    TABSET_BAR_HEIGHT ) )
-            {
-                if( e.scroll.amount[ 0 ] != 0.0f )
-                    bar_scroll += e.scroll.amount[ 0 ] * TABSET_SCROLL_FACTOR;
-                else
-                    bar_scroll += e.scroll.amount[ 1 ] * TABSET_SCROLL_FACTOR;
-                
-                reorganizeTabs();
-            }
+                break;
+            case SCROLL:
+                {
+                    if( pointInsideRect( e.scroll.position[ 0 ],
+                                         e.scroll.position[ 1 ],
+                                         position[ 0 ],
+                                         position[ 1 ],
+                                         dimensions[ 0 ],
+                                         TABSET_BAR_HEIGHT ) )
+                    {
+                        if( e.scroll.amount[ 0 ] != NAN )                       // If there is horizontal scroll, use only that
+                        {
+                            if( capturing )
+                                capture_start[ 0 ] += e.scroll.amount[ 0 ];     // Readjust capture start X so tab follows cursor while scrolling
+                            
+                            bar_scroll += e.scroll.amount[ 0 ];
+                        }
+                        else                                                    // Otherwise use only vertical scroll
+                        {
+                            if( capturing )
+                                capture_start[ 0 ] += e.scroll.amount[ 1 ];     // Readjust capture start X so tab follows cursor while scrolling
+                            
+                            bar_scroll += e.scroll.amount[ 1 ];
+                        }
+                        
+                        reorganizeTabs();                                       // Clamps bar_scroll & calls parent.requestRedraw()
+                        
+                        return true;
+                    }
+                }
+                break;
+            default:
+                break;
         }
         
         if( current_tab >= 0 )                                                  // current_tab is a group so it will convert event position for us
             return tabs[ current_tab ].contents -> acceptEvent( e ) || !event_fallthrough;
         else
-            return !event_fallthrough;
+            return !event_fallthrough;                                          // If there is no current tab, we just let the event fall through if possible
     }
     
     void tabset::draw()
@@ -307,6 +408,19 @@ namespace bqt
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
+            glBegin( GL_QUADS );
+            {
+                glColor4f( 0.1f, 0.1f, 0.1f, 1.0f );
+                
+                glVertex2f( 0.0f, 0.0f );
+                glVertex2f( 0.0f, TABSET_BAR_HEIGHT );
+                glVertex2f( dimensions[ 0 ], TABSET_BAR_HEIGHT );
+                glVertex2f( dimensions[ 0 ], 0.0f );
+                
+                glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
+            }
+            glEnd();
+            
             glPushMatrix();
             {
                 glScalef( dimensions[ 0 ], 1.0f, 1.0f );
@@ -315,31 +429,95 @@ namespace bqt
             }
             glPopMatrix();
             
+            tab_set* t_set;
+            ctrl_set* c_set;
+            
             glPushMatrix();
             {
                 glTranslatef( bar_scroll, 0.0f, 0.0f );
                 
                 for( int i = 0; i < tabs.size(); ++i )
                 {
-                    tab_set* t_set;
-                    ctrl_set* c_set;
-                    
                     if( i == current_tab )
-                        t_set = &set.active;
+                        glTranslatef( tabs[ i ].width, 0.0f, 0.0f );
                     else
-                        t_set = &set.inactive;
-                    
-                    switch( tabs[ i ].state )
                     {
-                    case tab_data::CLOSE_SAFE:
-                        c_set = &( t_set -> safe );
-                        break;
-                    case tab_data::CLOSE_UNSAFE:
-                        c_set = &( t_set -> unsafe );
-                        break;
-                    default:
-                        throw exception( "tabset::draw(): Unknown state" );
+                        t_set = &set.inactive;
+                        
+                        switch( tabs[ i ].state )
+                        {
+                        case tab_data::CLOSE_SAFE:
+                            c_set = &( t_set -> safe );
+                            break;
+                        case tab_data::CLOSE_UNSAFE:
+                            c_set = &( t_set -> unsafe );
+                            break;
+                        default:
+                            throw exception( "tabset::draw(): Unknown state" );
+                        }
+                        
+                        t_set -> left -> draw();
+                        
+                        glTranslatef( 6.0f, 0.0f, 0.0f );
+                        
+                        glPushMatrix();
+                        {
+                            glScalef( tabs[ i ].width - 12.0f, 1.0f, 1.0f );
+                            
+                            t_set -> center -> draw();
+                        }
+                        glPopMatrix();
+                        
+                        glTranslatef( tabs[ i ].width - 12.0f, 0.0f, 0.0f );
+                        
+                        t_set -> right -> draw();
+                        
+                        glPushMatrix();
+                        {
+                            glTranslatef( -14.0f, 2.0f, 0.0f );
+                            
+                            switch( tabs[ i ].button_state )
+                            {
+                            case tab_data::UP:
+                                c_set -> up -> draw();
+                                break;
+                            case tab_data::OVER:
+                                c_set -> over -> draw();
+                                break;
+                            case tab_data::DOWN:
+                                c_set -> down -> draw();
+                                break;
+                            default:
+                                throw exception( "tabset::draw(): Unknown button state" );
+                            }
+                        }
+                        glPopMatrix();
+                        
+                        glTranslatef( 6.0f, 0.0f, 0.0f );
                     }
+                }
+            }
+            glPopMatrix();
+            
+            if( current_tab >= 0 )
+            {
+                t_set = &set.active;
+                
+                switch( tabs[ current_tab ].state )
+                {
+                case tab_data::CLOSE_SAFE:
+                    c_set = &( t_set -> safe );
+                    break;
+                case tab_data::CLOSE_UNSAFE:
+                    c_set = &( t_set -> unsafe );
+                    break;
+                default:
+                    throw exception( "tabset::draw(): Unknown state for current tab" );
+                }
+                
+                glPushMatrix();
+                {
+                    glTranslatef( tabs[ current_tab ].position, 0.0f, 0.0f );
                     
                     t_set -> left -> draw();
                     
@@ -347,21 +525,21 @@ namespace bqt
                     
                     glPushMatrix();
                     {
-                        glScalef( tabs[ i ].width - 12.0f, 1.0f, 1.0f );
+                        glScalef( tabs[ current_tab ].width - 12.0f, 1.0f, 1.0f );
                         
                         t_set -> center -> draw();
                     }
                     glPopMatrix();
                     
-                    glTranslatef( tabs[ i ].width - 12.0f, 0.0f, 0.0f );
+                    glTranslatef( tabs[ current_tab ].width - 12.0f, 0.0f, 0.0f );
                     
                     t_set -> right -> draw();
                     
                     glPushMatrix();
                     {
-                        glTranslatef( -14.0f, 0.0f, 0.0f );
+                        glTranslatef( -14.0f, 2.0f, 0.0f );
                         
-                        switch( tabs[ i ].button_state )
+                        switch( tabs[ current_tab ].button_state )
                         {
                         case tab_data::UP:
                             c_set -> up -> draw();
@@ -373,22 +551,15 @@ namespace bqt
                             c_set -> down -> draw();
                             break;
                         default:
-                            throw exception( "tabset::draw(): Unknown button state" );
+                            throw exception( "tabset::draw(): Unknown button state for current tab" );
                         }
                     }
                     glPopMatrix();
-                    
-                    glTranslatef( 6.0f, 0.0f, 0.0f );
                 }
+                glPopMatrix();
+                
+                tabs[ current_tab ].contents -> draw();
             }
-            glPopMatrix();
-            
-            glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
-            {
-                if( current_tab >= 0 )
-                    tabs[ current_tab ].contents -> draw();
-            }
-            glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
     }

@@ -1098,7 +1098,9 @@ namespace bqt
             glEnable( GL_BLEND );
             glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
             
+            // glEnable( GL_DEPTH_TEST );
             glClearColor( 0.05f, 0.05f, 0.05f, 1.0f );
+            // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
             glClear( GL_COLOR_BUFFER_BIT );
             
             glEnable( GL_TEXTURE_2D );
@@ -1118,6 +1120,10 @@ namespace bqt
             #endif
         }
         
+        // Attempt to fix initial no-render bug (still happens):
+        
+        target.window_lock.unlock();
+        target.window_lock.lock_write();                                        // Switch the lock to write
         target.pending_redraws--;
         
         return true;
