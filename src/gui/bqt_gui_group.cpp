@@ -25,19 +25,16 @@ namespace bqt
         std::pair< unsigned int, unsigned int > element_dimensions;
         int e_position[ 2 ];
         
+        e.offset[ 0 ] += position[ 0 ];
+        e.offset[ 1 ] += position[ 1 ];
+        
         switch( e.type )
         {
         case STROKE:
-            e.stroke.position[ 0 ] -= position[ 0 ];
-            e.stroke.position[ 1 ] -= position[ 1 ];
-            e.stroke.prev_pos[ 0 ] -= position[ 0 ];
-            e.stroke.prev_pos[ 1 ] -= position[ 1 ];
             e_position[ 0 ] = e.stroke.position[ 0 ];
             e_position[ 1 ] = e.stroke.position[ 1 ];
             break;
         case DROP:
-            e.drop.position[ 0 ] -= position[ 0 ];
-            e.drop.position[ 1 ] -= position[ 1 ];
             e_position[ 0 ] = e.drop.position[ 0 ];
             e_position[ 1 ] = e.drop.position[ 1 ];
             break;
@@ -47,14 +44,10 @@ namespace bqt
             no_position = true;
             break;
         case PINCH:
-            e.pinch.position[ 0 ] -= position[ 0 ];
-            e.pinch.position[ 1 ] -= position[ 1 ];
             e_position[ 0 ] = e.pinch.position[ 0 ];
             e_position[ 1 ] = e.pinch.position[ 1 ];
             break;
         case SCROLL:
-            e.scroll.position[ 0 ] -= position[ 0 ];
-            e.scroll.position[ 1 ] -= position[ 1 ];
             e_position[ 0 ] = e.scroll.position[ 0 ];
             e_position[ 1 ] = e.scroll.position[ 1 ];
             break;
@@ -62,6 +55,9 @@ namespace bqt
             throw exception( "group::acceptEvent(): Unknown event type" );
             break;
         }
+        
+        e_position[ 0 ] -= e.offset[ 0 ];
+        e_position[ 1 ] -= e.offset[ 1 ];
         
         for( int i = elements.size() - 1; i >= 0; -- i )                        // Iterate newest (topmost) first
         {
@@ -76,8 +72,8 @@ namespace bqt
                 element_dimensions = elements[ i ] -> getVisualDimensions();
                 
                 if( ( e.type == STROKE
-                      && pointInsideRect( e.stroke.prev_pos[ 0 ],
-                                          e.stroke.prev_pos[ 1 ],
+                      && pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
+                                          e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
                                           element_position.first,
                                           element_position.second,
                                           element_dimensions.first,

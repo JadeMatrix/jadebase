@@ -50,7 +50,7 @@ namespace bqt
         };
         std::vector< tab_data > tabs;
         int current_tab;
-        float total_tab_width;
+        int total_tab_width;
         
         int bar_scroll;
         
@@ -73,6 +73,7 @@ namespace bqt
         void removeTab( group* g );
         
         void setTabTitle( group* g, std::string t );
+        void setTabSafe( group* g, bool safe );
         void makeTabCurrent( group* g );
         void moveTabToLeft( group* g );
         void moveTabToRight( group* g );

@@ -562,6 +562,9 @@ namespace bqt
         std::pair< unsigned int, unsigned int > element_dimensions;
         int e_position[ 2 ];
         
+        e.offset[ 0 ] = 0;
+        e.offset[ 1 ] = 0;
+        
         switch( e.type )
         {
         case STROKE:
@@ -603,7 +606,13 @@ namespace bqt
         if( e.type == STROKE
             && input_assoc.count( e.stroke.dev_id ) )
         {
-            input_assoc[ e.stroke.dev_id ] -> acceptEvent( e );
+            idev_assoc& assoc( input_assoc[ e.stroke.dev_id ] );
+            
+            e.offset[ 0 ] = assoc.offset[ 0 ];
+            e.offset[ 1 ] = assoc.offset[ 1 ];
+            
+            assoc.element -> acceptEvent( e );
+            
             return;
         }
         
@@ -651,14 +660,27 @@ namespace bqt
     }
     
     void window::associateDevice( bqt_platform_idevid_t dev_id,
-                                  gui_element* element )
+                                  gui_element* element,
+                                  float off_x,
+                                  float off_y )
     {
         scoped_lock< rwlock > scoped_lock( window_lock, RW_WRITE );
         
+        idev_assoc& assoc( input_assoc[ dev_id ] );
+        
         if( element == NULL )
-            input_assoc.erase( dev_id );
-        else
-            input_assoc[ dev_id ] = element;
+            throw exception( "window::associateDevice(): Attempt to associate a device with a NULL element" );
+        
+        assoc.element = element;
+        assoc.offset[ 0 ] = off_x;
+        assoc.offset[ 1 ] = off_y;
+    }
+    void window::deassociateDevice( bqt_platform_idevid_t dev_id )
+    {
+        scoped_lock< rwlock > scoped_lock( window_lock, RW_WRITE );
+        
+        if( !input_assoc.erase( dev_id ) && getDevMode() )
+            ff::write( bqt_out, "Warning: Attempt to deassociate a non-associated device" );
     }
     
     gui_texture* window::acquireTexture( std::string filename )

@@ -200,8 +200,8 @@ namespace bqt
             {
             case OFF_UP:
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ],
-                                        e.stroke.position[ 1 ],
+                    && pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                        e.stroke.position[ 1 ] - e.offset[ 1 ],
                                         position[ 0 ],
                                         position[ 1 ],
                                         dimensions[ 0 ],
@@ -213,8 +213,8 @@ namespace bqt
                 break;
             case OFF_DOWN:
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && !pointInsideRect( e.stroke.position[ 0 ],
-                                         e.stroke.position[ 1 ],
+                    && !pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                         e.stroke.position[ 1 ] - e.offset[ 1 ],
                                          position[ 0 ],
                                          position[ 1 ],
                                          dimensions[ 0 ],
@@ -226,8 +226,8 @@ namespace bqt
                 }
                 
                 if( !( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ],
-                                        e.stroke.position[ 1 ],
+                    && pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                        e.stroke.position[ 1 ] - e.offset[ 1 ],
                                         position[ 0 ],
                                         position[ 1 ],
                                         dimensions[ 0 ],
@@ -241,8 +241,8 @@ namespace bqt
                 break;
             case ON_UP:
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ],
-                                        e.stroke.position[ 1 ],
+                    && pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                        e.stroke.position[ 1 ] - e.offset[ 1 ],
                                         position[ 0 ],
                                         position[ 1 ],
                                         dimensions[ 0 ],
@@ -254,8 +254,8 @@ namespace bqt
                 break;
             case ON_DOWN:
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && !pointInsideRect( e.stroke.position[ 0 ],
-                                         e.stroke.position[ 1 ],
+                    && !pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                         e.stroke.position[ 1 ] - e.offset[ 1 ],
                                          position[ 0 ],
                                          position[ 1 ],
                                          dimensions[ 0 ],
@@ -267,8 +267,8 @@ namespace bqt
                 }
                 
                 if( !( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ],
-                                        e.stroke.position[ 1 ],
+                    && pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                        e.stroke.position[ 1 ] - e.offset[ 1 ],
                                         position[ 0 ],
                                         position[ 1 ],
                                         dimensions[ 0 ],

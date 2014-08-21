@@ -119,23 +119,22 @@ namespace bqt
             {
                 if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled
                 {
-                    ff::write( bqt_out, "Dial released stroke\n" );
                     capturing = NONE;
-                    parent.associateDevice( e.stroke.dev_id, NULL );
+                    parent.deassociateDevice( e.stroke.dev_id );
                     return true;                                                // Accept event because we used it
                 }
                 else
                 {
                     if( capturing == VERTICAL )
                         setValue( capture_start[ 2 ]
-                                  + ( e.stroke.position[ 1 ] - capture_start[ 1 ] )
+                                  + ( e.stroke.position[ 1 ] - e.offset[ 1 ] - capture_start[ 1 ] )
                                   / ( DIAL_DRAG_FACTOR * -1.0f ) );
                     else
                         // atan2 takes y/x, but since our origin is at the top,
                         // we switch that around and multiply y by -1
                         setValue( capture_start[ 2 ]
-                                  + atan2(   e.stroke.position[ 0 ] - position[ 0 ] - radius,
-                                           ( e.stroke.position[ 1 ] - position[ 1 ] - radius ) * -1.0f ) / M_PI );
+                                  + atan2(   e.stroke.position[ 0 ] - e.offset[ 0 ] - position[ 0 ] - radius,
+                                           ( e.stroke.position[ 1 ] - e.offset[ 1 ] - position[ 1 ] - radius ) * -1.0f ) / M_PI );
                     
                     parent.requestRedraw();
                     
@@ -145,14 +144,14 @@ namespace bqt
             else
             {
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideCircle( e.stroke.position[ 0 ],
-                                          e.stroke.position[ 1 ],
+                    && pointInsideCircle( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                          e.stroke.position[ 1 ] - e.offset[ 1 ],
                                           position[ 0 ] + radius,
                                           position[ 1 ] + radius,
                                           radius ) )
                 {
-                    if( small || pointInsideCircle( e.stroke.position[ 0 ],
-                                                    e.stroke.position[ 1 ],
+                    if( small || pointInsideCircle( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                                    e.stroke.position[ 1 ] - e.offset[ 1 ],
                                                     position[ 0 ] + radius,
                                                     position[ 1 ] + radius,
                                                     radius - 15.0f ) )
@@ -164,13 +163,11 @@ namespace bqt
                         capturing = CIRCULAR;
                     }
                     
-                    ff::write( bqt_out, "Dial captured stroke\n" );
-                    
-                    capture_start[ 0 ] = e.stroke.position[ 0 ];
-                    capture_start[ 1 ] = e.stroke.position[ 1 ];
+                    capture_start[ 0 ] = e.stroke.position[ 0 ] - e.offset[ 0 ];
+                    capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
                     capture_start[ 2 ] = value;
                     
-                    parent.associateDevice( e.stroke.dev_id, this );
+                    parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     
                     // Don't need a redraw request
                     
@@ -183,13 +180,13 @@ namespace bqt
         else
         {
             if( e.type == SCROLL
-                && pointInsideCircle( e.scroll.position[ 0 ],
-                                      e.scroll.position[ 1 ],
+                && pointInsideCircle( e.scroll.position[ 0 ] - e.offset[ 0 ],
+                                      e.scroll.position[ 1 ] - e.offset[ 1 ],
                                       position[ 0 ] + radius,
                                       position[ 1 ] + radius,
                                       radius ) )
             {
-                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR / getWheelScrollDistance() ) );
+                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR * getWheelScrollDistance() / 2.0f ) );
                 parent.requestRedraw();
                 return true;
             }

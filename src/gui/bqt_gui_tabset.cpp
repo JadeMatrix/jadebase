@@ -221,6 +221,50 @@ namespace bqt
         throw exception( "tabset::removeTab(): No such tab" );
     }
     
+    void tabset::setTabTitle( group* g, std::string t )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        tabs[ getTabIndex( g ) ].title = t;
+        
+        parent.requestRedraw();
+    }
+    void tabset::setTabSafe( group* g, bool safe )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        if( safe )
+            tabs[ getTabIndex( g ) ].state = tab_data::CLOSE_SAFE;
+        else
+            tabs[ getTabIndex( g ) ].state = tab_data::CLOSE_UNSAFE;
+        
+        parent.requestRedraw();
+    }
+    void tabset::makeTabCurrent( group* g )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        current_tab = getTabIndex( g );
+        
+        parent.requestRedraw();
+    }
+    void tabset::moveTabToLeft( group* g )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        
+        
+        parent.requestRedraw();
+    }
+    void tabset::moveTabToRight( group* g )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        
+        
+        parent.requestRedraw();
+    }
+    
     bool tabset::acceptEvent( window_event& e )
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
@@ -236,7 +280,7 @@ namespace bqt
                             if( current_tab < 0 || current_tab >= tabs.size() )
                                 throw exception( "tabset::acceptEvent(): Capturing without valid tab" );
                             
-                            tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - capture_start[ 0 ];
+                            tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ];
                             
                             if( tabs[ current_tab ].position < 0 )
                                 tabs[ current_tab ].position = 0;
@@ -272,14 +316,14 @@ namespace bqt
                         else
                         {
                             capturing = false;
-                            parent.associateDevice( e.stroke.dev_id, NULL );
+                            parent.deassociateDevice( e.stroke.dev_id );
                             reorganizeTabs();
                         }
                     }
                     else
                     {
-                        if( pointInsideRect( e.stroke.position[ 0 ],
-                                             e.stroke.position[ 1 ],
+                        if( pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                             e.stroke.position[ 1 ] - e.offset[ 1 ],
                                              position[ 0 ],
                                              position[ 1 ],
                                              dimensions[ 0 ],
@@ -287,12 +331,12 @@ namespace bqt
                         {
                             for( int i = 0; i < tabs.size(); ++i )
                             {
-                                if( e.stroke.position[ 0 ] >= tabs[ i ].position + bar_scroll
-                                    && e.stroke.position[ 0 ] < tabs[ i ].position + bar_scroll + tabs[ i ].width
-                                    && e.stroke.position[ 1 ] < TABSET_TAB_HEIGHT )
+                                if( e.stroke.position[ 0 ] - e.offset[ 0 ] >= tabs[ i ].position + bar_scroll
+                                    && e.stroke.position[ 0 ] - e.offset[ 0 ] < tabs[ i ].position + bar_scroll + tabs[ i ].width
+                                    && e.stroke.position[ 1 ] - e.offset[ 1 ] < TABSET_TAB_HEIGHT )
                                 {
-                                    if( pointInsideCircle( e.stroke.position[ 0 ],
-                                                           e.stroke.position[ 1 ],
+                                    if( pointInsideCircle( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                                           e.stroke.position[ 1 ] - e.offset[ 1 ],
                                                            tabs[ i ].position + tabs[ i ].width - 13,
                                                            13,
                                                            7 ) )                // Current stroke in button
@@ -320,8 +364,8 @@ namespace bqt
                                     }
                                     else
                                     {
-                                        if( pointInsideCircle( e.stroke.prev_pos[ 0 ],
-                                                               e.stroke.prev_pos[ 1 ],
+                                        if( pointInsideCircle( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
+                                                               e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
                                                                tabs[ i ].position + tabs[ i ].width - 13,
                                                                13,
                                                                7 ) )            // Previous stroke in button
@@ -337,11 +381,11 @@ namespace bqt
                                                 current_tab = i;
                                                 
                                                 capturing = true;
-                                                capture_start[ 0 ] = e.stroke.position[ 0 ];
-                                                capture_start[ 1 ] = e.stroke.position[ 1 ];
+                                                capture_start[ 0 ] = e.stroke.position[ 0 ] - e.offset[ 0 ];
+                                                capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
                                                 capture_start[ 2 ] = tabs[ i ].position;
                                                 
-                                                parent.associateDevice( e.stroke.dev_id, this );
+                                                parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                                                 
                                                 parent.requestRedraw();
                                             }
@@ -361,8 +405,8 @@ namespace bqt
                 break;
             case SCROLL:
                 {
-                    if( pointInsideRect( e.scroll.position[ 0 ],
-                                         e.scroll.position[ 1 ],
+                    if( pointInsideRect( e.scroll.position[ 0 ] - e.offset[ 0 ],
+                                         e.scroll.position[ 1 ] - e.offset[ 1 ],
                                          position[ 0 ],
                                          position[ 1 ],
                                          dimensions[ 0 ],

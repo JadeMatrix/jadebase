@@ -151,6 +151,14 @@ namespace bqt
             pinch_input pinch;
             scroll_input scroll;
         };
+        float offset[ 2 ];
+        
+        window_event()
+        {
+            type = NONE;
+            offset[ 0 ] = NAN;
+            offset[ 1 ] = NAN;
+        }
     };
     
     // UTILITY /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

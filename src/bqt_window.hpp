@@ -86,8 +86,14 @@ namespace bqt
         
         /* GUI infrastructure *************************************************//******************************************************************************/
         
+        struct idev_assoc
+        {
+            gui_element* element;
+            float offset[ 2 ];
+        };
+        
         std::map< bqt_platform_idevid_t,
-                  gui_element*,
+                  idev_assoc,
                   bqt_platform_idevid_t_comp_t > input_assoc;
         std::vector< gui_element* > elements;
         
@@ -157,8 +163,11 @@ namespace bqt
         bqt_platform_window_t& getPlatformWindow();                             // TODO: make this const-correct
         
         void associateDevice( bqt_platform_idevid_t dev_id,
-                              gui_element* element );                           // Begins sending input events from the device directly to the element without
-                                                                                // passing through the element tree; deassociates if element is NULL.
+                              gui_element* element,
+                              float off_x,
+                              float off_y );                                    // Begins sending input events from the device directly to the element without
+                                                                                // passing through the element tree.
+        void deassociateDevice( bqt_platform_idevid_t dev_id );
         
         gui_texture* acquireTexture( std::string filename );
         void releaseTexture( gui_texture* t );

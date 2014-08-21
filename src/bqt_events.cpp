@@ -204,7 +204,6 @@ namespace
     void handleMotionEvent( XEvent& x_event )
     {
         bqt::window_event w_event;
-        w_event.type = bqt::NONE;
         
         // bqt_platform_window_t platform_window;
         // platform_window.x_window = x_event.xany.window;
@@ -341,6 +340,7 @@ namespace
                 
                 w_event.stroke.dev_id = dummy_idevid;                           
                 
+                w_event.stroke.click = 0x00;
                 if( x_mevent.state & Button1Mask )
                     w_event.stroke.click |= CLICK_PRIMARY;
                 if( x_mevent.state & Button3Mask )
