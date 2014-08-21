@@ -303,8 +303,8 @@ namespace bqt
         named_resources[ scrollbar_corner_up ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 214, 0, 12, 12 );
         named_resources[ scrollbar_corner_down ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 214, 12, 12, 12 );
         named_resources[ scrollbar_corner_evil ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 226, 0, 12, 12 );
-        named_resources[ viewbar_handle ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 88, 68, 20, 8 );
-        named_resources[ viewbar_fill ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 87, 68, 1, 8 );
+        named_resources[ viewbar_handle ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 87, 68, 20, 8 );
+        named_resources[ viewbar_fill ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 107, 68, 1, 8 );
         named_resources[ viewbar_corner ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 108, 68, 8, 8 );
         named_resources[ dropdown_button_up ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 67, 20, 21, 22 );
         named_resources[ dropdown_button_down ] = new image_rsrc( *this, GUI_RESOURCE_FILE, 88, 20, 21, 22 );

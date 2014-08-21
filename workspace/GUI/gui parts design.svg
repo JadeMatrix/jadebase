@@ -1570,7 +1570,7 @@
        xlink:href="#linearGradient4596-8"
        id="linearGradient7207"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1,0,0,9.9999457,-1378,-3747.9776)"
+       gradientTransform="matrix(1,0,0,9.9999457,-1378,-3746.9776)"
        x1="1027"
        y1="411.99994"
        x2="1029"
@@ -3167,8 +3167,8 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="-396.69045"
-     inkscape:cy="1162.6616"
+     inkscape:cx="-385.62016"
+     inkscape:cy="1357.2447"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
@@ -7691,7 +7691,7 @@
        width="2"
        height="19.999893"
        x="-351"
-       y="362.00012"
+       y="363.00012"
        transform="matrix(0,1,-1,0,0,0)" />
     <rect
        y="362"
@@ -9282,6 +9282,17 @@
        xlink:href="file:///home/jadematrix/Developer/BQTDraw/resources/gui_resources.png"
        height="256"
        width="256" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ff0000;fill-opacity:1;stroke:none;display:inline;font-family:Liberation Sans;-inkscape-font-specification:Liberation Sans"
+       x="-317.75"
+       y="-346.5"
+       id="text9330"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan9332"
+         x="-317.75"
+         y="-346.5">TODO: make all fills 3px wide</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -9333,8 +9344,7 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Masks"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <rect
        inkscape:export-ydpi="90"
        inkscape:export-xdpi="90"
@@ -10418,7 +10428,7 @@
        inkscape:export-ydpi="90" />
     <rect
        y="-354"
-       x="-382"
+       x="-383"
        height="8"
        width="20"
        id="rect7213"
@@ -10533,7 +10543,7 @@
        id="rect7737"
        width="1"
        height="8"
-       x="-383"
+       x="-363"
        y="-354" />
     <rect
        inkscape:export-ydpi="90"
@@ -11086,89 +11096,5 @@
        inkscape:export-filename="/home/jadematrix/Developer/BQTDraw/resources/BQTDraw_splash.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
-    <rect
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       id="rect8510"
-       width="25"
-       height="30"
-       x="-335"
-       y="-271" />
-    <rect
-       y="-271"
-       x="-310"
-       height="30"
-       width="25"
-       id="rect8512"
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
-    <rect
-       y="-271"
-       x="-285"
-       height="30"
-       width="25"
-       id="rect8514"
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
-    <rect
-       y="-271"
-       x="-260"
-       height="30"
-       width="25"
-       id="rect8516"
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
-    <rect
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       id="rect8518"
-       width="25"
-       height="30"
-       x="-235"
-       y="-271" />
-    <rect
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       id="rect8520"
-       width="25"
-       height="30"
-       x="-210"
-       y="-271" />
-    <rect
-       y="-241"
-       x="-335"
-       height="30"
-       width="25"
-       id="rect8522"
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
-    <rect
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       id="rect8524"
-       width="25"
-       height="30"
-       x="-310"
-       y="-241" />
-    <rect
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       id="rect8526"
-       width="25"
-       height="30"
-       x="-285"
-       y="-241" />
-    <rect
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       id="rect8528"
-       width="25"
-       height="30"
-       x="-260"
-       y="-241" />
-    <rect
-       y="-241"
-       x="-235"
-       height="30"
-       width="25"
-       id="rect8530"
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
-    <rect
-       y="-241"
-       x="-210"
-       height="30"
-       width="25"
-       id="rect8532"
-       style="color:#000000;fill:none;stroke:#ff0000;stroke-width:0.1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
   </g>
 </svg>

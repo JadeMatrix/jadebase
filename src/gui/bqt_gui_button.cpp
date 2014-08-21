@@ -208,36 +208,31 @@ namespace bqt
                                         dimensions[ 1 ] ) )
                 {
                     state = OFF_DOWN;
+                    parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     parent.requestRedraw();
                 }
                 break;
             case OFF_DOWN:
-                if( ( e.stroke.click & CLICK_PRIMARY )
-                    && !pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                         e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                         position[ 0 ],
-                                         position[ 1 ],
-                                         dimensions[ 0 ],
-                                         dimensions[ 1 ] ) )                    // Works because we still get strokes that have just gone out of the mask
+                if( pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                     e.stroke.position[ 1 ] - e.offset[ 1 ],
+                                     position[ 0 ],
+                                     position[ 1 ],
+                                     dimensions[ 0 ],
+                                     dimensions[ 1 ] ) )
+                {
+                    if( !( e.stroke.click & CLICK_PRIMARY ) )
+                    {
+                        state = ON_UP;
+                        parent.deassociateDevice( e.stroke.dev_id );
+                        parent.requestRedraw();
+                    }
+                }
+                else                                                            // Works because we still get strokes that have just gone out of the mask
                 {
                     state = OFF_UP;                                             // Cancel the button press
+                    parent.deassociateDevice( e.stroke.dev_id );
                     parent.requestRedraw();
-                    break;
                 }
-                
-                if( !( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                        e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                        position[ 0 ],
-                                        position[ 1 ],
-                                        dimensions[ 0 ],
-                                        dimensions[ 1 ] ) )
-                {
-                    state = ON_UP;
-                    parent.requestRedraw();
-                    break;
-                }
-                
                 break;
             case ON_UP:
                 if( ( e.stroke.click & CLICK_PRIMARY )
@@ -249,36 +244,31 @@ namespace bqt
                                         dimensions[ 1 ] ) )
                 {
                     state = ON_DOWN;
+                    parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     parent.requestRedraw();
                 }
                 break;
             case ON_DOWN:
-                if( ( e.stroke.click & CLICK_PRIMARY )
-                    && !pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                         e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                         position[ 0 ],
-                                         position[ 1 ],
-                                         dimensions[ 0 ],
-                                         dimensions[ 1 ] ) )
+                if( pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                     e.stroke.position[ 1 ] - e.offset[ 1 ],
+                                     position[ 0 ],
+                                     position[ 1 ],
+                                     dimensions[ 0 ],
+                                     dimensions[ 1 ] ) )
+                {
+                    if( !( e.stroke.click & CLICK_PRIMARY ) )
+                    {
+                        state = OFF_UP;
+                        parent.deassociateDevice( e.stroke.dev_id );
+                        parent.requestRedraw();
+                    }
+                }
+                else
                 {
                     state = ON_UP;
+                    parent.deassociateDevice( e.stroke.dev_id );
                     parent.requestRedraw();
-                    break;
                 }
-                
-                if( !( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                        e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                        position[ 0 ],
-                                        position[ 1 ],
-                                        dimensions[ 0 ],
-                                        dimensions[ 1 ] ) )
-                {
-                    state = OFF_UP;
-                    parent.requestRedraw();
-                    break;
-                }
-                
                 break;
             default:
                 throw exception( "button::acceptEvent(): Unknown button state" );
