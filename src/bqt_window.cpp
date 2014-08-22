@@ -130,7 +130,6 @@ namespace bqt
         
         platform_window.good = true;
         
-        // TODO: remove
         GLenum err = glewInit();
         if( err != GLEW_OK )
         {
@@ -139,9 +138,9 @@ namespace bqt
             throw e;
         }
         
-        registerWindow( *this );
-        
         initOpenGL();
+        
+        registerWindow( *this );
         
         initNamedResources();
         
@@ -366,11 +365,6 @@ namespace bqt
                     
                     iter -> second -> texture -> dimensions[ 0 ] = rsrc_dim.first;
                     iter -> second -> texture -> dimensions[ 1 ] = rsrc_dim.second;
-                    
-                    // ff::write( bqt_out,
-                    //            "Opening \"",
-                    //            iter -> first,
-                    //            "\" as a resource texture\n" );
                 }
             }
         }
@@ -388,46 +382,11 @@ namespace bqt
                 if( iter -> second -> texture -> gl_texture == 0x00
                     && iter -> second -> data != NULL )
                 {
-                    glGenTextures( 1, &( iter -> second -> texture -> gl_texture ) );
+                    GLuint gl_texture = bytesToTexture( iter -> second -> data,
+                                                        iter -> second -> texture -> dimensions[ 0 ],
+                                                        iter -> second -> texture -> dimensions[ 1 ] );
                     
-                    if( iter -> second -> texture -> gl_texture == 0x00 )
-                        throw exception( "window::uploadUnuploadedTextures(): Could not generate texture" );
-                    
-                    glBindTexture( GL_TEXTURE_2D, iter -> second -> texture -> gl_texture );
-                    glTexImage2D( GL_TEXTURE_2D,
-                                  0,
-                                  GL_RGBA,
-                                  iter -> second -> texture -> dimensions[ 1 ],
-                                  iter -> second -> texture -> dimensions[ 0 ],
-                                  0,
-                                  GL_RGBA,
-                                  GL_UNSIGNED_BYTE,
-                                  iter -> second -> data );
-                    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                    
-                    glBindTexture( GL_TEXTURE_2D, 0 );
-                    
-                    GLenum gl_error = glGetError();
-                    if( gl_error != GL_NO_ERROR )
-                    {
-                        bqt::exception e;
-                        ff::write( *e,
-                                   "LoadGUIResource_task::execute(): OpenGL error 0x",
-                                   ff::to_x( ( unsigned long )gl_error ),
-                                   " loading pixels from 0x",
-                                   ff::to_x( ( unsigned long )( iter -> second -> data ), HEX_WIDTH, HEX_WIDTH ),
-                                   " to texture 0x",
-                                   ff::to_x( iter -> second -> texture -> gl_texture, HEX_WIDTH, HEX_WIDTH ) );
-                        throw e;
-                    }
-                    
-                    // ff::write( bqt_out,
-                    //            "Creating \"",
-                    //            iter -> first,
-                    //            "\" as a resource texture 0x",
-                    //            ff::to_x( iter -> second -> texture -> gl_texture ),
-                    //            "\n" );
+                    iter -> second -> texture -> gl_texture = gl_texture;
                     
                     delete[] iter -> second -> data;
                     iter -> second -> data = NULL;
@@ -449,13 +408,6 @@ namespace bqt
             {
                 if( iter -> second -> ref_count < 1 )
                 {
-                    // ff::write( bqt_out,
-                    //            "Deleting \"",
-                    //            iter -> first,
-                    //            "\" as a resource texture 0x",
-                    //            ff::to_x( iter -> second -> texture -> gl_texture ),
-                    //            "\n" );
-                    
                     if( iter -> second -> texture -> gl_texture != 0x00 )
                         glDeleteTextures( 1, &( iter -> second -> texture -> gl_texture ) );
                     
@@ -511,8 +463,10 @@ namespace bqt
         
         title = BQT_WINDOW_DEFAULT_NAME;
         
-        dimensions[ 0 ] = BQT_WINDOW_DEFAULT_WIDTH;
-        dimensions[ 1 ] = BQT_WINDOW_DEFAULT_HEIGHT;
+        std::pair< unsigned int, unsigned int > def_dim = getDefaultWindowDimensions();
+        
+        dimensions[ 0 ] = def_dim.first;
+        dimensions[ 1 ] = def_dim.second;
         position[ 0 ] = 0;
         position[ 1 ] = 0;
         

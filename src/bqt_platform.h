@@ -43,6 +43,10 @@ extern "C"
     
     /* X Window System + POSIX w/ GNU extensions ******************************//******************************************************************************/
     
+    #if defined USE_DMX && !defined PLATFORM_XWS_GNUPOSIX
+    #error DMX only usable with XWS
+    #endif
+    
     #if defined PLATFORM_XWS_GNUPOSIX
     
     #include <string.h>                                                         // For strerror_r()
@@ -75,7 +79,7 @@ extern "C"
     #include <X11/X.h>
     #include <GL/glxew.h>
     #include <X11/extensions/XInput.h>
-    #if 0
+    #ifdef USE_DMX
     #include <X11/extensions/dmxext.h>
     #endif
     
@@ -147,6 +151,8 @@ extern "C"
         pthread_rwlock_t pt_rwlock;
         pthread_rwlockattr_t pt_attr;
     } bqt_platform_rwlock_t;
+    
+    #include <OpenGL/glew.h>
     
     #error "Mac OS X not fully implemented as a platform yet"
     
