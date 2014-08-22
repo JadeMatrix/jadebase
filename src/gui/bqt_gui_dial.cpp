@@ -150,11 +150,13 @@ namespace bqt
                                           position[ 1 ] + radius,
                                           radius ) )
                 {
-                    if( small || pointInsideCircle( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                                    e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                                    position[ 0 ] + radius,
-                                                    position[ 1 ] + radius,
-                                                    radius - 15.0f ) )
+                    if( !getDialCircularManip()
+                        || small
+                        || pointInsideCircle( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                              e.stroke.position[ 1 ] - e.offset[ 1 ],
+                                              position[ 0 ] + radius,
+                                              position[ 1 ] + radius,
+                                              radius - 15.0f ) )
                     {
                         capturing = VERTICAL;
                     }

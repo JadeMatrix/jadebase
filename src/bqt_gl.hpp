@@ -10,25 +10,19 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include "bqt_platform.h"
-
-#ifdef PLATFORM_MACOSX
-#include <OpenGL/glew.h>
-#else
-#include <GL/glew.h>
-#endif
+#include "bqt_platform.h"                                                       // Includes appropriate OpenGL headers for the platform
 
 /******************************************************************************//******************************************************************************/
-
-// TODO: Remove these if they're not needed any more:
-#define ZVAL_BACKGROUND -2.0f
-#define ZVAL_NONCOMPSLC -1.0f
-#define ZVAL_COMPDSLICE  0.0f
-#define ZVAL_GUIOVERLAY  1.0f
 
 namespace bqt
 {
     void initOpenGL();                                                          // Any OpenGL initialization needed (mostly set some thread mask TASK_GPU)
+    
+    GLuint bytesToTexture( unsigned char* data,
+                           unsigned int w,
+                           unsigned int h,
+                           GLuint original = 0x00 );                            // Takes w * h bytes in data & converts it to an OpenGL texture, replacing
+                                                                                // original if original != 0x00; either way it returns the texture ID.
 }
 
 /******************************************************************************//******************************************************************************/

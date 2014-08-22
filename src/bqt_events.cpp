@@ -834,7 +834,8 @@ namespace bqt
             {                                                                   // Check to see if we want to refresh device list
                 int new_device_count;
                 
-                #if 0
+                #if USE_DMX                                                     // This has not been tested or even compiled; it is merely an example of what
+                                                                                // could be done if we were using DMX
                 
                 int dmx_event_basep;                                            // Unused
                 int dmx_error_basep;                                            // Unused
