@@ -701,7 +701,10 @@ namespace
                     platform_devid.x_devid = detail.x_devid;
                     
                     if( !prev_motion_events.count( platform_devid ) )           // Add previous up motion events
+                    {
                         prev_motion_events[ platform_devid ] = initial_waypoint;
+                        prev_motion_events[ platform_devid ].dev_id = platform_devid;
+                    }
                     
                     new_devices.push_back( detail );
                     

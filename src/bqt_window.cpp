@@ -654,15 +654,6 @@ namespace bqt
         
         h -> ref_count++;
         
-        // ff::write( bqt_out,
-        //            "Acquiring texture \"",
-        //            filename,
-        //            "\" as 0x",
-        //            ff::to_x( ( unsigned long )( h -> texture ) ),
-        //            " (rc ",
-        //            h -> ref_count,
-        //            ")\n" );
-        
         return h -> texture;
     }
     void window::releaseTexture( gui_texture* t )
@@ -676,15 +667,6 @@ namespace bqt
             if( iter -> second -> texture == t )
             {
                 iter -> second -> ref_count--;
-                
-                // ff::write( bqt_out,
-                //            "Releasing texture \"",
-                //            iter -> first,
-                //            "\" as 0x",
-                //            ff::to_x( ( unsigned long )( iter -> second -> texture ) ),
-                //            " (rc ",
-                //            iter -> second -> ref_count,
-                //            ")\n" );
                 
                 if( iter -> second -> ref_count < 1 )
                 {
@@ -1080,6 +1062,9 @@ namespace bqt
             glClear( GL_COLOR_BUFFER_BIT );
             
             glEnable( GL_TEXTURE_2D );
+            
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
             
             for( int i = 0; i < target.elements.size(); ++i )
                 target.elements[ i ] -> draw();

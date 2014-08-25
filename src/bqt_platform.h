@@ -154,6 +154,8 @@ extern "C"
     
     #include <OpenGL/glew.h>
     
+    // TODO: consider using Core Text instead of Pango on OS X
+    
     #error "Mac OS X not fully implemented as a platform yet"
     
     #endif

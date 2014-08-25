@@ -1,8 +1,8 @@
-#ifndef BQT_GUI_RSRC_IMAGE_HPP
-#define BQT_GUI_RSRC_IMAGE_HPP
+#ifndef BQT_GUI_IMAGE_RSRC_HPP
+#define BQT_GUI_IMAGE_RSRC_HPP
 
 /* 
- * bqt_gui_imaged_rsrc.hpp
+ * bqt_gui_image_rsrc.hpp
  * 
  * About
  * 
@@ -28,6 +28,8 @@ namespace bqt
         unsigned int tex_pos[ 2 ];
         
         void createDisplayList();
+        
+        void drawTempGraphic();
     public:
         image_rsrc( window& parent,
                     std::string f,
