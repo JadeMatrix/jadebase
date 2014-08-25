@@ -7,6 +7,8 @@
  * 
  * Also implements setQuitFlag() and getQuitFlag() from bqt_platform.h
  * 
+ * Useful reference:
+ *     http://tronche.com/gui/x/xlib/events/structures.html#XEvent
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -60,8 +62,6 @@ namespace
                                               { 0.0f, 0.0f },
                                               0.0f,
                                               0.0f };
-    
-    bool x_keyrepeat_on = true;                                                 // So we don't keep trying to turn it off
     
     #endif
     
@@ -146,8 +146,6 @@ namespace
     
     void handleKeyEvent( XEvent& x_event )
     {
-        XKeyEvent& x_kevent( *( ( XKeyEvent* )&x_event ) );
-        
         bqt_platform_window_t platform_window;
         platform_window.x_window = x_event.xany.window;
         bqt::window* target_window = &bqt::getWindow( platform_window );
@@ -169,7 +167,7 @@ namespace
             bqt::window_event w_event;
             w_event.type = bqt::KEYCOMMAND;
             
-            switch( x_kevent.type )
+            switch( x_event.xkey.type )
             {
                 case KeyPress:
                     w_event.key.up = false;
@@ -181,14 +179,14 @@ namespace
                     throw bqt::exception( "handleKeyEvent(): Key event neither up nor down" );
             }
             
-            w_event.key.key = bqt::convertPlatformKeycode( XLookupKeysym( &x_kevent, 0 ) );
+            w_event.key.key = bqt::convertPlatformKeycode( XLookupKeysym( &x_event.xkey, 0 ) );
             
             if( w_event.key.key != bqt::KEY_INVALID )                           // Simply ignore invalid keys
             {
-                w_event.key.shift = ( bool )( x_kevent.state & ShiftMask );
-                w_event.key.ctrl  = ( bool )( x_kevent.state & ControlMask );
-                w_event.key.alt   = ( bool )( x_kevent.state & Mod1Mask );
-                w_event.key.super = ( bool )( x_kevent.state & Mod4Mask );      // Run xmodmap to find these on a given system
+                w_event.key.shift = ( bool )( x_event.xkey.state & ShiftMask );
+                w_event.key.ctrl  = ( bool )( x_event.xkey.state & ControlMask );
+                w_event.key.alt   = ( bool )( x_event.xkey.state & Mod1Mask );
+                w_event.key.super = ( bool )( x_event.xkey.state & Mod4Mask );      // Run xmodmap to find these on a given system
                 
                 #ifdef PLATFORM_MACOSX
                 w_event.key.cmd = w_event.key.super;
@@ -221,9 +219,7 @@ namespace
         {
         case ButtonPress:
             {
-                XButtonPressedEvent& x_bpevent( *( ( XButtonPressedEvent* )&x_event ) );
-                
-                switch( x_bpevent.button )
+                switch( x_event.xbutton.button )
                 {
                 case Button1:
                 case Button2:
@@ -233,13 +229,13 @@ namespace
                         
                         w_event.stroke.dev_id = dummy_idevid;                           
                         
-                        w_event.stroke.position[ 0 ] = x_bpevent.x_root;
-                        w_event.stroke.position[ 1 ] = x_bpevent.y_root;
+                        w_event.stroke.position[ 0 ] = x_event.xbutton.x_root;
+                        w_event.stroke.position[ 1 ] = x_event.xbutton.y_root;
                         
-                        w_event.stroke.shift = ( bool )( x_bpevent.state & ShiftMask );
-                        w_event.stroke.ctrl  = ( bool )( x_bpevent.state & ControlMask );
-                        w_event.stroke.alt   = ( bool )( x_bpevent.state & Mod1Mask );
-                        w_event.stroke.super = ( bool )( x_bpevent.state & Mod4Mask );
+                        w_event.stroke.shift = ( bool )( x_event.xbutton.state & ShiftMask );
+                        w_event.stroke.ctrl  = ( bool )( x_event.xbutton.state & ControlMask );
+                        w_event.stroke.alt   = ( bool )( x_event.xbutton.state & Mod1Mask );
+                        w_event.stroke.super = ( bool )( x_event.xbutton.state & Mod4Mask );
                         
                         #ifdef PLATFORM_MACOSX
                         w_event.stroke.cmd = w_event.stroke.super;
@@ -247,13 +243,13 @@ namespace
                         w_event.stroke.cmd = w_event.stroke.ctrl;
                         #endif
                         
-                        // Perhaps use x_bpevent.state here instead
+                        // Perhaps use x_event.xbutton.state here instead
                         w_event.stroke.click = 0x00;
-                        if( x_bpevent.button == Button1 )                       // Button1 = left click
+                        if( x_event.xbutton.button == Button1 )                 // Button1 = left click
                             w_event.stroke.click |= CLICK_PRIMARY;
-                        if( x_bpevent.button == Button3 )                       // Button3 = right click
+                        if( x_event.xbutton.button == Button3 )                 // Button3 = right click
                             w_event.stroke.click |= CLICK_SECONDARY;
-                        if( x_bpevent.button == Button2 )                       // Button2 = middle click
+                        if( x_event.xbutton.button == Button2 )                 // Button2 = middle click
                             w_event.stroke.click |= CLICK_ALT;
                         
                         w_event.stroke.prev_pos[ 0 ] = -INFINITY;
@@ -266,19 +262,19 @@ namespace
                     {
                         w_event.type = bqt::SCROLL;
                         
-                        w_event.scroll.position[ 0 ] = x_bpevent.x_root;
-                        w_event.scroll.position[ 1 ] = x_bpevent.y_root;
+                        w_event.scroll.position[ 0 ] = x_event.xbutton.x_root;
+                        w_event.scroll.position[ 1 ] = x_event.xbutton.y_root;
                         
                         w_event.scroll.amount[ 0 ] = NAN;                       // No horizontal scroll from mouse wheels
-                        if( x_bpevent.button == Button4 )                       // Scroll wheel up, ie scroll down
+                        if( x_event.xbutton.button == Button4 )                 // Scroll wheel up, ie scroll down
                             w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
                         else                                                    // Scroll wheel down, ie scroll up
                             w_event.scroll.amount[ 1 ] = -1.0f * bqt::getWheelScrollDistance();
                         
-                        w_event.scroll.shift = ( bool )( x_bpevent.state & ShiftMask );
-                        w_event.scroll.ctrl  = ( bool )( x_bpevent.state & ControlMask );
-                        w_event.scroll.alt   = ( bool )( x_bpevent.state & Mod1Mask );
-                        w_event.scroll.super = ( bool )( x_bpevent.state & Mod4Mask );
+                        w_event.scroll.shift = ( bool )( x_event.xbutton.state & ShiftMask );
+                        w_event.scroll.ctrl  = ( bool )( x_event.xbutton.state & ControlMask );
+                        w_event.scroll.alt   = ( bool )( x_event.xbutton.state & Mod1Mask );
+                        w_event.scroll.super = ( bool )( x_event.xbutton.state & Mod4Mask );
                         
                         #ifdef PLATFORM_MACOSX
                         w_event.scroll.cmd = w_event.scroll.super;
@@ -295,22 +291,20 @@ namespace
             break;
         case ButtonRelease:
             {
-                XButtonReleasedEvent& x_brevent( *( ( XButtonReleasedEvent* )&x_event ) );
-                
-                if( x_brevent.button == Button4 || x_brevent.button == Button5 )
+                if( x_event.xbutton.button == Button4 || x_event.xbutton.button == Button5 )
                     break;                                                      // Ignore scroll button up events
                 
                 w_event.type = bqt::STROKE;
                 
                 w_event.stroke.dev_id = dummy_idevid;                           
                 
-                w_event.stroke.position[ 0 ] = x_brevent.x_root;
-                w_event.stroke.position[ 1 ] = x_brevent.y_root;
+                w_event.stroke.position[ 0 ] = x_event.xbutton.x_root;
+                w_event.stroke.position[ 1 ] = x_event.xbutton.y_root;
                 
-                w_event.stroke.shift = ( bool )( x_brevent.state & ShiftMask );
-                w_event.stroke.ctrl  = ( bool )( x_brevent.state & ControlMask );
-                w_event.stroke.alt   = ( bool )( x_brevent.state & Mod1Mask );
-                w_event.stroke.super = ( bool )( x_brevent.state & Mod4Mask );
+                w_event.stroke.shift = ( bool )( x_event.xbutton.state & ShiftMask );
+                w_event.stroke.ctrl  = ( bool )( x_event.xbutton.state & ControlMask );
+                w_event.stroke.alt   = ( bool )( x_event.xbutton.state & Mod1Mask );
+                w_event.stroke.super = ( bool )( x_event.xbutton.state & Mod4Mask );
                 
                 #ifdef PLATFORM_MACOSX
                 w_event.stroke.cmd = w_event.stroke.super;
@@ -319,11 +313,11 @@ namespace
                 #endif
                 
                 w_event.stroke.click = 0x00;
-                // if( x_brevent.button == Button1 )
+                // if( x_event.xbutton.button == Button1 )
                 //     w_event.stroke.click |= CLICK_PRIMARY;
-                // if( x_brevent.button == Button3 )
+                // if( x_event.xbutton.button == Button3 )
                 //     w_event.stroke.click |= CLICK_SECONDARY;
-                // if( x_brevent.button == Button2 )
+                // if( x_event.xbutton.button == Button2 )
                 //     w_event.stroke.click |= CLICK_ALT;
                 
                 bqt::stroke_waypoint& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
@@ -334,24 +328,22 @@ namespace
             break;
         case MotionNotify:
             {
-                XMotionEvent& x_mevent( *( ( XMotionEvent* )&x_event ) );
-                
                 w_event.type = bqt::STROKE;
                 
                 w_event.stroke.dev_id = dummy_idevid;                           
                 
                 w_event.stroke.click = 0x00;
-                if( x_mevent.state & Button1Mask )
+                if( x_event.xmotion.state & Button1Mask )
                     w_event.stroke.click |= CLICK_PRIMARY;
-                if( x_mevent.state & Button3Mask )
+                if( x_event.xmotion.state & Button3Mask )
                     w_event.stroke.click |= CLICK_SECONDARY;
-                if( x_mevent.state & Button2Mask )
+                if( x_event.xmotion.state & Button2Mask )
                     w_event.stroke.click |= CLICK_ALT;
                 
-                w_event.stroke.shift = ( bool )( x_mevent.state & ShiftMask );
-                w_event.stroke.ctrl  = ( bool )( x_mevent.state & ControlMask );
-                w_event.stroke.alt   = ( bool )( x_mevent.state & Mod1Mask );
-                w_event.stroke.super = ( bool )( x_mevent.state & Mod4Mask );
+                w_event.stroke.shift = ( bool )( x_event.xmotion.state & ShiftMask );
+                w_event.stroke.ctrl  = ( bool )( x_event.xmotion.state & ControlMask );
+                w_event.stroke.alt   = ( bool )( x_event.xmotion.state & Mod1Mask );
+                w_event.stroke.super = ( bool )( x_event.xmotion.state & Mod4Mask );
                 
                 #ifdef PLATFORM_MACOSX
                 w_event.stroke.cmd = w_event.stroke.super;
@@ -359,8 +351,8 @@ namespace
                 w_event.stroke.cmd = w_event.stroke.ctrl;
                 #endif
                 
-                w_event.stroke.position[ 0 ] = x_mevent.x_root;
-                w_event.stroke.position[ 1 ] = x_mevent.y_root;
+                w_event.stroke.position[ 0 ] = x_event.xmotion.x_root;
+                w_event.stroke.position[ 1 ] = x_event.xmotion.y_root;
                 
                 w_event.stroke.pressure = 1.0f;
                 
@@ -511,24 +503,28 @@ namespace
             break;
         case ConfigureRequest:
             // ff::write( bqt_out, "ConfigureRequest\n" );
-            // XConfigureRequestEvent& x_cfg_event( x_event.xconfigurerequest );
+            // x_event.xconfigurerequest
             break;
         case ConfigureNotify:
             {
-                XConfigureEvent& x_cfg_event( x_event.xconfigure );
-                
-                // if( x_cfg_event.value_mask & CWX || x_cfg_event.value_mask & CWY )
-                if( x_cfg_event.x !=bqt_window.getPosition().first || x_cfg_event.y !=bqt_window.getPosition().second )
-                    current_manip -> setPosition( x_cfg_event.x, x_cfg_event.y );
-                
-                // if( x_cfg_event.value_mask & CWWidth || x_cfg_event.value_mask & CWHeight )
-                if( x_cfg_event.width != bqt_window.getDimensions().first || x_cfg_event.height != bqt_window.getDimensions().second )
+                // if( x_event.xconfigure.value_mask & CWX || x_event.xconfigure.value_mask & CWY )
+                if( x_event.xconfigure.x !=bqt_window.getPosition().first
+                    || x_event.xconfigure.y !=bqt_window.getPosition().second )
                 {
-                    if( x_cfg_event.width < 1 || x_cfg_event.height < 1 )       // Trust no one
+                    current_manip -> setPosition( x_event.xconfigure.x, x_event.xconfigure.y );
+                }
+                
+                // if( x_event.xconfigure.value_mask & CWWidth || x_event.xconfigure.value_mask & CWHeight )
+                if( x_event.xconfigure.width != bqt_window.getDimensions().first
+                    || x_event.xconfigure.height != bqt_window.getDimensions().second )
+                {
+                    if( x_event.xconfigure.width < 1
+                        || x_event.xconfigure.height < 1 )                      // Trust no one
                         throw exception( "handleWindowEvent(): Width or height not within limits" );
                     
                     // ff::write( bqt_out, "Setting dimensions\n" );
-                    current_manip -> setDimensions( x_cfg_event.width, x_cfg_event.height );
+                    current_manip -> setDimensions( x_event.xconfigure.width,
+                                                    x_event.xconfigure.height );
                 }
             }
             break;
@@ -810,12 +806,6 @@ namespace bqt
                 closeTabletDevices();
                 closeAllWindows();
                 
-                if( !x_keyrepeat_on )
-                {
-                    XAutoRepeatOn( getXDisplay() );
-                    x_keyrepeat_on = true;
-                }
-                
                 submitTask( new StopTaskSystem_task() );
             }
         }
@@ -823,13 +813,6 @@ namespace bqt
         {
             XEvent x_event;
             Display* x_display = getXDisplay();
-            
-            if( x_keyrepeat_on )
-            {
-                #warning Key repeating disabled globally
-                XAutoRepeatOff( x_display );                                    // Key repeat is handled in-application if necessary
-                x_keyrepeat_on = false;
-            }
             
             {                                                                   // Check to see if we want to refresh device list
                 int new_device_count;
@@ -876,6 +859,21 @@ namespace bqt
                  --queue_size )                                                 // Yay we can guarantee termination
             {
                 XNextEvent( x_display, &x_event );
+                
+                if( x_event.type == KeyRelease
+                    && XEventsQueued( x_display, QueuedAfterReading ) )         // Skip key repeats
+                {
+                    XEvent x_nextevent;
+                    XPeekEvent( x_display, &x_nextevent );
+                    
+                    if( x_nextevent.type == KeyPress
+                        && x_nextevent.xkey.time == x_event.xkey.time
+                        && x_nextevent.xkey.keycode == x_event.xkey.keycode )   // Key repeat
+                    {
+                        XNextEvent( x_display, &x_event);                       // Get the repeated key press
+                        XNextEvent( x_display, &x_event);                       // Get the event after the repeat
+                    }
+                }
                 
                 switch( x_event.type )
                 {
