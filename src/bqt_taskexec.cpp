@@ -129,13 +129,13 @@ namespace
             }
             catch( bqt::exception& e )
             {
-                ff::write( bqt_out, e.what(), "\n" );
+                ff::write( bqt_out, "BQTDraw exception from task thread: ", e.what(), "\n" );
                 
                 code = bqt::EXITCODE_BQTERR;
             }
             catch( std::exception& e )
             {
-                ff::write( bqt_out, e.what(), "\n" );
+                ff::write( bqt_out, "Exception from task thread: ", e.what(), "\n" );
                 
                 code = bqt::EXITCODE_STDERR;
             }

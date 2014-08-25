@@ -14,6 +14,9 @@
 
 #include <string>
 
+#include <lua.hpp>
+#include <pango/pangocairo.h>
+
 #include "bqt_launchargs.hpp"
 #include "bqt_exception.hpp"
 #include "threading/bqt_threadutil.hpp"
@@ -54,6 +57,12 @@ namespace bqt
                        BQT_VERSION_STRING,
                        ( bqt::getDevMode() ? " (Developer Mode)" : "" ),
                        "\n" );
+            
+            ff::write( bqt_out,
+                       "Using:\n",
+                       "  - ", LUA_VERSION, " [ lua.org ]\n",
+                       "  - Pango ", pango_version_string(), " [ pango.org ]\n",
+                       "  - Cairo ", cairo_version_string(), " [ cairographics.org ]\n");
             
             return true;
         }
@@ -105,13 +114,13 @@ int bqt_main()
         // TODO: We want to log internal exceptions specially, maybe generate a
         // report or ticket of some kind?
         
-        ff::write( bqt_out, e.what(), "\n" );
+        ff::write( bqt_out, "BQTDraw exception from main(): ", e.what(), "\n" );
         
         exit_code = EXIT_BQTERR;
     }
     catch( std::exception& e )
     {
-        ff::write( bqt_out, e.what(), "\n" );
+        ff::write( bqt_out, "Exception from main(): ", e.what(), "\n" );
         
         exit_code = EXIT_STDERR;
     }
