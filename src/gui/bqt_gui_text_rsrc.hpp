@@ -87,8 +87,13 @@ namespace bqt
         // const float* getColor();
         void setColor( float r, float g, float b, float a );
         
-        int  getMaxWidth();
-        void setMaxWidth( int w, ellipsis_mode e = NONE );                      // If w = -1 e is ignored
+        #define TEXT_MAXWIDTH_NONE      -1
+        // #define TEXT_MAXHEIGHT_ONELINE   0                                      // Doesn't work like it should, maybe?
+        
+        std::pair< int, int > getMaxDimensions();
+        void                  setMaxDimensions( int w,
+                                                int h,
+                                                ellipsis_mode e = NONE );       // If w = -1 e is ignored
         
         bool getHinting();
         void setHinting( bool h );

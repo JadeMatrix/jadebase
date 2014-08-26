@@ -159,8 +159,10 @@ namespace bqt
             
             tabset* test_tabset = new tabset( *this, 0, 0, 256, 256 );
             
-            test_tabset -> addTab( test_group_a, "test tab A" );
-            test_tabset -> addTab( test_group_b, "test tab B" );
+            // test_tabset -> addTab( test_group_a, "test tab A" );
+            // test_tabset -> addTab( test_group_b, "test tab B" );
+            test_tabset -> addTab( test_group_a, "Open_file_A.bqt" );
+            test_tabset -> addTab( test_group_b, "Open_file_とってもうれしいだよ.bqt" );
             
             elements.push_back( test_tabset );
             

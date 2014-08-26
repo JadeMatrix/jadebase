@@ -18,12 +18,14 @@
 
 /******************************************************************************//******************************************************************************/
 
-#define TABSET_BAR_HEIGHT    30
-#define TABSET_TAB_HEIGHT    26
+#define TABSET_BAR_HEIGHT       30
+#define TABSET_TAB_HEIGHT       26
 
-#define TABSET_SCROLL_FACTOR 40
+#define TABSET_SCROLL_FACTOR    40
 
-#define TABSET_MIN_TAB_WIDTH 31
+#define TABSET_MIN_TAB_WIDTH    31
+
+#define TABSET_MAX_TITLE_WIDTH  108
 
 namespace bqt
 {
@@ -34,8 +36,7 @@ namespace bqt
         {
             // tab* head;
             group* contents;
-            std::string title;
-            // text_rsrc title;
+            text_rsrc* title;
             enum
             {
                 CLOSE_SAFE,

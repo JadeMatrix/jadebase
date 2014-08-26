@@ -76,9 +76,13 @@ namespace bqt
                 if( !( capturing && i == current_tab ) )
                     tabs[ i ].position = total_tab_width;                       // Don't set the position of the tab we're currently dragging
                 
+                tabs[ i ].width = tabs[ i ].title -> getDimensions().first
+                                  + 32;
+                // ff::write( bqt_out,
+                //            "Width of tab "
+                
                 if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
                     tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
-                // TODO: Recalculate width of [ i ] based on title
                 
                 total_tab_width += tabs[ i ].width;
             }
@@ -143,7 +147,12 @@ namespace bqt
         scoped_lock< rwlock > slock( tabset_rsrc_lock, RW_WRITE );
         
         for( int i = 0; i < tabs.size(); ++i )
+        {
+            tabs[ i ].contents -> close();
+            
             delete tabs[ i ].contents;
+            delete tabs[ i ].title;
+        }
         
         tabset_sets[ &parent ].count--;
         
@@ -177,11 +186,15 @@ namespace bqt
         tab_data new_data;
         
         new_data.contents = g;
-        new_data.title = t;
         new_data.state = tab_data::CLOSE_SAFE;
         new_data.button_state = tab_data::UP;
         new_data.position = 0;
         new_data.width = TABSET_MIN_TAB_WIDTH;
+        
+        new_data.title = new text_rsrc( parent, 11.0f, GUI_LABEL_FONT, t );
+        new_data.title -> setMaxDimensions( TABSET_MAX_TITLE_WIDTH,
+                                            -1, // TEXT_MAXHEIGHT_ONELINE,
+                                            text_rsrc::END );
         
         tabs.push_back( new_data );
         
@@ -225,6 +238,10 @@ namespace bqt
                     }                                                           // Removing a tab to the right of current does not affect current
                 }
                 
+                delete iter -> title;
+                
+                // We do not delete the contents or call its close()
+                
                 tabs.erase( iter );
                 
                 reorganizeTabs();                                               // Calls parent.requestRedraw()
@@ -242,7 +259,7 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
         
-        tabs[ getTabIndex( g ) ].title = t;
+        tabs[ getTabIndex( g ) ].title -> setString( t );
         
         parent.requestRedraw();
     }
@@ -558,6 +575,15 @@ namespace bqt
                         }
                         glPopMatrix();
                         
+                        glPushMatrix();
+                        {
+                            glTranslatef( 8.0f - ( tabs[ i ].width - 6.0f ), 15.0f, 0.0f );
+                            
+                            tabs[ i ].title -> setColor( 0.8f, 0.8f, 0.8f, 1.0f );
+                            tabs[ i ].title -> draw();
+                        }
+                        glPopMatrix();
+                        
                         glTranslatef( 6.0f, 0.0f, 0.0f );
                     }
                 }
@@ -618,6 +644,15 @@ namespace bqt
                         default:
                             throw exception( "tabset::draw(): Unknown button state for current tab" );
                         }
+                    }
+                    glPopMatrix();
+                    
+                    glPushMatrix();
+                    {
+                        glTranslatef( 8.0f - ( tabs[ current_tab ].width - 6.0f ), 15.0f, 0.0f );
+                        
+                        tabs[ current_tab ].title -> setColor( 1.0f, 1.0f, 1.0f, 1.0f );
+                        tabs[ current_tab ].title -> draw();
                     }
                     glPopMatrix();
                 }

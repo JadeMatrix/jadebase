@@ -58,6 +58,8 @@ namespace bqt
         
         // Redo everything if we need to resize ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
+        int y_off;                                                              // For offsetting the baseline
+        
         if( max_dimensions[ 0 ] < 0
             || max_dimensions[ 1 ] < 0 )
         {
@@ -72,6 +74,8 @@ namespace bqt
             // Make sure we have enough room
             dimensions[ 0 ] = ceil( ( double )( p_layout_inkrect.width + p_layout_inkrect.x ) / PANGO_SCALE );
             dimensions[ 1 ] = ceil( ( double )( p_layout_inkrect.height + p_layout_inkrect.y ) / PANGO_SCALE );
+            
+            y_off = p_layout_inkrect.y / PANGO_SCALE;
             
             // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
@@ -88,7 +92,7 @@ namespace bqt
                                  context.p_layout );                            // Render text
         
         tex_offset[ 0 ] = 0;
-        tex_offset[ 1 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        tex_offset[ 1 ] = ( pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1 ) + y_off;
         
         // Convert Cairo surface to RGBA for OpenGL ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -342,15 +346,17 @@ namespace bqt
         color[ 1 ] = g;
         color[ 2 ] = b;
         color[ 3 ] = a;
+        
+        // Do not update pixels, as coloring is render-time only
     }
     
-    int text_rsrc::getMaxWidth()
+    std::pair< int, int > text_rsrc::getMaxDimensions()
     {
         scoped_lock< rwlock > slock( text_lock, RW_READ );
         
-        return max_dimensions[ 0 ];
+        return std::pair< int, int >( max_dimensions[ 0 ], max_dimensions[ 1 ] );
     }
-    void text_rsrc::setMaxWidth( int w, ellipsis_mode e )
+    void text_rsrc::setMaxDimensions( int w, int h, ellipsis_mode e )
     {
         scoped_lock< rwlock > slock( text_lock, RW_WRITE );
         
@@ -367,6 +373,8 @@ namespace bqt
             max_dimensions[ 0 ] = w;
             ellipsize = e;
         }
+        
+        max_dimensions[ 1 ] = h;
         
         update_tex = true;
         updatePixels();
@@ -399,7 +407,7 @@ namespace bqt
         {
             glBindTexture( GL_TEXTURE_2D, gl_tex );
             
-            // glTranslatef( tex_offset[ 0 ], tex_offset[ 1 ], 0.0f );
+            glTranslatef( tex_offset[ 0 ], tex_offset[ 1 ], 0.0f );
             
             glBegin( GL_QUADS );
             {
@@ -417,7 +425,7 @@ namespace bqt
             }
             glEnd();
             
-            // glTranslatef( tex_offset[ 0 ] * -1.0f, tex_offset[ 1 ] * -1.0f, 0.0f );
+            glTranslatef( tex_offset[ 0 ] * -1.0f, tex_offset[ 1 ] * -1.0f, 0.0f );
             
             glBindTexture( GL_TEXTURE_2D, 0x00 );
         }
