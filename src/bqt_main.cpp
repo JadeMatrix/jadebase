@@ -99,6 +99,8 @@ int bqt_main()
         
         if( bqt::initTaskSystem( true ) )
         {
+            bqt::initOpenGL();
+            
             bqt::submitTask( new bqt::StartBQTDraw_task() );
             
             bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;

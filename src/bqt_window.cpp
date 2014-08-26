@@ -138,8 +138,6 @@ namespace bqt
             throw e;
         }
         
-        initOpenGL();
-        
         registerWindow( *this );
         
         initNamedResources();
@@ -1060,8 +1058,9 @@ namespace bqt
             
             // glEnable( GL_DEPTH_TEST );
             glClearColor( 0.05f, 0.05f, 0.05f, 1.0f );
+            glClearStencil( 0 );
             // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-            glClear( GL_COLOR_BUFFER_BIT );
+            glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
             
             glEnable( GL_TEXTURE_2D );
             
