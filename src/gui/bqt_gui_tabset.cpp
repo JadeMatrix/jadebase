@@ -325,7 +325,7 @@ namespace bqt
                             
                             if( current_tab > 0
                                 && tabs[ current_tab ].position
-                                   <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width )
+                                   <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width / 2 )
                             {
                                 tab_data temp = tabs[ current_tab - 1 ];
                                 tabs[ current_tab - 1 ] = tabs[ current_tab ];
@@ -336,8 +336,8 @@ namespace bqt
                             else
                             {
                                 if( current_tab < tabs.size() - 1
-                                    && tabs[ current_tab ].position
-                                       >= tabs[ current_tab + 1 ].position )
+                                    && tabs[ current_tab ].position + tabs[ current_tab ].width
+                                       >= tabs[ current_tab + 1 ].position + tabs[ current_tab + 1 ].width / 2 )
                                 {
                                     tab_data temp = tabs[ current_tab + 1 ];
                                     tabs[ current_tab + 1 ] = tabs[ current_tab ];
@@ -556,7 +556,7 @@ namespace bqt
                         
                         glPushMatrix();
                         {
-                            glTranslatef( -14.0f, 2.0f, 0.0f );
+                            glTranslatef( -17.0f, 2.0f, 0.0f );
                             
                             switch( tabs[ i ].button_state )
                             {
@@ -577,7 +577,7 @@ namespace bqt
                         
                         glPushMatrix();
                         {
-                            glTranslatef( 8.0f - ( tabs[ i ].width - 6.0f ), 15.0f, 0.0f );
+                            glTranslatef( 8.0f - ( tabs[ i ].width - 6.0f ), 17.0f, 0.0f );
                             
                             tabs[ i ].title -> setColor( 0.8f, 0.8f, 0.8f, 1.0f );
                             tabs[ i ].title -> draw();
@@ -628,7 +628,7 @@ namespace bqt
                     
                     glPushMatrix();
                     {
-                        glTranslatef( -14.0f, 2.0f, 0.0f );
+                        glTranslatef( -17.0f, 2.0f, 0.0f );
                         
                         switch( tabs[ current_tab ].button_state )
                         {
@@ -649,7 +649,7 @@ namespace bqt
                     
                     glPushMatrix();
                     {
-                        glTranslatef( 8.0f - ( tabs[ current_tab ].width - 6.0f ), 15.0f, 0.0f );
+                        glTranslatef( 8.0f - ( tabs[ current_tab ].width - 6.0f ), 17.0f, 0.0f );
                         
                         tabs[ current_tab ].title -> setColor( 1.0f, 1.0f, 1.0f, 1.0f );
                         tabs[ current_tab ].title -> draw();

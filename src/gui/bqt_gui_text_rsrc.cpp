@@ -58,8 +58,6 @@ namespace bqt
         
         // Redo everything if we need to resize ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        int y_off;                                                              // For offsetting the baseline
-        
         if( max_dimensions[ 0 ] < 0
             || max_dimensions[ 1 ] < 0 )
         {
@@ -74,8 +72,6 @@ namespace bqt
             // Make sure we have enough room
             dimensions[ 0 ] = ceil( ( double )( p_layout_inkrect.width + p_layout_inkrect.x ) / PANGO_SCALE );
             dimensions[ 1 ] = ceil( ( double )( p_layout_inkrect.height + p_layout_inkrect.y ) / PANGO_SCALE );
-            
-            y_off = p_layout_inkrect.y / PANGO_SCALE;
             
             // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
@@ -92,7 +88,7 @@ namespace bqt
                                  context.p_layout );                            // Render text
         
         tex_offset[ 0 ] = 0;
-        tex_offset[ 1 ] = ( pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1 ) + y_off;
+        tex_offset[ 1 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
         
         // Convert Cairo surface to RGBA for OpenGL ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
