@@ -396,6 +396,22 @@ namespace bqt
         updatePixels();
     }
     
+    bool text_rsrc::getAntialiasing()
+    {
+        scoped_lock< rwlock > slock( text_lock, RW_READ );
+        
+        return antialiasing_enabled;
+    }
+    void text_rsrc::setAntialiasing( bool a )
+    {
+        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        
+        antialiasing_enabled = a;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
     void text_rsrc::draw()
     {
         scoped_lock< rwlock > slock( text_lock, RW_READ );

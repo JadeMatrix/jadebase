@@ -99,7 +99,7 @@ namespace bqt
         void setHinting( bool h );
         
         bool getAntialiasing();
-        void setAntialiasing( bool h );
+        void setAntialiasing( bool a );
         
         void draw();
     };
