@@ -97,6 +97,35 @@ namespace bqt
         
         return original;
     }
+    
+    void addDrawMask( int x, int y, unsigned int w, unsigned int h )
+    {
+        glColorMask( GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE );
+        
+        glEnable( GL_STENCIL_TEST );
+        glStencilFunc( GL_ALWAYS, 1, 1 );
+        glStencilOp( GL_REPLACE, GL_REPLACE, GL_REPLACE );
+        
+        glBegin( GL_QUADS );
+        {
+            glVertex2f( x    , y     );
+            glVertex2f( x    , y + h );
+            glVertex2f( x + w, y + h );
+            glVertex2f( x + w, y     );
+        }
+        glEnd();
+        
+        glStencilFunc( GL_EQUAL, 1, 1 );
+        glStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
+        
+        glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+    }
+    void clearDrawMasks()
+    {
+        glClear( GL_STENCIL_BUFFER_BIT );
+        glStencilFunc( GL_ALWAYS, 1, 1 );
+        // glDisable( GL_STENCIL_TEST );
+    }
 }
 
 

@@ -487,6 +487,8 @@ namespace bqt
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
+            addDrawMask( 0, 0, dimensions[ 0 ], TABSET_BAR_HEIGHT );
+            
             glBegin( GL_QUADS );
             {
                 glColor4f( 0.1f, 0.1f, 0.1f, 1.0f );
@@ -655,8 +657,12 @@ namespace bqt
                 }
                 glPopMatrix();
                 
+                clearDrawMasks();                                               // Clear tab bar mask before drawing contents
+                
                 tabs[ current_tab ].contents -> draw();
             }
+            else
+                clearDrawMasks();                                               // Just clear tab bar mask
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
     }
