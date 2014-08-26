@@ -14,6 +14,7 @@
 
 #include "bqt_gui_element.hpp"
 #include "bqt_gui_group.hpp"
+#include "bqt_gui_text_rsrc.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -34,6 +35,7 @@ namespace bqt
             // tab* head;
             group* contents;
             std::string title;
+            // text_rsrc title;
             enum
             {
                 CLOSE_SAFE,
