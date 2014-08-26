@@ -76,13 +76,10 @@ namespace bqt
                 if( !( capturing && i == current_tab ) )
                     tabs[ i ].position = total_tab_width;                       // Don't set the position of the tab we're currently dragging
                 
-                tabs[ i ].width = tabs[ i ].title -> getDimensions().first
-                                  + 32;
-                // ff::write( bqt_out,
-                //            "Width of tab "
+                tabs[ i ].width = tabs[ i ].title -> getDimensions().first + TABSET_MIN_TAB_WIDTH;
                 
-                if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
-                    tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
+                // if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
+                //     tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
                 
                 total_tab_width += tabs[ i ].width;
             }
@@ -101,7 +98,7 @@ namespace bqt
                     int x,
                     int y,
                     unsigned int w,
-                    unsigned int h ) : gui_element( parent, x, y, w, h + TABSET_BAR_HEIGHT )
+                    unsigned int h ) : gui_element( parent, x, y, w, h )
     {
         current_tab = -1;
         total_tab_width = 0;
@@ -577,7 +574,7 @@ namespace bqt
                         
                         glPushMatrix();
                         {
-                            glTranslatef( 8.0f - ( tabs[ i ].width - 6.0f ), 17.0f, 0.0f );
+                            glTranslatef( 9.0f - ( tabs[ i ].width - 6.0f ), 17.0f, 0.0f );
                             
                             tabs[ i ].title -> setColor( 0.8f, 0.8f, 0.8f, 1.0f );
                             tabs[ i ].title -> draw();
@@ -649,7 +646,7 @@ namespace bqt
                     
                     glPushMatrix();
                     {
-                        glTranslatef( 8.0f - ( tabs[ current_tab ].width - 6.0f ), 17.0f, 0.0f );
+                        glTranslatef( 9.0f - ( tabs[ current_tab ].width - 6.0f ), 17.0f, 0.0f );
                         
                         tabs[ current_tab ].title -> setColor( 1.0f, 1.0f, 1.0f, 1.0f );
                         tabs[ current_tab ].title -> draw();
