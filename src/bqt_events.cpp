@@ -43,8 +43,14 @@ namespace
     std::map< Window, bqt::window::manipulate* > window_manipulates;            // Waiting room so we don't submit more than we need
                                                                                 // TODO: Remove when we overload new for manipulates
     
+    struct stroke_afterimage                                                    // Tired of practical names, it sounded cool
+    {
+        bqt::window* window;
+        bqt::stroke_waypoint waypoint;
+    };
+    
     std::map< bqt_platform_idevid_t,
-              bqt::stroke_waypoint,
+              stroke_afterimage,
               bqt_platform_idevid_t_comp_t > prev_motion_events( &bqt_platform_idevid_t_comp );
     
     #ifdef PLATFORM_XWS_GNUPOSIX
@@ -204,14 +210,13 @@ namespace
     {
         bqt::window_event w_event;
         
-        // bqt_platform_window_t platform_window;
-        // platform_window.x_window = x_event.xany.window;
-        // bqt::window* target = bqt::getWindow( platform_window );             // XInput doesn't report any individual window with the event
-        bqt::window* target = bqt::getActiveWindow();
+        bqt_platform_window_t platform_window;
+        platform_window.x_window = x_event.xany.window;
+        bqt::window* target = &bqt::getWindow( platform_window );
         if( target == NULL )
         {
-            // if( bqt::getDevMode() )
-            //     ff::write( bqt_out, "Warning: Got motion event not matched to a known window, ignoring\n" );
+            if( bqt::getDevMode() )
+                ff::write( bqt_out, "Warning: Got motion event not matched to a known window, ignoring\n" );
             
             return;
         }
@@ -253,9 +258,11 @@ namespace
                         if( x_event.xbutton.button == Button2 )                 // Button2 = middle click
                             w_event.stroke.click |= CLICK_ALT;
                         
+                        stroke_afterimage& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
                         w_event.stroke.prev_pos[ 0 ] = -INFINITY;
                         w_event.stroke.prev_pos[ 1 ] = -INFINITY;
-                        prev_motion_events[ w_event.stroke.dev_id ] = w_event.stroke;
+                        prev_waypoint.window = target;
+                        prev_waypoint.waypoint = w_event.stroke;
                     }
                     break;
                 case Button4:
@@ -321,9 +328,9 @@ namespace
                 // if( x_event.xbutton.button == Button2 )
                 //     w_event.stroke.click |= CLICK_ALT;
                 
-                bqt::stroke_waypoint& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
-                w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
-                w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
+                stroke_afterimage& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
+                w_event.stroke.prev_pos[ 0 ] = prev_waypoint.waypoint.position[ 0 ];
+                w_event.stroke.prev_pos[ 1 ] = prev_waypoint.waypoint.position[ 1 ];
                 prev_motion_events.erase( w_event.stroke.dev_id );
             }
             break;
@@ -364,10 +371,13 @@ namespace
                 
                 w_event.stroke.wheel = 0.0f;
                 
-                bqt::stroke_waypoint& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
-                w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
-                w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
-                prev_waypoint = w_event.stroke;
+                stroke_afterimage& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
+                w_event.stroke.prev_pos[ 0 ] = prev_waypoint.waypoint.position[ 0 ];
+                w_event.stroke.prev_pos[ 1 ] = prev_waypoint.waypoint.position[ 1 ];
+                if( prev_waypoint.window != NULL && prev_waypoint.window != target )
+                    prev_waypoint.window -> acceptEvent( w_event );             // Make sure previous window gets event exit
+                prev_waypoint.window = target;
+                prev_waypoint.waypoint = w_event.stroke;
             }
             break;
         default:
@@ -450,10 +460,13 @@ namespace
                             w_event.stroke.rotation = ( float )x_dmevent.axis_data[ 5 ] / ( float )x_tablet_devices[ i ].axes[ 5 ].max_value;
                         }
                         
-                        bqt::stroke_waypoint& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
-                        w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
-                        w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
-                        prev_waypoint = w_event.stroke;
+                        stroke_afterimage& prev_waypoint = prev_motion_events[ w_event.stroke.dev_id ];
+                        w_event.stroke.prev_pos[ 0 ] = prev_waypoint.waypoint.position[ 0 ];
+                        w_event.stroke.prev_pos[ 1 ] = prev_waypoint.waypoint.position[ 1 ];
+                        if( prev_waypoint.window != NULL && prev_waypoint.window != target )
+                            prev_waypoint.window -> acceptEvent( w_event );     // Make sure previous window gets event exit
+                        prev_waypoint.window = target;
+                        prev_waypoint.waypoint = w_event.stroke;
                         
                         break;
                     }
@@ -584,7 +597,10 @@ namespace
         }
         
         if( !prev_motion_events.count( dummy_idevid ) )
-            prev_motion_events[ dummy_idevid ] = initial_waypoint;
+        {
+            prev_motion_events[ dummy_idevid ].window = NULL;
+            prev_motion_events[ dummy_idevid ].waypoint = initial_waypoint;
+        }
         
         // Much thanks to
         // http://mobileim.googlecode.com/svn/MeeGo/meegoTraning/MeeGo_Traing_Doc_0119/meego_trn/meego-quality-assurance-mcts/mcts-blts/blts-x11/src/xinput_tests.c
@@ -705,8 +721,9 @@ namespace
                     
                     if( !prev_motion_events.count( platform_devid ) )           // Add previous up motion events
                     {
-                        prev_motion_events[ platform_devid ] = initial_waypoint;
-                        prev_motion_events[ platform_devid ].dev_id = platform_devid;
+                        prev_motion_events[ platform_devid ].window = NULL;
+                        prev_motion_events[ platform_devid ].waypoint = initial_waypoint;
+                        prev_motion_events[ platform_devid ].waypoint.dev_id = platform_devid;
                     }
                     
                     new_devices.push_back( detail );
