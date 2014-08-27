@@ -29,10 +29,10 @@ namespace bqt
         condition();
         ~condition();
         
-        void wait( mutex& wait_mutex );                                         // Unlocks wait_mutex & pauses thread; on return relocks wait_mutex & unpauses thread
-        // void wait_time( ... )                                                // Timed wait, maybe implement later
-        void signal();                                                          // Restart a single waiting thread
-        void broadcast();                                                       // Restart all waiting threads
+        void wait( const mutex& wait_mutex ) const;                                   // Unlocks wait_mutex & pauses thread; on return relocks wait_mutex & unpauses thread
+        // void wait_time( ... ) const;                                         // Timed wait, maybe implement later
+        void signal() const;                                                    // Restart a single waiting thread
+        void broadcast() const;                                                 // Restart all waiting threads
     };
 }
 

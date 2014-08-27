@@ -21,7 +21,7 @@ namespace bqt
         free = start;
     }
 
-    void semaphore::acquire( unsigned int count )
+    void semaphore::acquire( unsigned int count ) const
     {
         try
         {
@@ -40,24 +40,24 @@ namespace bqt
                 if( free < count )
                 {
                     count -= free;
-                    free = 0;
+                    *const_cast< unsigned int* >( &free ) = 0;
                     
                     s_cond.wait( s_mutex );
                 }
                 else
                 {
-                    free -= count;
+                    *const_cast< unsigned int* >( &free ) -= count;
                     // count = 0;
                     break;
                 }
             }
     }
-    void semaphore::acquireAll()
+    void semaphore::acquireAll() const
     {
         acquire( start );
     }
 
-    void semaphore::release( unsigned int count )
+    void semaphore::release( unsigned int count ) const
     {
         try
         {
@@ -72,11 +72,11 @@ namespace bqt
             throw exception( "semaphore::release(): Attempt to release more than possibly available" );
         else
         {
-            free += count;
+            *const_cast< unsigned int* >( &free ) += count;
             s_cond.signal();
         }
     }
-    void semaphore::releaseAll()
+    void semaphore::releaseAll() const
     {
         release( start );
     }

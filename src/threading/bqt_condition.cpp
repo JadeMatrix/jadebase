@@ -39,29 +39,32 @@ namespace bqt
             throw exception( "condition::~condition(): Could not destroy condition: " + errc2str( err ) );
     }
 
-    void condition::wait( mutex& wait_mutex )
+    void condition::wait( const mutex& wait_mutex ) const
     {
         int err;
         
-        if( ( err = pthread_cond_wait( &platform_condition.pt_cond, &( wait_mutex.platform_mutex.pt_mutex ) ) ) )
+        if( ( err = pthread_cond_wait( const_cast< pthread_cond_t* >( &platform_condition.pt_cond ),
+                                       const_cast< pthread_mutex_t* >( &wait_mutex.platform_mutex.pt_mutex ) ) ) )
+        {
             throw exception( "condition::wait(): Condition wait failed: " + errc2str( err ) );
+        }
     }
-    // void wait_time( ... )
+    // void wait_time( ... ) const
     // {
     //     //
     // }
-    void condition::signal()
+    void condition::signal() const
     {
         int err;
         
-        if( ( err = pthread_cond_signal( &platform_condition.pt_cond ) ) )
+        if( ( err = pthread_cond_signal( const_cast< pthread_cond_t* >( &platform_condition.pt_cond ) ) ) )
             throw exception( "condition::signal(): Condition signal failed: " + errc2str( err ) );
     }
-    void condition::broadcast()
+    void condition::broadcast() const
     {
         int err;
         
-        if( ( err = pthread_cond_broadcast( &platform_condition.pt_cond ) ) )
+        if( ( err = pthread_cond_broadcast( const_cast< pthread_cond_t* >( &platform_condition.pt_cond ) ) ) )
             throw exception( "condition::broadcast(): Condition broadcast failed: " + errc2str( err ) );
     }
     

@@ -30,11 +30,11 @@ namespace bqt
     public:
         semaphore( unsigned int start = 0 );
         
-        void acquire( unsigned int count = 1 );
-        void acquireAll();
+        void acquire( unsigned int count = 1 ) const;
+        void acquireAll() const;
         
-        void release( unsigned int count = 1 );
-        void releaseAll();
+        void release( unsigned int count = 1 ) const;
+        void releaseAll() const;
         
         void increase( unsigned int count = 1 );
         
@@ -46,14 +46,14 @@ namespace bqt
     template<> class scoped_lock< semaphore >
     {
     private:
-        semaphore& sls;
+        const semaphore& sls;
         unsigned int count;
     public:
-        scoped_lock( semaphore& m ) : sls( m ), count( 0 )
+        scoped_lock( const semaphore& m ) : sls( m ), count( 0 )
         {
             sls.acquireAll();
         }
-        scoped_lock( semaphore& m, unsigned int c ) : sls( m ), count( c )
+        scoped_lock( const semaphore& m, unsigned int c ) : sls( m ), count( c )
         {
             sls.acquire( count );
         }

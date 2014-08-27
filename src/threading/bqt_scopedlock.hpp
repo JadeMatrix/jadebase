@@ -15,9 +15,9 @@ namespace bqt
     template< class LOCKABLE > class scoped_lock                                // Works for bqt::mutex and anything else that has lock()/unlock() methods
     {
     private:
-        LOCKABLE& slx;
+        const LOCKABLE& slx;
     public:
-        scoped_lock( LOCKABLE& x ) : slx( x )
+        scoped_lock( const LOCKABLE& x ) : slx( x )
         {
             slx.lock();
         }
