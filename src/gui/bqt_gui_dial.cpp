@@ -175,8 +175,6 @@ namespace bqt
                     
                     return true;
                 }
-                else
-                    return !event_fallthrough;
             }
         }
         else
@@ -194,7 +192,7 @@ namespace bqt
             }
         }
         
-        return !event_fallthrough;
+        return false;
     }
     
     void dial::draw()

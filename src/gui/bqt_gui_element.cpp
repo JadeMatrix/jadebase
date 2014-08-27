@@ -31,8 +31,6 @@ namespace bqt
     {
         setRealPosition( x, y );
         setRealDimensions( w, h );
-        
-        event_fallthrough = true;
     }
     gui_element::~gui_element()
     {
@@ -68,19 +66,6 @@ namespace bqt
     std::pair< unsigned int, unsigned int > gui_element::getVisualDimensions()
     {
         return getRealDimensions();
-    }
-    
-    void gui_element::setEventFallthrough( bool f )
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        event_fallthrough = f;
-    }
-    bool gui_element::getEventFallthrough()
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
-        
-        return event_fallthrough;
     }
 }
 

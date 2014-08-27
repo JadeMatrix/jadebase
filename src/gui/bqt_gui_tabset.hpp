@@ -71,8 +71,6 @@ namespace bqt
                unsigned int h );                                                // w, h of area below bar
         ~tabset();
         
-        void setRealDimensions( unsigned int w, unsigned int h );
-        
         void addTab( group* g, std::string t );
         void removeTab( group* g );
         
@@ -81,6 +79,9 @@ namespace bqt
         void makeTabCurrent( group* g );
         // void moveTabToLeft( group* g );
         // void moveTabToRight( group* g );
+        
+        void setRealPosition( int x, int y );
+        void setRealDimensions( unsigned int w, unsigned int h );
         
         bool acceptEvent( window_event& e );
         

@@ -24,6 +24,7 @@ namespace bqt
                            GLuint original = 0x00 );                            // Takes w * h bytes in data & converts it to an OpenGL texture, replacing
                                                                                 // original if original != 0x00; either way it returns the texture ID.
     
+    // TODO: Push & pop masks instead
     void addDrawMask( int x, int y, unsigned int w, unsigned int h );
     void clearDrawMasks();
 }

@@ -157,22 +157,6 @@ namespace bqt
             tabset_sets.erase( &parent );
     }
     
-    void tabset::setRealDimensions( unsigned int w, unsigned int h )
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        dimensions[ 0 ] = w;
-        dimensions[ 1 ] = h;
-        
-        for( int i = 0; i < tabs.size(); ++i )
-        {
-            tabs[ i ].contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
-            tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
-        }
-        
-        reorganizeTabs();                                                       // Calls parent.requestRedraw()
-    }
-    
     void tabset::addTab( group* g, std::string t )
     {
         scoped_lock< rwlock > slock( element_lock, RW_WRITE );
@@ -299,6 +283,37 @@ namespace bqt
         
     //     parent.requestRedraw();
     // }
+    
+    void tabset::setRealPosition( int x, int y )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        position[ 0 ] = x;
+        position[ 1 ] = y;
+        
+        for( int i = 0; i < tabs.size(); ++i )
+        {
+            tabs[ i ].contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
+            tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
+        }
+        
+        parent.requestRedraw();
+    }
+    void tabset::setRealDimensions( unsigned int w, unsigned int h )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        dimensions[ 0 ] = w;
+        dimensions[ 1 ] = h;
+        
+        for( int i = 0; i < tabs.size(); ++i )
+        {
+            tabs[ i ].contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
+            tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
+        }
+        
+        reorganizeTabs();                                                       // Calls parent.requestRedraw()
+    }
     
     bool tabset::acceptEvent( window_event& e )
     {
@@ -473,9 +488,9 @@ namespace bqt
         }
         
         if( current_tab >= 0 )                                                  // current_tab is a group so it will convert event position for us
-            return tabs[ current_tab ].contents -> acceptEvent( e ) || !event_fallthrough;
+            return tabs[ current_tab ].contents -> acceptEvent( e );
         else
-            return !event_fallthrough;                                          // If there is no current tab, we just let the event fall through if possible
+            return false;                                                       // If there is no current tab, we just let the event fall through
     }
     
     void tabset::draw()

@@ -275,7 +275,7 @@ namespace bqt
             }
             return true;
         default:
-            return !event_fallthrough;
+            return false;
         }
     }
     

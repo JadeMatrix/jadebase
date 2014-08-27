@@ -91,7 +91,16 @@ namespace bqt
             }
         }
         
-        return !event_fallthrough;
+        if( event_fallthrough )
+            return true;
+        else
+            return ( !no_position
+                     && pointInsideRect( e_position[ 0 ],
+                                         e_position[ 1 ],
+                                         0,
+                                         0,
+                                         dimensions[ 0 ],
+                                         dimensions[ 1 ] ) );
     }
     
     group::group( window& parent,
@@ -99,9 +108,17 @@ namespace bqt
                   int y,
                   unsigned int w,
                   unsigned int h,
-                  std::string f ) : gui_element( parent, x, y, w, h )
+                  std::string f ) : scrollable( parent, x, y, w, h )
     {
         event_fallthrough = false;
+        
+        scroll_limits[ 0 ] = 0;
+        scroll_limits[ 1 ] = 0;
+        scroll_limits[ 2 ] = 0;
+        scroll_limits[ 3 ] = 0;
+        
+        scroll_offset[ 0 ] = 0;
+        scroll_offset[ 1 ] = 0;
         
         if( f != "" )
         {
@@ -113,6 +130,68 @@ namespace bqt
         // if lua_state is initialized
         //     destroy lua_state
     }
+    
+    void group::addElement( gui_element* e )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        elements.push_back( e );
+    }
+    void group::removeElement( gui_element* e )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        for( std::vector< gui_element* >::iterator iter = elements.begin();
+             iter != elements.end();
+             ++iter )
+        {
+            if( *iter == e )
+            {
+                elements.erase( iter );
+                
+                parent.requestRedraw();
+                
+                return;
+            }
+        }
+        
+        throw exception( "group::removeElement(): No such element" );
+    }
+    
+    void group::shown()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        // inform lua_state
+    }
+    void group::hidden()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        // inform lua_state
+    }
+    
+    void group::close()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        // inform lua_state
+    }
+    
+    bool group::getEventFallthrough()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        
+        return event_fallthrough;
+    }
+    void group::setEventFallthrough( bool t )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        event_fallthrough = t;
+    }
+    
+    // GUI_ELEMENT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     void group::setRealPosition( int x, int y )
     {
@@ -183,53 +262,6 @@ namespace bqt
         return v_dimensions;
     }
     
-    void group::addElement( gui_element* e )
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        elements.push_back( e );
-    }
-    void group::removeElement( gui_element* e )
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        for( std::vector< gui_element* >::iterator iter = elements.begin();
-             iter != elements.end();
-             ++iter )
-        {
-            if( *iter == e )
-            {
-                elements.erase( iter );
-                
-                parent.requestRedraw();
-                
-                return;
-            }
-        }
-        
-        throw exception( "group::removeElement(): No such element" );
-    }
-    
-    void group::shown()
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        // inform lua_state
-    }
-    void group::hidden()
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        // inform lua_state
-    }
-    
-    void group::close()
-    {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
-        
-        // inform lua_state
-    }
-    
     bool group::acceptEvent( window_event& e )
     {
         return acceptEvent_copy( e );                                           // Easy way of changing offsets without editing original
@@ -255,9 +287,95 @@ namespace bqt
             glEnd();
             
             for( int i = 0; i < elements.size(); ++i )
+            {
+                addDrawMask( 0, 0, dimensions[ 0 ], dimensions[ 1 ] );          // Do it for every element, as they might erase the mask
                 elements[ i ] -> draw();
+            }
+            
+            clearDrawMasks();
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
+    }
+    
+    // SCROLLABLE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void group::scrollPixels( int x, int y )
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        
+        if( scroll_limits[ 0 ] > scroll_limits[ 1 ]
+            || scroll_limits[ 2 ] > scroll_limits[ 3 ] )
+        {
+            throw exception( "group::scrollPixels(): Some min limit above max limit" );
+        }
+        
+        if( scroll_offset[ 0 ] + x < scroll_limits[ 0 ] )
+            x = scroll_limits[ 0 ] - scroll_offset[ 0 ];
+        else
+            if( scroll_offset[ 0 ] + x > scroll_limits[ 1 ] )
+                x = scroll_limits[ 1 ] - scroll_offset[ 0 ];
+        
+        if( scroll_offset[ 1 ] + y < scroll_limits[ 2 ] )
+            y = scroll_limits[ 2 ] - scroll_offset[ 1 ];
+        else
+            if( y > scroll_limits[ 3 ] )
+                y = scroll_limits[ 3 ] - scroll_offset[ 1 ];
+        
+        for( int i = 0; i < elements.size(); ++i )
+        {
+            std::pair< int, int > old_pos = elements[ i ] -> getRealPosition();
+            elements[ i ] -> setRealPosition( old_pos.first + x, old_pos.second + y );
+        }
+        
+        parent.requestRedraw();
+    }
+    void group::scrollPercent( float x, int y )
+    {
+        scrollPixels( x * dimensions[ 0 ], y * dimensions[ 1 ] );
+    }
+    
+    std::pair< int, int > group::getScrollPixels()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        
+        return std::pair< int, int >( scroll_offset[ 0 ], scroll_offset[ 1 ] );
+    }
+    std::pair< float, float > group::getScrollPercent()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        
+        return std::pair< float, float >( ( float )scroll_offset[ 0 ], ( float )scroll_offset[ 1 ] );
+    }
+    
+    bool group::hasScrollLimit()
+    {
+        return true;
+    }
+    limit_pixels group::getScrollLimitPixels()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        
+        limit_pixels l;
+        
+        l.first.first = scroll_limits[ 0 ];
+        l.first.second = scroll_limits[ 1 ];
+        l.second.first = scroll_limits[ 2 ];
+        l.second.second = scroll_limits[ 3 ];
+        
+        return l;
+    }
+    limit_percent group::getScrollLimitPercent()
+    {
+        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        
+        limit_percent l;
+        
+        l.first.first = ( float )scroll_limits[ 0 ];
+        l.first.second = ( float )scroll_limits[ 1 ];
+        l.second.first = ( float )scroll_limits[ 2 ];
+        l.second.second = ( float )scroll_limits[ 3 ];
+        
+        return l;
     }
 }
 
