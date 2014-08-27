@@ -69,7 +69,8 @@ namespace bqt
         void updatePixels_setup( text_update_context* context );
         void updatePixels_cleanup( text_update_context* context );
     public:
-        text_rsrc( float p = 12.0f,
+        text_rsrc( window& parent,
+                   float p = 12.0f,
                    std::string f = TEXTBOX_FONT,
                    std::string s = "" );
         ~text_rsrc();

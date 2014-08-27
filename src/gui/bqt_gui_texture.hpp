@@ -29,9 +29,6 @@ namespace bqt
             dimensions[ 1 ] = 0;
         }
     };
-    
-    gui_texture* acquireTexture( std::string filename );
-    void releaseTexture( gui_texture* t );
 }
 
 /******************************************************************************//******************************************************************************/

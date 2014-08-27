@@ -36,6 +36,7 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( wm_lock, RW_WRITE );
         
+        // Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().x_window );
         Window window_id = w.getPlatformWindow().x_window;
         
         if( id_window_map.size() == 0 )
@@ -47,17 +48,13 @@ namespace bqt
             id_window_map[ window_id ] = &w;
         
         if( getDevMode() )
-            ff::write( bqt_out,
-                       "Registered a window (id 0x",
-                        ff::to_x( ( unsigned long )window_id ),
-                        "), currently ",
-                        id_window_map.size(),
-                        " windows registered\n" );
+            ff::write( bqt_out, "Registered a window (id 0x", ff::to_x( ( unsigned long )window_id ), "), currently ", id_window_map.size(), " windows registered\n" );
     }
     void deregisterWindow( window& w )
     {
         scoped_lock< rwlock > slock( wm_lock, RW_WRITE );
         
+        // Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().sdl_window );
         Window window_id = w.getPlatformWindow().x_window;
         
         bqt::window* erased_window = id_window_map[ window_id ];
@@ -81,18 +78,14 @@ namespace bqt
         }
         
         if( getDevMode() )
-            ff::write( bqt_out,
-                       "Deregistered a window (id 0x",
-                        ff::to_x( ( unsigned long )window_id ),
-                        "), currently ",
-                        id_window_map.size(),
-                        " windows registered\n" );
+            ff::write( bqt_out, "Deregistered a window (id 0x", ff::to_x( ( unsigned long )window_id ), "), currently ", id_window_map.size(), " windows registered\n" );
     }
     
     bool isRegisteredWindow( bqt_platform_window_t& w )
     {
         scoped_lock< rwlock > slock( wm_lock, RW_READ );
         
+        // return id_window_map.count( SDL_GetWindowID( w.sdl_window ) );
         return id_window_map.count( w.x_window );
     }
     
@@ -107,6 +100,7 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( wm_lock, RW_WRITE );
         
+        // Uint32 window_id = SDL_GetWindowID( w.sdl_window );
         Window window_id = w.x_window;
         
         if( id_window_map.count( window_id ) )
@@ -124,15 +118,15 @@ namespace bqt
     {
         scoped_lock< rwlock > slock( wm_lock, RW_READ );
         
+        // Uint32 window_id = SDL_GetWindowID( w.sdl_window );
         Window window_id = w.x_window;
         
         if( id_window_map.count( window_id ) )
             return *( id_window_map[ window_id ] );
         else
         {
-            exception e;
-            ff::write( *e, "getWindow(): No window associated with platform window id ", ff::to_x( window_id ) );
-            throw e;
+            ff::write( bqt_out, "No window associated with id ", window_id, "\n" );
+            throw exception( "getWindow(): No window associated with platform window" );
         }
     }
     
@@ -148,27 +142,13 @@ namespace bqt
             wmanip = new window::manipulate( id_window_map.begin() -> second );
             wmanip -> close();
             
-            if( wmanip -> execute( &close_mask ) )                              // Executing the manipulate task with the close flag removes the window from the
-                                                                                // the list, which is why we don't iterate over the list.  This is a dirty hack
-                                                                                // but it was the nicest of the current alternatives
+            if( wmanip -> execute( &close_mask ) )                              // This is a dirty hack but it was the nicest of the current alternatives
                 delete wmanip;
             else
                 throw exception( "closeAllWindows(): Failed to close a window" );
         }
         
         id_window_map.clear();                                                  // Just in case, but shouldn't be needed
-    }
-    
-    void redrawAllWindows()
-    {
-        scoped_lock< rwlock > slock( wm_lock, RW_READ );
-        
-        for( std::map< Window, bqt::window* >::iterator iter = id_window_map.begin();
-             iter != id_window_map.end();
-             ++iter )
-        {
-            iter -> second -> requestRedraw();
-        }
     }
 }
 

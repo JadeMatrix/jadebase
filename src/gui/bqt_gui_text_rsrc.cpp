@@ -252,9 +252,10 @@ namespace bqt
         cairo_font_options_destroy( context -> c_fontops );
     }
     
-    text_rsrc::text_rsrc( float p,
+    text_rsrc::text_rsrc( window& parent,
+                          float p,
                           std::string f,
-                          std::string s ) : gui_resource( 0, 0 )
+                          std::string s ) : gui_resource( parent, 0, 0 )
     {
         tex_offset[ 0 ] = 0;
         tex_offset[ 1 ] = 0;

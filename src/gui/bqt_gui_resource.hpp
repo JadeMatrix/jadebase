@@ -21,9 +21,12 @@ namespace bqt
     class gui_resource
     {
     protected:
+        window& parent;
+        
         unsigned int dimensions[ 2 ];
     public:
-        gui_resource( unsigned int w,
+        gui_resource( window& p,
+                      unsigned int w,
                       unsigned int h );
         virtual ~gui_resource();
         

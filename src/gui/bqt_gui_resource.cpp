@@ -13,8 +13,9 @@
 
 namespace bqt
 {
-    gui_resource::gui_resource( unsigned int w,
-                                unsigned int h )
+    gui_resource::gui_resource( window& p,
+                                unsigned int w,
+                                unsigned int h ) : parent( p )
     {
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;

@@ -29,8 +29,6 @@ namespace bqt
     window& getWindow( bqt_platform_window_t& w );                              // Throws an exception if no window matches the platform window
     
     void closeAllWindows();                                                     // Meant for cleanup; must be called from a task thread with TASK_SYSTEM
-    
-    void redrawAllWindows();                                                    // Usefule when we update a grpahical preference, for example
 }
 
 /******************************************************************************//******************************************************************************/
