@@ -500,6 +500,7 @@ namespace
         case Expose:
             if( x_event.xexpose.count != 0 )
                 current_manip -> redraw();
+            current_manip -> makeActive();
             break;
         case ConfigureRequest:
             // ff::write( bqt_out, "ConfigureRequest\n" );
@@ -530,9 +531,10 @@ namespace
             break;
         case MapNotify:
         case MapRequest:
-            current_manip -> makeActive();
         case VisibilityNotify:
+        case FocusIn:
             current_manip -> restore();
+            current_manip -> makeActive();
             break;
         case ClientMessage:
             // http://tronche.com/gui/x/icccm/sec-4.html#s-4.2.8.1
@@ -896,6 +898,7 @@ namespace bqt
                 case MapRequest:
                 case ClientMessage:
                 case VisibilityNotify:
+                case FocusIn:
                     handleWindowEvent( x_event );
                     break;
                 case DestroyNotify:
@@ -903,10 +906,9 @@ namespace bqt
                 case UnmapNotify:
                 case ReparentNotify:
                 case GravityNotify:
+                case FocusOut:
                 case EnterNotify:
                 case LeaveNotify:
-                case FocusIn:
-                case FocusOut:
                 case GraphicsExpose:
                 case NoExpose:
                 case CirculateNotify:

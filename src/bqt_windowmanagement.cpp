@@ -39,6 +39,9 @@ namespace bqt
         // Uint32 window_id = SDL_GetWindowID( w.getPlatformWindow().x_window );
         Window window_id = w.getPlatformWindow().x_window;
         
+        if( id_window_map.size() == 0 )
+            active_window = &w;
+        
         if( id_window_map.count( window_id ) )
             throw exception( "registerWindow(): Window already registered" );
         else
@@ -80,7 +83,7 @@ namespace bqt
     
     bool isRegisteredWindow( bqt_platform_window_t& w )
     {
-        scoped_lock< rwlock > slock( wm_lock );
+        scoped_lock< rwlock > slock( wm_lock, RW_READ );
         
         // return id_window_map.count( SDL_GetWindowID( w.sdl_window ) );
         return id_window_map.count( w.x_window );
@@ -88,7 +91,7 @@ namespace bqt
     
     int getRegisteredWindowCount()
     {
-        scoped_lock< rwlock > slock( wm_lock );
+        scoped_lock< rwlock > slock( wm_lock, RW_READ );
         
         return id_window_map.size();
     }
@@ -107,13 +110,13 @@ namespace bqt
     }
     window* getActiveWindow()
     {
-        scoped_lock< rwlock > slock( wm_lock );
+        scoped_lock< rwlock > slock( wm_lock, RW_READ );
         
         return active_window;
     }
     window& getWindow( bqt_platform_window_t& w )
     {
-        scoped_lock< rwlock > slock( wm_lock );
+        scoped_lock< rwlock > slock( wm_lock, RW_READ );
         
         // Uint32 window_id = SDL_GetWindowID( w.sdl_window );
         Window window_id = w.x_window;

@@ -116,10 +116,36 @@ namespace bqt
         
         XFlush( x_display );                                                    // We need to flush X before creating the GLX Context
         
-        platform_window.glx_context = glXCreateContext( x_display,
+        window* active_window = getActiveWindow();
+        if( active_window == NULL )
+        {
+            if( getDevMode() )
+                ff::write( bqt_out,
+                           "Creating a blank GLX context for window id 0x",
+                           ff::to_x( platform_window.x_window ),
+                           "\n" );
+            
+            platform_window.glx_context = glXCreateContext( x_display,
                                                         platform_window.x_visual_info,
                                                         NULL,
                                                         GL_TRUE );
+        }
+        else
+        {
+            if( getDevMode() )
+                ff::write( bqt_out,
+                           "Creating a GLX context for window id 0x",
+                           ff::to_x( platform_window.x_window ),
+                           " from window id 0x",
+                           ff::to_x( active_window -> getPlatformWindow().x_window ),
+                           "\n" );
+            
+            platform_window.glx_context = glXCreateContext( x_display,
+                                                        platform_window.x_visual_info,
+                                                        active_window -> getPlatformWindow().glx_context,
+                                                        GL_TRUE );
+        }
+        
         glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
         
         #else
