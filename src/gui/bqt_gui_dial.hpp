@@ -43,7 +43,6 @@ namespace bqt
               int y = 0,
               bool s = false,
               float v = DIAL_DEFAULT_VALUE );
-        ~dial();
         
         float getValue();
         void setValue( float v );

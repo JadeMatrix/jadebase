@@ -31,8 +31,7 @@ namespace bqt
         
         void drawTempGraphic();
     public:
-        image_rsrc( window& parent,
-                    std::string f,
+        image_rsrc( std::string f,
                     unsigned int x,
                     unsigned int y,
                     unsigned int w,

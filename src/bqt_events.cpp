@@ -29,6 +29,7 @@
 #include "threading/bqt_mutex.hpp"
 #include "bqt_keycode.hpp"
 #include "bqt_preferences.hpp"
+#include "gui/bqt_named_resources.hpp"
 
 #include "bqt_log.hpp"
 
@@ -810,6 +811,8 @@ namespace bqt
             {
                 closeTabletDevices();
                 closeAllWindows();
+                
+                deInitNamedResources();
                 
                 submitTask( new StopTaskSystem_task() );
             }

@@ -25,6 +25,7 @@
 #include "bqt_version.hpp"
 #include "bqt_events.hpp"
 #include "bqt_gl.hpp"
+#include "gui/bqt_named_resources.hpp"
 
 // TODO: Debug, remove later
 #include "bqt_window.hpp"
@@ -99,7 +100,7 @@ int bqt_main()
         
         if( bqt::initTaskSystem( true ) )
         {
-            bqt::initOpenGL();
+            bqt::initNamedResources();                                               // These will be deinitialized when quitting
             
             bqt::submitTask( new bqt::StartBQTDraw_task() );
             
