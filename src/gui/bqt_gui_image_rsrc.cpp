@@ -10,6 +10,7 @@
 #include "bqt_gui_image_rsrc.hpp"
 
 #include "../bqt_launchargs.hpp"
+#include "bqt_named_resources.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -73,14 +74,13 @@ namespace bqt
         glEnd();
     }
     
-    image_rsrc::image_rsrc( window& parent,
-                            std::string f,
+    image_rsrc::image_rsrc( std::string f,
                             unsigned int x,
                             unsigned int y,
                             unsigned int w,
-                            unsigned int h ) : gui_resource( parent, w, h )
+                            unsigned int h ) : gui_resource( w, h )
     {
-        texture = parent.acquireTexture( f );
+        texture = acquireTexture( f );
         
         dlist_created = false;
         
@@ -92,7 +92,7 @@ namespace bqt
         if( dlist_created )
             glDeleteLists( gl_dlist, 1 );
         
-        parent.releaseTexture( texture );
+        releaseTexture( texture );
     }
     
     void image_rsrc::draw()

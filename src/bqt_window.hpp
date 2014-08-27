@@ -31,8 +31,6 @@
 #include "threading/bqt_rwlock.hpp"
 #include "bqt_version.hpp"
 #include "bqt_windowevent.hpp"
-#include "gui/bqt_gui_texture.hpp"
-#include "gui/bqt_gui_resource_names.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -95,42 +93,11 @@ namespace bqt
                   bqt_platform_idevid_t_comp_t > input_assoc;
         std::vector< gui_element* > elements;
         
-        struct gui_texture_holder
-        {
-            gui_texture* texture;
-            
-            unsigned char* data;
-            int ref_count;
-            
-            gui_texture_holder()
-            {
-                texture = new gui_texture();
-                data = NULL;
-                ref_count = 0;
-            }
-            ~gui_texture_holder()
-            {
-                delete texture;
-            }
-        };
-        
-        std::map< std::string, gui_texture_holder* > resource_textures;
-        bool new_textures;
-        bool old_textures;
-        
-        std::map< gui_resource_name, gui_resource* > named_resources;
-        
         /**********************************************************************//******************************************************************************/
         
         void init();
         
         void makeContextCurrent();                                              // Not thread-safe
-        
-        void initNamedResources();
-        
-        void openUnopenedTextureFiles();
-        void uploadUnuploadedTextures();
-        void deleteUnreferencedTextures();
         
         ~window();                                                              // Windows can only be destroyed by manipulate tasks
         
@@ -166,11 +133,6 @@ namespace bqt
                               float off_y );                                    // Begins sending input events from the device directly to the element without
                                                                                 // passing through the element tree.
         void deassociateDevice( bqt_platform_idevid_t dev_id );
-        
-        gui_texture* acquireTexture( std::string filename );
-        void releaseTexture( gui_texture* t );
-        
-        gui_resource* getNamedResource( gui_resource_name name );
         
         void requestRedraw();
         

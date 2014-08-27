@@ -17,27 +17,26 @@
 
 #include "bqt_gui_resource.hpp"
 #include "../bqt_preferences.hpp"
+#include "bqt_named_resources.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
 {
+    bqt::rwlock dial_rsrc_lock;
+    bool got_resources = false;
+    
     struct dial_set
     {
         bqt::gui_resource* dial;
         bqt::gui_resource* dot;
     };
     
-    struct size_set
+    struct
     {
         dial_set large;
         dial_set small;
-        
-        int count;
-    };
-    
-    bqt::rwlock dial_rsrc_lock;
-    std::map< bqt::window*, size_set > size_sets;
+    } size_set;
 }
 
 /******************************************************************************//******************************************************************************/
@@ -60,28 +59,15 @@ namespace bqt
         
         scoped_lock< rwlock > slock( dial_rsrc_lock, RW_WRITE );
         
-        if( !size_sets.count( &parent ) )
+        if( !got_resources )
         {
-            size_set& window_set( size_sets[ &parent ] );
+            size_set.large.dial = getNamedResource( dial_large_dial );
+            size_set.large.dot  = getNamedResource( dial_large_dot  );
+            size_set.small.dial = getNamedResource( dial_small_dial );
+            size_set.small.dot  = getNamedResource( dial_small_dot  );
             
-            window_set.large.dial = parent.getNamedResource( dial_large_dial );
-            window_set.large.dot  = parent.getNamedResource( dial_large_dot  );
-            window_set.small.dial = parent.getNamedResource( dial_small_dial );
-            window_set.small.dot  = parent.getNamedResource( dial_small_dot  );
-            
-            window_set.count = 1;
+            got_resources = true;
         }
-        else
-            size_sets[ &parent ].count++;
-    }
-    dial::~dial()
-    {
-        scoped_lock< rwlock > slock( dial_rsrc_lock, RW_WRITE );
-        
-        size_sets[ &parent ].count--;
-        
-        if( size_sets[ &parent ].count < 1 )
-            size_sets.erase( &parent );
     }
     
     float dial::getValue()
@@ -200,7 +186,7 @@ namespace bqt
         scoped_lock< rwlock > slock_e( element_lock, RW_READ );
         scoped_lock< rwlock > slock_r( dial_rsrc_lock, RW_READ );
         
-        dial_set* set = small ? &size_sets[ &parent ].small : &size_sets[ &parent ].large;
+        dial_set* set = small ? &size_set.small : &size_set.large;
         
         std::pair< unsigned int, unsigned int > dot_dimensions = set -> dot -> getDimensions();
         float radius = dimensions[ 0 ] / 2.0f;

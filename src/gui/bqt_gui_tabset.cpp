@@ -15,11 +15,16 @@
 #include "bqt_gui_resource.hpp"
 #include "../bqt_exception.hpp"
 #include "../bqt_log.hpp"
+#include "bqt_named_resources.hpp"
+#include "../bqt_gl.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
 {
+    bqt::rwlock tabset_rsrc_lock;
+    bool got_resources = false;
+    
     struct ctrl_set
     {
         bqt::gui_resource* up;
@@ -37,18 +42,13 @@ namespace
         ctrl_set unsafe;
     };
     
-    struct tabset_set
+    struct
     {
         tab_set active;
         tab_set inactive;
         
         bqt::gui_resource* fill;
-        
-        int count;
-    };
-    
-    bqt::rwlock tabset_rsrc_lock;
-    std::map< bqt::window*, tabset_set > tabset_sets;
+    } tabset_set;
 }
 
 /******************************************************************************//******************************************************************************/
@@ -108,36 +108,32 @@ namespace bqt
         
         scoped_lock< rwlock > slock( tabset_rsrc_lock, RW_WRITE );
         
-        if( !tabset_sets.count( &parent ) )
+        if( !got_resources )
         {
-            tabset_set& window_set( tabset_sets[ &parent ] );
+            tabset_set.active.left        = getNamedResource( tab_active_left );
+            tabset_set.active.center      = getNamedResource( tab_active_center );
+            tabset_set.active.right       = getNamedResource( tab_active_right );
+            tabset_set.active.safe.up     = getNamedResource( tab_control_active_close_up );
+            tabset_set.active.safe.over   = getNamedResource( tab_control_active_close_over );
+            tabset_set.active.safe.down   = getNamedResource( tab_control_active_close_down );
+            tabset_set.active.unsafe.up   = getNamedResource( tab_control_active_unsaved_up );
+            tabset_set.active.unsafe.over = getNamedResource( tab_control_active_unsaved_over );
+            tabset_set.active.unsafe.down = getNamedResource( tab_control_active_unsaved_down );
             
-            window_set.active.left        = parent.getNamedResource( tab_active_left );
-            window_set.active.center      = parent.getNamedResource( tab_active_center );
-            window_set.active.right       = parent.getNamedResource( tab_active_right );
-            window_set.active.safe.up     = parent.getNamedResource( tab_control_active_close_up );
-            window_set.active.safe.over   = parent.getNamedResource( tab_control_active_close_over );
-            window_set.active.safe.down   = parent.getNamedResource( tab_control_active_close_down );
-            window_set.active.unsafe.up   = parent.getNamedResource( tab_control_active_unsaved_up );
-            window_set.active.unsafe.over = parent.getNamedResource( tab_control_active_unsaved_over );
-            window_set.active.unsafe.down = parent.getNamedResource( tab_control_active_unsaved_down );
+            tabset_set.inactive.left        = getNamedResource( tab_inactive_left );
+            tabset_set.inactive.center      = getNamedResource( tab_inactive_center );
+            tabset_set.inactive.right       = getNamedResource( tab_inactive_right );
+            tabset_set.inactive.safe.up     = getNamedResource( tab_control_inactive_close_up );
+            tabset_set.inactive.safe.over   = getNamedResource( tab_control_inactive_close_over );
+            tabset_set.inactive.safe.down   = getNamedResource( tab_control_inactive_close_down );
+            tabset_set.inactive.unsafe.up   = getNamedResource( tab_control_inactive_unsaved_up );
+            tabset_set.inactive.unsafe.over = getNamedResource( tab_control_inactive_unsaved_over );
+            tabset_set.inactive.unsafe.down = getNamedResource( tab_control_inactive_unsaved_down );
             
-            window_set.inactive.left        = parent.getNamedResource( tab_inactive_left );
-            window_set.inactive.center      = parent.getNamedResource( tab_inactive_center );
-            window_set.inactive.right       = parent.getNamedResource( tab_inactive_right );
-            window_set.inactive.safe.up     = parent.getNamedResource( tab_control_inactive_close_up );
-            window_set.inactive.safe.over   = parent.getNamedResource( tab_control_inactive_close_over );
-            window_set.inactive.safe.down   = parent.getNamedResource( tab_control_inactive_close_down );
-            window_set.inactive.unsafe.up   = parent.getNamedResource( tab_control_inactive_unsaved_up );
-            window_set.inactive.unsafe.over = parent.getNamedResource( tab_control_inactive_unsaved_over );
-            window_set.inactive.unsafe.down = parent.getNamedResource( tab_control_inactive_unsaved_down );
+            tabset_set.fill = getNamedResource( tab_fill );
             
-            window_set.fill = parent.getNamedResource( tab_fill );
-            
-            window_set.count = 1;
+            got_resources = true;
         }
-        else
-            tabset_sets[ &parent ].count++;
     }
     tabset::~tabset()
     {
@@ -150,11 +146,6 @@ namespace bqt
             delete tabs[ i ].contents;
             delete tabs[ i ].title;
         }
-        
-        tabset_sets[ &parent ].count--;
-        
-        if( tabset_sets[ &parent ].count < 1 )
-            tabset_sets.erase( &parent );
     }
     
     void tabset::addTab( group* g, std::string t )
@@ -172,7 +163,7 @@ namespace bqt
         new_data.position = 0;
         new_data.width = TABSET_MIN_TAB_WIDTH;
         
-        new_data.title = new text_rsrc( parent, 11.0f, GUI_LABEL_FONT, t );
+        new_data.title = new text_rsrc( 11.0f, GUI_LABEL_FONT, t );
         new_data.title -> setMaxDimensions( TABSET_MAX_TITLE_WIDTH,
                                             -1, // TEXT_MAXHEIGHT_ONELINE,
                                             text_rsrc::END );
@@ -498,8 +489,6 @@ namespace bqt
         scoped_lock< rwlock > slock_e( element_lock, RW_READ );
         scoped_lock< rwlock > slock_r( tabset_rsrc_lock, RW_READ );
         
-        tabset_set& set = tabset_sets[ &parent ];
-        
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
             addDrawMask( 0, 0, dimensions[ 0 ], TABSET_BAR_HEIGHT );
@@ -521,7 +510,7 @@ namespace bqt
             {
                 glScalef( dimensions[ 0 ], 1.0f, 1.0f );
                 
-                set.fill -> draw();
+                tabset_set.fill -> draw();
             }
             glPopMatrix();
             
@@ -538,7 +527,7 @@ namespace bqt
                         glTranslatef( tabs[ i ].width, 0.0f, 0.0f );
                     else
                     {
-                        t_set = &set.inactive;
+                        t_set = &tabset_set.inactive;
                         
                         switch( tabs[ i ].state )
                         {
@@ -606,7 +595,7 @@ namespace bqt
             
             if( current_tab >= 0 )
             {
-                t_set = &set.active;
+                t_set = &tabset_set.active;
                 
                 switch( tabs[ current_tab ].state )
                 {

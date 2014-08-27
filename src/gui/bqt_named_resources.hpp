@@ -1,36 +1,26 @@
-#ifndef BQT_GUI_RESOURCE_HPP
-#define BQT_GUI_RESOURCE_HPP
+#ifndef BQT_NAMED_RESOURCE_HPP
+#define BQT_NAMED_RESOURCE_HPP
 
 /* 
- * bqt_gui_resource.hpp
+ * bqt_named_resources.hpp
  * 
- * About
+ * Utilities for built-in named GUI resources
  * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include <utility>
-
-#include "../bqt_window.hpp"
+#include "bqt_gui_resource_names.hpp"
+#include "bqt_gui_resource.hpp"
 
 /******************************************************************************//******************************************************************************/
 
 namespace bqt
 {
-    class gui_resource
-    {
-    protected:
-        unsigned int dimensions[ 2 ];
-    public:
-        gui_resource( unsigned int w,
-                      unsigned int h );
-        virtual ~gui_resource();
-        
-        virtual std::pair< unsigned int, unsigned int > getDimensions();
-        
-        virtual void draw() = 0;
-    };
+    void initNamedResources();
+    void deInitNamedResources();
+    
+    gui_resource* getNamedResource( gui_resource_name name );
 }
 
 /******************************************************************************//******************************************************************************/
