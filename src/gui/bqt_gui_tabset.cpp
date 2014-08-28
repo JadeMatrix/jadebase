@@ -458,7 +458,7 @@ namespace bqt
                                          dimensions[ 0 ],
                                          TABSET_BAR_HEIGHT ) )
                     {
-                        if( e.scroll.amount[ 0 ] != NAN )                       // If there is horizontal scroll, use only that
+                        if( e.scroll.amount[ 0 ] != 0.0f )                      // If there is any horizontal scroll, use that
                         {
                             if( capturing )
                                 capture_start[ 0 ] += e.scroll.amount[ 0 ];     // Readjust capture start X so tab follows cursor while scrolling

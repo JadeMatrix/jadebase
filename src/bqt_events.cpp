@@ -260,17 +260,33 @@ namespace
                     break;
                 case Button4:
                 case Button5:
+                case ( Button5 + 1 ):   // aka Button6
+                case ( Button5 + 2 ):   // aka Button7
                     {
                         w_event.type = bqt::SCROLL;
                         
                         w_event.scroll.position[ 0 ] = x_event.xbutton.x_root;
                         w_event.scroll.position[ 1 ] = x_event.xbutton.y_root;
                         
-                        w_event.scroll.amount[ 0 ] = 0.0f;                       // No horizontal scroll from mouse wheels
-                        if( x_event.xbutton.button == Button4 )                 // Scroll wheel up, ie scroll down
-                            w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
-                        else                                                    // Scroll wheel down, ie scroll up
-                            w_event.scroll.amount[ 1 ] = -1.0f * bqt::getWheelScrollDistance();
+                        w_event.scroll.amount[ 0 ] = 0.0f;
+                        w_event.scroll.amount[ 1 ] = 0.0f;
+                        switch( x_event.xbutton.button )
+                        {
+                            case Button4:                                       // Scroll wheel up, ie scroll down
+                                w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
+                                break;
+                            case Button5:                                       // Scroll wheel down, ie scroll up
+                                w_event.scroll.amount[ 1 ] = -1.0f * bqt::getWheelScrollDistance();
+                                break;
+                            case ( Button5 + 1 ):                               // Scroll wheel left, ie scroll right
+                                w_event.scroll.amount[ 0 ] =  1.0f * bqt::getWheelScrollDistance();
+                                break;
+                            case ( Button5 + 2 ):                               // Scroll wheel right, ie scroll left
+                                w_event.scroll.amount[ 0 ] = -1.0f * bqt::getWheelScrollDistance();
+                                break;
+                            default:
+                                break;
+                        }
                         
                         w_event.scroll.shift = ( bool )( x_event.xbutton.state & ShiftMask );
                         w_event.scroll.ctrl  = ( bool )( x_event.xbutton.state & ControlMask );
