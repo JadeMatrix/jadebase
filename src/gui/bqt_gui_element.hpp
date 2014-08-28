@@ -12,7 +12,7 @@
 
 #include <utility>
 
-#include "../threading/bqt_rwlock.hpp"
+#include "../threading/bqt_mutex.hpp"
 #include "../bqt_window.hpp"
 #include "../bqt_windowevent.hpp"
 
@@ -23,7 +23,7 @@ namespace bqt
     class gui_element
     {
     protected:
-        rwlock element_lock;
+        mutex element_mutex;
         window& parent;
         
         int position[ 2 ];

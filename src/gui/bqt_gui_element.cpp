@@ -15,7 +15,7 @@ namespace bqt
 {
     void gui_element::setRealDimensions( unsigned int w, unsigned int h )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
@@ -39,7 +39,7 @@ namespace bqt
     
     void gui_element::setRealPosition( int x, int y )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         position[ 0 ] = x;
         position[ 1 ] = y;
@@ -48,7 +48,7 @@ namespace bqt
     }
     std::pair< int, int > gui_element::getRealPosition()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         return std::pair< int, int >( position[ 0 ], position[ 1 ] );
     }
@@ -59,7 +59,7 @@ namespace bqt
     
     std::pair< unsigned int, unsigned int > gui_element::getRealDimensions()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
     }

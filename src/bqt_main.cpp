@@ -31,7 +31,6 @@
 #include "bqt_window.hpp"
 #include <cstdlib>
 #include <unistd.h>
-#include "threading/bqt_rwlock.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -48,7 +47,7 @@ namespace bqt
                 submitTask( new HandleEvents_task() );
                 
                 submitTask( new window::manipulate( NULL ) );
-                submitTask( new window::manipulate( NULL ) );
+                // submitTask( new window::manipulate( NULL ) );
                 
                 
             }

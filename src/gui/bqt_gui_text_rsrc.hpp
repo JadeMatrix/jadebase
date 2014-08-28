@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "../threading/bqt_rwlock.hpp"
+#include "../threading/bqt_mutex.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -46,7 +46,7 @@ namespace bqt
             END
         };
     protected:
-        rwlock text_lock;
+        mutex text_mutex;
         
         int tex_offset[ 2 ];                                                    // Texture offset from the baseline
         

@@ -22,7 +22,7 @@
 
 namespace
 {
-    bqt::rwlock tabset_rsrc_lock;
+    bqt::mutex tabset_rsrc_mutex;
     bool got_resources = false;
     
     struct ctrl_set
@@ -106,7 +106,7 @@ namespace bqt
         
         capturing = false;
         
-        scoped_lock< rwlock > slock( tabset_rsrc_lock, RW_WRITE );
+        scoped_lock< mutex > slock( tabset_rsrc_mutex );
         
         if( !got_resources )
         {
@@ -137,8 +137,6 @@ namespace bqt
     }
     tabset::~tabset()
     {
-        scoped_lock< rwlock > slock( tabset_rsrc_lock, RW_WRITE );
-        
         for( int i = 0; i < tabs.size(); ++i )
         {
             tabs[ i ].contents -> close();
@@ -150,7 +148,7 @@ namespace bqt
     
     void tabset::addTab( group* g, std::string t )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         g -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
         g -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
@@ -180,7 +178,7 @@ namespace bqt
     }
     void tabset::removeTab( group* g )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         int i = 0;
         for( std::vector< tab_data >::iterator iter = tabs.begin();
@@ -229,7 +227,7 @@ namespace bqt
     
     void tabset::setTabTitle( group* g, std::string t )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         tabs[ getTabIndex( g ) ].title -> setString( t );
         
@@ -237,7 +235,7 @@ namespace bqt
     }
     void tabset::setTabSafe( group* g, bool safe )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         if( safe )
             tabs[ getTabIndex( g ) ].state = tab_data::CLOSE_SAFE;
@@ -248,7 +246,7 @@ namespace bqt
     }
     void tabset::makeTabCurrent( group* g )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         if( current_tab >= 0 )
             tabs[ current_tab ].contents -> hidden();
@@ -260,7 +258,7 @@ namespace bqt
     }
     // void tabset::moveTabToLeft( group* g )
     // {
-    //     scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+    //     scoped_lock< mutex > slock( element_mutex );
         
         
         
@@ -268,7 +266,7 @@ namespace bqt
     // }
     // void tabset::moveTabToRight( group* g )
     // {
-    //     scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+    //     scoped_lock< mutex > slock( element_mutex );
         
         
         
@@ -277,7 +275,7 @@ namespace bqt
     
     void tabset::setRealPosition( int x, int y )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         position[ 0 ] = x;
         position[ 1 ] = y;
@@ -292,7 +290,7 @@ namespace bqt
     }
     void tabset::setRealDimensions( unsigned int w, unsigned int h )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
@@ -308,7 +306,7 @@ namespace bqt
     
     bool tabset::acceptEvent( window_event& e )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         switch( e.type )
         {
@@ -486,8 +484,8 @@ namespace bqt
     
     void tabset::draw()
     {
-        scoped_lock< rwlock > slock_e( element_lock, RW_READ );
-        scoped_lock< rwlock > slock_r( tabset_rsrc_lock, RW_READ );
+        scoped_lock< mutex > slock_e( element_mutex );
+        scoped_lock< mutex > slock_r( tabset_rsrc_mutex );
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {

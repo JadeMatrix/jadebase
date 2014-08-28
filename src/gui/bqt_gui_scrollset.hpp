@@ -25,6 +25,28 @@ namespace bqt
     {
     protected:
         scrollable* contents;
+        
+        enum button_state
+        {
+            UP,
+            DOWN,
+            EVIL,
+            EVIL_DOWN,
+            DISABLED
+        };
+        
+        button_state horz_state[ 2 ];
+        button_state vert_state[ 2 ];
+        button_state corner_state;
+        
+        button_state slider_state[ 2 ];                                         // horizontal, vertical
+        unsigned int slider_pos[ 2 ];                                           // horizontal, vertical
+        unsigned int slider_width[ 2 ];                                         // horizontal, vertical
+        
+        bool capturing;
+        int capture_start[ 2 ];
+        
+        void arrangeBars();
     public:
         scrollset( window& parent,
                    int x,

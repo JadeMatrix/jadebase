@@ -23,7 +23,7 @@
 
 namespace
 {
-    bqt::rwlock dial_rsrc_lock;
+    bqt::mutex dial_rsrc_mutex;
     bool got_resources = false;
     
     struct dial_set
@@ -57,7 +57,7 @@ namespace bqt
         small = s;
         capturing = NONE;
         
-        scoped_lock< rwlock > slock( dial_rsrc_lock, RW_WRITE );
+        scoped_lock< mutex > slock( dial_rsrc_mutex );
         
         if( !got_resources )
         {
@@ -72,13 +72,13 @@ namespace bqt
     
     float dial::getValue()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         return value;
     }
     void dial::setValue( float v )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         if( v > DIAL_MAX_VALUE )
             value = DIAL_MAX_VALUE;
@@ -95,7 +95,7 @@ namespace bqt
     
     bool dial::acceptEvent( window_event& e )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         float radius = dimensions[ 0 ] / 2.0f;
         
@@ -183,8 +183,8 @@ namespace bqt
     
     void dial::draw()
     {
-        scoped_lock< rwlock > slock_e( element_lock, RW_READ );
-        scoped_lock< rwlock > slock_r( dial_rsrc_lock, RW_READ );
+        scoped_lock< mutex > slock_e( element_mutex );
+        scoped_lock< mutex > slock_r( dial_rsrc_mutex );
         
         dial_set* set = small ? &size_set.small : &size_set.large;
         

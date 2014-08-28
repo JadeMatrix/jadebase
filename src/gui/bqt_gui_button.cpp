@@ -14,14 +14,14 @@
 #include "bqt_gui_resource.hpp"
 #include "../bqt_log.hpp"
 #include "../bqt_exception.hpp"
-#include "../threading/bqt_rwlock.hpp"
+#include "../threading/bqt_mutex.hpp"
 #include "bqt_named_resources.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
 {
-    bqt::rwlock button_rsrc_lock;
+    bqt::mutex button_rsrc_mutex;
     bool got_resources = false;
     
     struct state_set
@@ -64,7 +64,7 @@ namespace bqt
     {
         state = OFF_UP;
         
-        scoped_lock< rwlock > slock( button_rsrc_lock, RW_WRITE );
+        scoped_lock< mutex > slock( button_rsrc_mutex );
         
         if( !got_resources )
         {
@@ -154,7 +154,7 @@ namespace bqt
     
     void button::setRealDimensions( unsigned int w, unsigned int h )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         if( w < BUTTON_MIN_WIDTH )
             dimensions[ 0 ] = BUTTON_MIN_WIDTH;
@@ -171,7 +171,7 @@ namespace bqt
     
     bool button::acceptEvent( window_event& e )
     {
-        scoped_lock< rwlock > slock_b( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock_b( element_mutex );
         
         switch( e.type )
         {
@@ -267,8 +267,8 @@ namespace bqt
     
     void button::draw()
     {
-        scoped_lock< rwlock > slock_e( element_lock, RW_READ );
-        scoped_lock< rwlock > slock_r( button_rsrc_lock, RW_READ );
+        scoped_lock< mutex > slock_e( element_mutex );
+        scoped_lock< mutex > slock_r( button_rsrc_mutex );
         
         state_set* top_set;
         state_set* center_set;

@@ -70,12 +70,6 @@ extern "C"
         pthread_cond_t pt_cond;
     } bqt_platform_condition_t;
     
-    typedef struct
-    {
-        pthread_rwlock_t pt_rwlock;
-        pthread_rwlockattr_t pt_attr;
-    } bqt_platform_rwlock_t;
-    
     #include <X11/X.h>
     #include <GL/glxew.h>
     #include <X11/extensions/XInput.h>

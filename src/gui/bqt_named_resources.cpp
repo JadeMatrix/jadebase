@@ -10,7 +10,7 @@
 
 #include "bqt_named_resources.hpp"
 
-#include "../threading/bqt_rwlock.hpp"
+#include "../threading/bqt_mutex.hpp"
 #include "../bqt_task.hpp"
 #include "../bqt_taskexec.hpp"
 #include "bqt_gui_texture.hpp"
@@ -32,7 +32,7 @@
 
 namespace
 {
-    bqt::rwlock resources_lock;
+    bqt::mutex resources_mutex;
     
     struct gui_texture_holder
     {
@@ -73,7 +73,7 @@ namespace
         
         bool execute( bqt::task_mask* caller_mask )
         {
-            bqt::scoped_lock< bqt::rwlock > slock( resources_lock, RW_WRITE );
+            bqt::scoped_lock< bqt::mutex > slock( resources_mutex );
             
             if( current_mask == bqt::TASK_SYSTEM )
             {
@@ -189,7 +189,7 @@ namespace bqt
 {
     void initNamedResources()
     {
-        scoped_lock< rwlock > slock( resources_lock, RW_WRITE );
+        scoped_lock< mutex > slock( resources_mutex );
         
         named_resources[ rounded_button_off_up_top_left ] = new image_rsrc( GUI_RESOURCE_FILE, 0, 0, 6, 7 );
         named_resources[ rounded_button_off_up_top_center ] = new image_rsrc( GUI_RESOURCE_FILE, 6, 0, 1, 7 );
@@ -299,16 +299,16 @@ namespace bqt
         named_resources[ ruler_mark_outside_small ] = new image_rsrc( GUI_RESOURCE_FILE, 60, 51, 1, 15 );
         named_resources[ ruler_fill ] = new image_rsrc( GUI_RESOURCE_FILE, 13, 241, 1, 15 );
         named_resources[ divider ] = new image_rsrc( GUI_RESOURCE_FILE, 1, 254, 1, 1 );
-        named_resources[ scrollbar_button_left_bottom_up ] = new image_rsrc( GUI_RESOURCE_FILE, 189, 9, 25, 12 );
-        named_resources[ scrollbar_button_left_bottom_down ] = new image_rsrc( GUI_RESOURCE_FILE, 189, 12, 25, 12 );
-        named_resources[ scrollbar_button_right_top_up ] = new image_rsrc( GUI_RESOURCE_FILE, 188, 0, 25, 12 );
-        named_resources[ scrollbar_button_right_top_down ] = new image_rsrc( GUI_RESOURCE_FILE, 188, 12, 25, 12 );
-        named_resources[ scrollbar_bar_left_bottom_up ] = new image_rsrc( GUI_RESOURCE_FILE, 175, 0, 6, 12 );
+        named_resources[ scrollbar_button_left_top_up ] = new image_rsrc( GUI_RESOURCE_FILE, 189, 9, 25, 12 );
+        named_resources[ scrollbar_button_left_top_down ] = new image_rsrc( GUI_RESOURCE_FILE, 189, 12, 25, 12 );
+        named_resources[ scrollbar_button_right_bottom_up ] = new image_rsrc( GUI_RESOURCE_FILE, 188, 0, 25, 12 );
+        named_resources[ scrollbar_button_right_bottom_down ] = new image_rsrc( GUI_RESOURCE_FILE, 188, 12, 25, 12 );
+        named_resources[ scrollbar_bar_left_top_up ] = new image_rsrc( GUI_RESOURCE_FILE, 175, 0, 6, 12 );
         named_resources[ scrollbar_bar_center_up ] = new image_rsrc( GUI_RESOURCE_FILE, 181, 0, 1, 12 );
-        named_resources[ scrollbar_bar_right_top_up ] = new image_rsrc( GUI_RESOURCE_FILE, 182, 0, 6, 12 );
-        named_resources[ scrollbar_bar_left_bottom_down ] = new image_rsrc( GUI_RESOURCE_FILE, 175, 12, 6, 12 );
+        named_resources[ scrollbar_bar_right_bottom_up ] = new image_rsrc( GUI_RESOURCE_FILE, 182, 0, 6, 12 );
+        named_resources[ scrollbar_bar_left_top_down ] = new image_rsrc( GUI_RESOURCE_FILE, 175, 12, 6, 12 );
         named_resources[ scrollbar_bar_center_down ] = new image_rsrc( GUI_RESOURCE_FILE, 181, 12, 1, 12 );
-        named_resources[ scrollbar_bar_right_top_down ] = new image_rsrc( GUI_RESOURCE_FILE, 182, 12, 6, 12 );
+        named_resources[ scrollbar_bar_right_bottom_down ] = new image_rsrc( GUI_RESOURCE_FILE, 182, 12, 6, 12 );
         named_resources[ scrollbar_fill ] = new image_rsrc( GUI_RESOURCE_FILE, 10, 244, 1, 12 );
         named_resources[ scrollbar_corner_up ] = new image_rsrc( GUI_RESOURCE_FILE, 213, 0, 12, 12 );
         named_resources[ scrollbar_corner_down ] = new image_rsrc( GUI_RESOURCE_FILE, 213, 12, 12, 12 );
@@ -355,7 +355,7 @@ namespace bqt
     }
     void deInitNamedResources()
     {
-        scoped_lock< rwlock > slock( resources_lock, RW_WRITE );
+        scoped_lock< mutex > slock( resources_mutex );
         
         for( std::map< gui_resource_name, gui_resource* >::iterator iter = named_resources.begin();
             iter != named_resources.end();
@@ -371,7 +371,7 @@ namespace bqt
     
     gui_resource* getNamedResource( gui_resource_name name )
     {
-        scoped_lock< rwlock > slock( resources_lock, RW_READ );
+        scoped_lock< mutex > slock( resources_mutex );
         
         if( named_resources.count( name ) )
             return named_resources[ name ];
@@ -387,7 +387,7 @@ namespace bqt
     
     gui_texture* acquireTexture( std::string filename )
     {
-        scoped_lock< rwlock > slock( resources_lock, RW_WRITE );
+        scoped_lock< mutex > slock( resources_mutex );
         
         gui_texture_holder* h;
         
@@ -406,7 +406,7 @@ namespace bqt
     }
     void releaseTexture( gui_texture* t )
     {
-        scoped_lock< rwlock > slock( resources_lock, RW_WRITE );
+        scoped_lock< mutex > slock( resources_mutex );
         
         for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
              iter != resource_textures.end();

@@ -24,6 +24,7 @@
 #include "gui/bqt_gui_dial.hpp"
 #include "gui/bqt_gui_tabset.hpp"
 #include "gui/bqt_gui_group.hpp"
+#include "gui/bqt_gui_scrollset.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -33,7 +34,7 @@ namespace bqt
     
     void window::init()
     {
-        scoped_lock< rwlock > slock( window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( window_mutex );
         
         #if defined PLATFORM_XWS_GNUPOSIX
         
@@ -173,8 +174,14 @@ namespace bqt
             test_group_a -> addElement( new button( *this, 100, 10, 40, 19 ) );
             test_group_a -> addElement( new button( *this, 100, 31, 40, 19 ) );
             
-            test_group_b -> addElement( new dial( *this, 10, 70 ) );
-            test_group_b -> addElement( new dial( *this, 62, 70, true ) );
+            group* scroll_group = new group( *this, 0, 0, 256, 256 );
+            scroll_group -> setEventFallthrough( true );
+            
+            scroll_group -> addElement( new dial( *this, 10, 70 ) );
+            scroll_group -> addElement( new dial( *this, 62, 70, true ) );
+            
+            test_group_b -> addElement( new scrollset( *this, 0, 0, 256, 256, scroll_group ) );
+            // test_group_b -> addElement( new scrollset( *this, 0, 0, 256 - TABSET_BAR_HEIGHT, 256 - TABSET_BAR_HEIGHT, scroll_group ) );
             
             tabset* test_tabset = new tabset( *this, 0, 0, 256, 256 );
             
@@ -201,7 +208,7 @@ namespace bqt
     
     window::~window()
     {
-        scoped_lock< rwlock > slock( window_lock, RW_WRITE );                   // If we really need this we have bigger problems
+        scoped_lock< mutex > slock( window_mutex );                             // If we really need this we have bigger problems
         
         #if defined PLATFORM_XWS_GNUPOSIX
         
@@ -263,18 +270,18 @@ namespace bqt
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
     {
-        scoped_lock< rwlock > slock( window_lock, RW_READ );
+        scoped_lock< mutex > slock( window_mutex );
         return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
     }
     std::pair< int, int > window::getPosition()
     {
-        scoped_lock< rwlock > slock( window_lock, RW_READ );
+        scoped_lock< mutex > slock( window_mutex );
         return std::pair< int, int >( position[ 0 ], position[ 1 ] );
     }
     
     void window::acceptEvent( window_event& e )
     {
-        scoped_lock< rwlock > slock( window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( window_mutex );
         
         // Devel
         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
@@ -378,7 +385,7 @@ namespace bqt
     
     bqt_platform_window_t& window::getPlatformWindow()
     {
-        scoped_lock< rwlock > slock( window_lock, RW_READ );
+        scoped_lock< mutex > slock( window_mutex );
         
         if( !platform_window.good )
             throw exception( "window::getPlatformWindow(): Window does not have a platform window yet" );
@@ -391,7 +398,7 @@ namespace bqt
                                   float off_x,
                                   float off_y )
     {
-        scoped_lock< rwlock > scoped_lock( window_lock, RW_WRITE );
+        scoped_lock< mutex > scoped_lock( window_mutex );
         
         idev_assoc& assoc( input_assoc[ dev_id ] );
         
@@ -404,15 +411,15 @@ namespace bqt
     }
     void window::deassociateDevice( bqt_platform_idevid_t dev_id )
     {
-        scoped_lock< rwlock > scoped_lock( window_lock, RW_WRITE );
+        scoped_lock< mutex > scoped_lock( window_mutex );
         
         if( !input_assoc.erase( dev_id ) && getDevMode() )
-            ff::write( bqt_out, "Warning: Attempt to deassociate a non-associated device" );
+            ff::write( bqt_out, "Warning: Attempt to deassociate a non-associated device\n" );
     }
     
     void window::requestRedraw()
     {
-        scoped_lock< rwlock > slock( window_lock, RW_READ );
+        scoped_lock< mutex > slock( window_mutex );
         
         if( pending_redraws < 1 )
         {
@@ -434,7 +441,7 @@ namespace bqt
     {
         bool redraw_window = false;
         
-        target -> window_lock.lock_write();                                     // We need to explicitly lock/unlock this as the window can be destroyed
+        target -> window_mutex.lock();                                     // We need to explicitly lock/unlock this as the window can be destroyed
         
         if( !( target -> platform_window.good ) )
         {
@@ -454,7 +461,7 @@ namespace bqt
             /* WINDOW CLEANUP *************************************************//******************************************************************************/
             
             deregisterWindow( *target );
-            target -> window_lock.unlock();
+            target -> window_mutex.unlock();
             delete target;
             
             if( getQuitOnNoWindows() && getRegisteredWindowCount() < 1 )
@@ -597,7 +604,7 @@ namespace bqt
                 XFlush( x_display );
             }
             
-            target -> window_lock.unlock();
+            target -> window_mutex.unlock();
             
             if( redraw_window )
                 submitTask( new window::redraw( *target ) );
@@ -611,7 +618,7 @@ namespace bqt
         if( w < 1 || h < 1 )
             throw exception( "window::manipulate::setDimensions(): Width or height < 1" );
         
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> dimensions[ 0 ] = w;
         target -> dimensions[ 1 ] = h;
@@ -621,7 +628,7 @@ namespace bqt
     }
     void window::manipulate::setPosition( int x, int y )
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> position[ 0 ] = x;
         target -> position[ 1 ] = y;
@@ -632,7 +639,7 @@ namespace bqt
     
     void window::manipulate::setFullscreen( bool f )
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> fullscreen = true;
         target -> updates.fullscreen = true;
@@ -641,7 +648,7 @@ namespace bqt
     }
     void window::manipulate::setTitle( std::string t )
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> title = t;
         target -> updates.title = true;
@@ -651,13 +658,13 @@ namespace bqt
     
     // void window::manipulate::setFocus( bool f )
     // {
-    //     scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+    //     scoped_lock< mutex > slock( target -> window_mutex );
         
     //     target -> in_focus = true;
     // }
     void window::manipulate::makeActive()
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.active = true;
         
@@ -666,7 +673,7 @@ namespace bqt
     
     void window::manipulate::center()
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.center = true;                                        // Don't calculate here, as that code may be thread-dependent
         
@@ -674,7 +681,7 @@ namespace bqt
     }
     void window::manipulate::minimize()
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.minimize = true;
         
@@ -682,7 +689,7 @@ namespace bqt
     }
     void window::manipulate::maximize()
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.maximize = true;
         
@@ -690,7 +697,7 @@ namespace bqt
     }
     void window::manipulate::restore()
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.restore = true;
         
@@ -698,7 +705,7 @@ namespace bqt
     }
     void window::manipulate::close()
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.close = true;
         
@@ -707,7 +714,7 @@ namespace bqt
     
     void window::manipulate::redraw()
     {
-        scoped_lock< rwlock > slock( target -> window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target -> window_mutex );
         
         target -> updates.redraw = true;
         
@@ -718,13 +725,13 @@ namespace bqt
     
     window::redraw::redraw( window& t ) : target( t )
     {
-        scoped_lock< rwlock > slock( target.window_lock, RW_WRITE );
+        scoped_lock< mutex > slock( target.window_mutex );
         
         target.pending_redraws++;
     }
     bool window::redraw::execute( task_mask* caller_mask )
     {
-        scoped_lock< rwlock > slock( target.window_lock, RW_READ );
+        scoped_lock< mutex > slock( target.window_mutex );
         
         target.makeContextCurrent();
         
@@ -751,6 +758,8 @@ namespace bqt
             
             glEnable( GL_TEXTURE_2D );
             
+            // glEnable( GL_POLYGON_SMOOTH );
+            
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
             
@@ -769,10 +778,6 @@ namespace bqt
             #endif
         }
         
-        // Attempt to fix initial no-render bug (still happens):
-        
-        target.window_lock.unlock();
-        target.window_lock.lock_write();                                        // Switch the lock to write
         target.pending_redraws--;
         
         return true;

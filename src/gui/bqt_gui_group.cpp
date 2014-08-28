@@ -18,7 +18,7 @@ namespace bqt
 {
     bool group::acceptEvent_copy( window_event e )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         bool no_position = false;
         
@@ -72,13 +72,12 @@ namespace bqt
                 element_position   = elements[ i ] -> getVisualPosition();
                 element_dimensions = elements[ i ] -> getVisualDimensions();
                 
-                if( ( e.type == STROKE
-                      && pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
-                                          e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
-                                          element_position.first,
-                                          element_position.second,
-                                          element_dimensions.first,
-                                          element_dimensions.second ) )
+                if( pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
+                                     e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
+                                     element_position.first,
+                                     element_position.second,
+                                     element_dimensions.first,
+                                     element_dimensions.second )
                     || pointInsideRect( e_position[ 0 ],
                                         e_position[ 1 ],
                                         element_position.first,
@@ -93,15 +92,16 @@ namespace bqt
         }
         
         if( event_fallthrough )
-            return true;
+            return false;
         else
-            return ( !no_position
-                     && pointInsideRect( e_position[ 0 ],
+            return ( no_position
+                     || pointInsideRect( e_position[ 0 ],
                                          e_position[ 1 ],
                                          0,
                                          0,
                                          dimensions[ 0 ],
                                          dimensions[ 1 ] ) );
+            // return true;
     }
     
     group::group( window& parent,
@@ -113,10 +113,15 @@ namespace bqt
     {
         event_fallthrough = false;
         
-        scroll_limits[ 0 ] = 0;
-        scroll_limits[ 1 ] = 0;
-        scroll_limits[ 2 ] = 0;
-        scroll_limits[ 3 ] = 0;
+        scroll_limits[ 0 ] = -256;
+        scroll_limits[ 1 ] = 256;
+        scroll_limits[ 2 ] = -256;
+        scroll_limits[ 3 ] = 256;
+        
+        // scroll_limits[ 0 ] = 0;
+        // scroll_limits[ 1 ] = 0;
+        // scroll_limits[ 2 ] = 0;
+        // scroll_limits[ 3 ] = 0;
         
         scroll_offset[ 0 ] = 0;
         scroll_offset[ 1 ] = 0;
@@ -134,13 +139,13 @@ namespace bqt
     
     void group::addElement( gui_element* e )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         elements.push_back( e );
     }
     void group::removeElement( gui_element* e )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         for( std::vector< gui_element* >::iterator iter = elements.begin();
              iter != elements.end();
@@ -161,33 +166,33 @@ namespace bqt
     
     void group::shown()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         // inform lua_state
     }
     void group::hidden()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         // inform lua_state
     }
     
     void group::close()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         // inform lua_state
     }
     
     bool group::getEventFallthrough()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         return event_fallthrough;
     }
     void group::setEventFallthrough( bool t )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         event_fallthrough = t;
     }
@@ -196,7 +201,7 @@ namespace bqt
     
     void group::setRealPosition( int x, int y )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         position[ 0 ] = x;
         position[ 1 ] = y;
@@ -207,7 +212,7 @@ namespace bqt
     }
     void group::setRealDimensions( unsigned int w, unsigned int h )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
@@ -219,7 +224,7 @@ namespace bqt
     
     std::pair< int, int > group::getVisualPosition()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         std::pair< int, int > v_position = getRealPosition();
         
@@ -238,27 +243,27 @@ namespace bqt
     }
     std::pair< unsigned int, unsigned int > group::getVisualDimensions()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
-        std::pair< int, int > v_position = getVisualPosition();
+        // std::pair< int, int > v_position = getVisualPosition();
         std::pair< unsigned int, unsigned int > v_dimensions = getRealDimensions();
         
-        if( v_position.first < position[ 0 ] )                                  // Always guaranteed to be <= from getVisualPosition()
-            v_dimensions.first += position[ 0 ] - v_position.first;
-        if( v_position.second < position[ 1 ] )
-            v_dimensions.second += position[ 1 ] - v_position.second;
+        // if( v_position.first < position[ 0 ] )                                  // Always guaranteed to be <= from getVisualPosition()
+        //     v_dimensions.first += position[ 0 ] - v_position.first;
+        // if( v_position.second < position[ 1 ] )
+        //     v_dimensions.second += position[ 1 ] - v_position.second;
         
-        for( int i = 0; i < elements.size(); ++i )
-        {
-            std::pair< int, int > evp = elements[ i ] -> getVisualPosition();
-            std::pair< unsigned int, unsigned int > evd = elements[ i ] -> getVisualPosition();
+        // for( int i = 0; i < elements.size(); ++i )
+        // {
+        //     std::pair< int, int > evp = elements[ i ] -> getVisualPosition();
+        //     std::pair< unsigned int, unsigned int > evd = elements[ i ] -> getVisualPosition();
             
-            if( evp.first + evd.first > v_position.first + v_dimensions.first )
-                v_dimensions.first = evd.first;
+        //     if( evp.first + evd.first > v_position.first + v_dimensions.first )
+        //         v_dimensions.first = evd.first;
             
-            if( evp.second + evd.second > v_position.second + v_dimensions.second )
-                v_dimensions.second = evd.second;
-        }
+        //     if( evp.second + evd.second > v_position.second + v_dimensions.second )
+        //         v_dimensions.second = evd.second;
+        // }
         
         return v_dimensions;
     }
@@ -270,7 +275,7 @@ namespace bqt
     
     void group::draw()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
@@ -289,6 +294,7 @@ namespace bqt
             
             for( int i = 0; i < elements.size(); ++i )
             {
+                ff::write( bqt_out, "Masking draw area ", position[ 0 ], ", ", position[ 1 ], ": ", dimensions[ 0 ], "x", dimensions[ 1 ], "\n" );
                 addDrawMask( 0, 0, dimensions[ 0 ], dimensions[ 1 ] );          // Do it for every element, as they might erase the mask
                 elements[ i ] -> draw();
             }
@@ -302,7 +308,7 @@ namespace bqt
     
     void group::scrollPixels( int x, int y )
     {
-        scoped_lock< rwlock > slock( element_lock, RW_WRITE );
+        scoped_lock< mutex > slock( element_mutex );
         
         if( scroll_limits[ 0 ] > scroll_limits[ 1 ]
             || scroll_limits[ 2 ] > scroll_limits[ 3 ] )
@@ -322,6 +328,13 @@ namespace bqt
             if( y > scroll_limits[ 3 ] )
                 y = scroll_limits[ 3 ] - scroll_offset[ 1 ];
         
+        ff::write( bqt_out,
+                   "Group scrolling by ",
+                   x,
+                   ", ",
+                   y,
+                   "\n" );
+        
         for( int i = 0; i < elements.size(); ++i )
         {
             std::pair< int, int > old_pos = elements[ i ] -> getRealPosition();
@@ -337,13 +350,13 @@ namespace bqt
     
     std::pair< int, int > group::getScrollPixels()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         return std::pair< int, int >( scroll_offset[ 0 ], scroll_offset[ 1 ] );
     }
     std::pair< float, float > group::getScrollPercent()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         return std::pair< float, float >( ( float )scroll_offset[ 0 ], ( float )scroll_offset[ 1 ] );
     }
@@ -354,7 +367,7 @@ namespace bqt
     }
     limit_pixels group::getScrollLimitPixels()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         limit_pixels l;
         
@@ -367,7 +380,7 @@ namespace bqt
     }
     limit_percent group::getScrollLimitPercent()
     {
-        scoped_lock< rwlock > slock( element_lock, RW_READ );
+        scoped_lock< mutex > slock( element_mutex );
         
         limit_percent l;
         

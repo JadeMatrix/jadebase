@@ -39,7 +39,7 @@ namespace bqt
     
     void text_rsrc::updatePixels()
     {
-        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        scoped_lock< mutex > slock( text_mutex );
         
         text_update_context context;
         
@@ -291,13 +291,13 @@ namespace bqt
     
     float text_rsrc::getPointSize()
     {
-        scoped_lock< rwlock > slock( text_lock, RW_READ );
+        scoped_lock< mutex > slock( text_mutex );
         
         return point_size;
     }
     void text_rsrc::setPointSize( float p )
     {
-        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        scoped_lock< mutex > slock( text_mutex );
         
         if( p <= 0 )
             throw exception( "text_rsrc::setPointSize(): Point size <= 0" );
@@ -314,13 +314,13 @@ namespace bqt
     
     std::string text_rsrc::getString()
     {
-        scoped_lock< rwlock > slock( text_lock, RW_READ );
+        scoped_lock< mutex > slock( text_mutex );
         
         return string;
     }
     void text_rsrc::setString( std::string s )
     {
-        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        scoped_lock< mutex > slock( text_mutex );
         
         string = s;
         
@@ -335,7 +335,7 @@ namespace bqt
     // const float* text_rsrc::getColor();
     void text_rsrc::setColor( float r, float g, float b, float a )
     {
-        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        scoped_lock< mutex > slock( text_mutex );
         
         color[ 0 ] = r;
         color[ 1 ] = g;
@@ -347,13 +347,13 @@ namespace bqt
     
     std::pair< int, int > text_rsrc::getMaxDimensions()
     {
-        scoped_lock< rwlock > slock( text_lock, RW_READ );
+        scoped_lock< mutex > slock( text_mutex );
         
         return std::pair< int, int >( max_dimensions[ 0 ], max_dimensions[ 1 ] );
     }
     void text_rsrc::setMaxDimensions( int w, int h, ellipsis_mode e )
     {
-        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        scoped_lock< mutex > slock( text_mutex );
         
         if( w < 0 )
         {
@@ -377,13 +377,13 @@ namespace bqt
     
     bool text_rsrc::getHinting()
     {
-        scoped_lock< rwlock > slock( text_lock, RW_READ );
+        scoped_lock< mutex > slock( text_mutex );
         
         return hinting_enabled;
     }
     void text_rsrc::setHinting( bool h )
     {
-        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        scoped_lock< mutex > slock( text_mutex );
         
         hinting_enabled = h;
         
@@ -393,13 +393,13 @@ namespace bqt
     
     bool text_rsrc::getAntialiasing()
     {
-        scoped_lock< rwlock > slock( text_lock, RW_READ );
+        scoped_lock< mutex > slock( text_mutex );
         
         return antialiasing_enabled;
     }
     void text_rsrc::setAntialiasing( bool a )
     {
-        scoped_lock< rwlock > slock( text_lock, RW_WRITE );
+        scoped_lock< mutex > slock( text_mutex );
         
         antialiasing_enabled = a;
         
@@ -409,7 +409,7 @@ namespace bqt
     
     void text_rsrc::draw()
     {
-        scoped_lock< rwlock > slock( text_lock, RW_READ );
+        scoped_lock< mutex > slock( text_mutex );
         
         if( update_tex )
             updateTexture();

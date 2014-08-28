@@ -11,7 +11,7 @@
 
 #include <map>
 
-#include "threading/bqt_rwlock.hpp"
+#include "threading/bqt_mutex.hpp"
 #include "bqt_exception.hpp"
 #include "bqt_taskexec.hpp"
 #include "bqt_launchargs.hpp"
@@ -22,7 +22,7 @@
 
 namespace
 {
-    bqt::rwlock wm_lock;
+    bqt::mutex wm_mutex;
     
     bqt::window* active_window = NULL;
     std::map< Window, bqt::window* > id_window_map;                             // SDL window id's are Uint32
@@ -34,7 +34,7 @@ namespace bqt
 {
     void registerWindow( window& w )
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_WRITE );
+        scoped_lock< mutex > slock( wm_mutex );
         
         Window window_id = w.getPlatformWindow().x_window;
         
@@ -56,7 +56,7 @@ namespace bqt
     }
     void deregisterWindow( window& w )
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_WRITE );
+        scoped_lock< mutex > slock( wm_mutex );
         
         Window window_id = w.getPlatformWindow().x_window;
         
@@ -91,21 +91,21 @@ namespace bqt
     
     bool isRegisteredWindow( bqt_platform_window_t& w )
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_READ );
+        scoped_lock< mutex > slock( wm_mutex );
         
         return id_window_map.count( w.x_window );
     }
     
     int getRegisteredWindowCount()
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_READ );
+        scoped_lock< mutex > slock( wm_mutex );
         
         return id_window_map.size();
     }
     
     void makeWindowActive( bqt_platform_window_t& w )
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_WRITE );
+        scoped_lock< mutex > slock( wm_mutex );
         
         Window window_id = w.x_window;
         
@@ -116,13 +116,13 @@ namespace bqt
     }
     window* getActiveWindow()
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_READ );
+        scoped_lock< mutex > slock( wm_mutex );
         
         return active_window;
     }
     window& getWindow( bqt_platform_window_t& w )
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_READ );
+        scoped_lock< mutex > slock( wm_mutex );
         
         Window window_id = w.x_window;
         
@@ -138,7 +138,7 @@ namespace bqt
     
     void closeAllWindows()
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_WRITE );
+        scoped_lock< mutex > slock( wm_mutex );
         
         window::manipulate* wmanip = NULL;
         task_mask close_mask = TASK_SYSTEM;
@@ -161,7 +161,7 @@ namespace bqt
     
     void redrawAllWindows()
     {
-        scoped_lock< rwlock > slock( wm_lock, RW_READ );
+        scoped_lock< mutex > slock( wm_mutex );
         
         for( std::map< Window, bqt::window* >::iterator iter = id_window_map.begin();
              iter != id_window_map.end();
