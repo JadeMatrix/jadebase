@@ -11,15 +11,14 @@
  *   - The lock_*() methods lock the rwlock if it is not already locked by the
  *     calling thread, then retun true.  If the calling thread already controls
  *     the lock, they return false.  The caller must eventually unlock if they
- *     return true, and may not unlock if they return false. In addition, if a
- *     single thread attempts a write lock more than once, it blocks waiting on
- *     itself.
+ *     return true, and may not unlock if they return false.
  *   - The try_*() methods use a non-blocking test on the lock.  If they suc-
  *     ceed, the rwlock is locked, they return true, and the caller must even-
  *     tually unlock.  Otherwise they return false, the caller may not unlock,
  *     but is free to continue execution.
  * Due to the complexity of the lock functions, utilizing scoped_lock< rwlock >
- * is ALWAYS recommended.
+ * is ALWAYS recommended; in addition, the try_* methods may be removed in the
+ * future.
  * 
  */
 
@@ -28,8 +27,6 @@
 #include "../bqt_platform.h"
 #include "bqt_threadutil.hpp"
 #include "bqt_scopedlock.hpp"
-#include "bqt_condition.hpp"
-#include "bqt_mutex.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -38,17 +35,15 @@ namespace bqt
     class rwlock
     {
     protected:
-        condition rwlock_cond;
-        mutex     rwlock_mutex;
-        unsigned long writer_id;
-        int access_count;
+        bqt_platform_rwlock_t platform_rwlock;
     public:
         rwlock();
+        ~rwlock();
         
-        void lock_read() const;
+        bool lock_read() const;                                                 // Returns true if it needs unlocking when done (ie first time locked by thread)
         bool try_read() const;                                                  // Returns true on success, false on failure
         
-        void lock_write() const;
+        bool lock_write() const;                                                // Returns true if it needs unlocking when done (ie first time locked by thread)
         bool try_write() const;                                                 // Returns true on success, false on failure
         
         void unlock() const;
@@ -62,18 +57,22 @@ namespace bqt
     template<> class scoped_lock< rwlock >
     {
     private:
-        const rwlock& slrwl;
+        rwlock& slrwl;
+        bool unlock;
     public:
-        scoped_lock( const rwlock& r, bool m ) : slrwl( r )
+        scoped_lock( rwlock& r, bool m = RW_READ ) : slrwl( r )
         {
             if( m )
-                slrwl.lock_write();
+                unlock = slrwl.lock_write();
             else
-                slrwl.lock_read();
+                unlock = slrwl.lock_read();
+            
+            // unlock = m ? slrwl.lock_write() : slrwl.lock_read();
         }
         ~scoped_lock()
         {
-            slrwl.unlock();
+            if( unlock )
+                slrwl.unlock();
         }
     };
 }
