@@ -36,6 +36,8 @@ namespace bqt
     {
         int err;
         
+        writer.pt_thread = 0x00;
+        
         if( ( err = pthread_rwlock_destroy( &platform_rwlock.pt_rwlock ) ) )
             throw exception( "rwlock::~rwlock(): Could not destroy rwlock: " + errc2str( err ) );
         
@@ -64,15 +66,27 @@ namespace bqt
     
     bool rwlock::lock_write() const
     {
-        int err;
+        scoped_lock< mutex > slock( writer_mutex );
         
-        if( ( err = pthread_rwlock_wrlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) ) ) )
+        while( pthread_rwlock_trywrlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) ) )
         {
-            if( err != EDEADLK )                                                // This is OK, it just means this thread already has a lock
-                throw exception( "rwlock::lock_write(): Could not get a write lock: " + errc2str( err ) );
+            if( writer.pt_thread == pthread_self() )
+                return false;
             
-            return false;
+            writer_cond.wait( writer_mutex );
         }
+        
+        *const_cast< pthread_t* >( &writer.pt_thread ) = pthread_self();
+        
+        // This apparently does not work on Linux even though the POSIX spec says it should, try on other platforms:
+        // int err;
+        // if( ( err = pthread_rwlock_wrlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) ) ) )
+        // {
+        //     if( err != EDEADLK )                                                // This is OK, it just means this thread already has a lock
+        //         throw exception( "rwlock::lock_write(): Could not get a write lock: " + errc2str( err ) );
+            
+        //     return false;
+        // }
         
         return true;
     }
@@ -87,6 +101,8 @@ namespace bqt
         
         if( ( err = pthread_rwlock_unlock( const_cast< pthread_rwlock_t* >( &platform_rwlock.pt_rwlock ) ) ) )
             throw exception( "rwlock::unlock(): Could not unlock: " + errc2str( err ) );
+        
+        writer_cond.signal();
     }
     
     #else

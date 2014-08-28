@@ -27,6 +27,7 @@
 #include "../bqt_platform.h"
 #include "bqt_threadutil.hpp"
 #include "bqt_scopedlock.hpp"
+#include "bqt_condition.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -36,6 +37,9 @@ namespace bqt
     {
     protected:
         bqt_platform_rwlock_t platform_rwlock;
+        bqt_platform_thread_t writer;
+        condition writer_cond;
+        mutex writer_mutex;
     public:
         rwlock();
         ~rwlock();
