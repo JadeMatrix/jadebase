@@ -150,6 +150,13 @@ namespace bqt
     {
         scoped_lock< mutex > slock( element_mutex );
         
+        ff::write( bqt_out,
+                   "Adding tab, setting contents dimensions to ",
+                   dimensions[ 0 ],
+                   " x ",
+                   dimensions[ 1 ] - TABSET_BAR_HEIGHT,
+                   "\n" );
+        
         g -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
         g -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
         

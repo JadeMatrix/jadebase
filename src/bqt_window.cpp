@@ -177,11 +177,11 @@ namespace bqt
             group* scroll_group = new group( *this, 0, 0, 256, 256 );
             scroll_group -> setEventFallthrough( true );
             
-            scroll_group -> addElement( new dial( *this, 10, 70 ) );
-            scroll_group -> addElement( new dial( *this, 62, 70, true ) );
+            scroll_group -> addElement( new dial( *this, 10, 10 ) );
+            scroll_group -> addElement( new dial( *this, 62, 10, true ) );
             
-            test_group_b -> addElement( new scrollset( *this, 0, 0, 256, 256, scroll_group ) );
-            // test_group_b -> addElement( new scrollset( *this, 0, 0, 256 - TABSET_BAR_HEIGHT, 256 - TABSET_BAR_HEIGHT, scroll_group ) );
+            // Groups can't set their elements' dimensions automatically, so we subtract TABSET_BAR_HEIGHT
+            test_group_b -> addElement( new scrollset( *this, 0, 0, 256, 256 - TABSET_BAR_HEIGHT, scroll_group ) );
             
             tabset* test_tabset = new tabset( *this, 0, 0, 256, 256 );
             

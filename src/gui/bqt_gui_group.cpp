@@ -217,6 +217,13 @@ namespace bqt
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
         
+        ff::write( bqt_out,
+                   "Setting group dimensions to ",
+                   w,
+                   " x ",
+                   h,
+                   "\n" );
+        
         // inform lua_state
         
         parent.requestRedraw();
@@ -292,9 +299,10 @@ namespace bqt
             }
             glEnd();
             
+            clearDrawMasks();
+            
             for( int i = 0; i < elements.size(); ++i )
             {
-                ff::write( bqt_out, "Masking draw area ", position[ 0 ], ", ", position[ 1 ], ": ", dimensions[ 0 ], "x", dimensions[ 1 ], "\n" );
                 addDrawMask( 0, 0, dimensions[ 0 ], dimensions[ 1 ] );          // Do it for every element, as they might erase the mask
                 elements[ i ] -> draw();
             }
@@ -327,13 +335,6 @@ namespace bqt
         else
             if( y > scroll_limits[ 3 ] )
                 y = scroll_limits[ 3 ] - scroll_offset[ 1 ];
-        
-        ff::write( bqt_out,
-                   "Group scrolling by ",
-                   x,
-                   ", ",
-                   y,
-                   "\n" );
         
         for( int i = 0; i < elements.size(); ++i )
         {

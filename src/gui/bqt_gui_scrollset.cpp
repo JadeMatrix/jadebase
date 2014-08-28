@@ -160,6 +160,13 @@ namespace bqt
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
         
+        ff::write( bqt_out,
+                   "Setting scrollset dimensions to ",
+                   w,
+                   " x ",
+                   h,
+                   "\n" );
+        
         contents -> setRealPosition( position[ 0 ], position[ 1 ] );
         contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_WIDTH,
                                        dimensions[ 1 ] - SCROLLBAR_WIDTH );
@@ -276,13 +283,6 @@ namespace bqt
         {
             if( inside_corner )
                 return false;                                                   // No scrolling in corner
-            
-            ff::write( bqt_out,
-                       "SCROLLEROO!~ ",
-                       e.scroll.amount[ 0 ],
-                       ", ",
-                       e.scroll.amount[ 1 ],
-                       "\n" );
             
             contents -> scrollPixels( e.scroll.amount[ 0 ], e.scroll.amount[ 1 ] );
             
