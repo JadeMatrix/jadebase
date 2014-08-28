@@ -266,7 +266,7 @@ namespace
                         w_event.scroll.position[ 0 ] = x_event.xbutton.x_root;
                         w_event.scroll.position[ 1 ] = x_event.xbutton.y_root;
                         
-                        w_event.scroll.amount[ 0 ] = NAN;                       // No horizontal scroll from mouse wheels
+                        w_event.scroll.amount[ 0 ] = 0.0f;                       // No horizontal scroll from mouse wheels
                         if( x_event.xbutton.button == Button4 )                 // Scroll wheel up, ie scroll down
                             w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
                         else                                                    // Scroll wheel down, ie scroll up
