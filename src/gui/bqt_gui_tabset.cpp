@@ -78,17 +78,22 @@ namespace bqt
                 
                 tabs[ i ].width = tabs[ i ].title -> getDimensions().first + TABSET_MIN_TAB_WIDTH;
                 
-                // if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
-                //     tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
+                if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
+                    tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
                 
                 total_tab_width += tabs[ i ].width;
             }
             
-            if( bar_scroll > total_tab_width - dimensions[ 0 ] )
-                bar_scroll = total_tab_width - dimensions[ 0 ];
-            
-            if( bar_scroll < 0 )
+            if( total_tab_width < dimensions[ 0 ]
+                || bar_scroll > 0 )
+            {
                 bar_scroll = 0;
+            }
+            else
+            {
+                if( total_tab_width + bar_scroll < dimensions[ 0 ] )
+                    bar_scroll = dimensions[ 0 ] - total_tab_width;
+            }
         }
         
         parent.requestRedraw();
@@ -420,26 +425,26 @@ namespace bqt
                                             parent.requestRedraw();
                                             return true;
                                         }
-                                        else
+                                        
+                                        if( e.stroke.click & CLICK_PRIMARY )    // Start tab dragging
                                         {
-                                            if( e.stroke.click & CLICK_PRIMARY )// Start tab dragging
-                                            {
-                                                current_tab = i;
-                                                
-                                                capturing = true;
-                                                capture_start[ 0 ] = e.stroke.position[ 0 ] - e.offset[ 0 ];
-                                                capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
-                                                capture_start[ 2 ] = tabs[ i ].position;
-                                                
-                                                parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
-                                                
-                                                parent.requestRedraw();
-                                            }
+                                            current_tab = i;
                                             
-                                            return true;                        // Either way we used the event
+                                            capturing = true;
+                                            capture_start[ 0 ] = e.stroke.position[ 0 ] - e.offset[ 0 ];
+                                            capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
+                                            capture_start[ 2 ] = tabs[ i ].position;
+                                            
+                                            parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                                            
+                                            parent.requestRedraw();
                                         }
+                                        
+                                        return true;                            // Either way we used the event
                                     }
-                                }                                               // Will return in some way if true
+                                }
+                                
+                                // Will return in some way if true
                             }
                             
                             return true;                                        // Stroke in bar but not on a tab
@@ -616,7 +621,7 @@ namespace bqt
                 
                 glPushMatrix();
                 {
-                    glTranslatef( tabs[ current_tab ].position, 0.0f, 0.0f );
+                    glTranslatef( tabs[ current_tab ].position + bar_scroll, 0.0f, 0.0f );
                     
                     t_set -> left -> draw();
                     

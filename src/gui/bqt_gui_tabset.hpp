@@ -50,7 +50,7 @@ namespace bqt
                 DOWN
             } button_state;
             int position;
-            unsigned int width;
+            int width;
         };
         std::vector< tab_data > tabs;
         int current_tab;
