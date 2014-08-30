@@ -272,16 +272,16 @@ namespace
                         w_event.scroll.amount[ 1 ] = 0.0f;
                         switch( x_event.xbutton.button )
                         {
-                            case Button4:                                       // Scroll wheel up, ie scroll down
+                            case Button4:                                       // Scroll wheel up
                                 w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
                                 break;
-                            case Button5:                                       // Scroll wheel down, ie scroll up
+                            case Button5:                                       // Scroll wheel down
                                 w_event.scroll.amount[ 1 ] = -1.0f * bqt::getWheelScrollDistance();
                                 break;
-                            case ( Button5 + 1 ):                               // Scroll wheel left, ie scroll right
+                            case ( Button5 + 1 ):                               // Scroll wheel left
                                 w_event.scroll.amount[ 0 ] =  1.0f * bqt::getWheelScrollDistance();
                                 break;
-                            case ( Button5 + 2 ):                               // Scroll wheel right, ie scroll left
+                            case ( Button5 + 2 ):                               // Scroll wheel right
                                 w_event.scroll.amount[ 0 ] = -1.0f * bqt::getWheelScrollDistance();
                                 break;
                             default:
@@ -613,6 +613,8 @@ namespace
             
             for( int i = 0; i < x_device_count; i++ )
             {
+                ff::write( bqt_out, "Found a device: \"", x_dev_info[ i ].name, "\" as id 0x", ff::to_x( x_dev_info[ i ].id ), "\n" );
+                
                 pen_type dev_pen_type = getWacomTabletType( x_dev_info[ i ].name );
                 
                 if( dev_pen_type != INVALID )
@@ -884,25 +886,25 @@ namespace bqt
             {
                 XNextEvent( x_display, &x_event );
                 
-                if( x_event.type == KeyRelease
-                    && XEventsQueued( x_display, QueuedAfterReading ) )         // Skip key repeats
-                {
-                    XEvent x_nextevent;
-                    XPeekEvent( x_display, &x_nextevent );
-                    
-                    if( x_nextevent.type == KeyPress
-                        && x_nextevent.xkey.time == x_event.xkey.time
-                        && x_nextevent.xkey.keycode == x_event.xkey.keycode )   // Key repeat
-                    {
-                        XNextEvent( x_display, &x_event);                       // Get the repeated key press
-                        XNextEvent( x_display, &x_event);                       // Get the event after the repeat
-                    }
-                }
+                
                 
                 switch( x_event.type )
                 {
-                case KeyPress:
                 case KeyRelease:
+                    if( XEventsQueued( x_display, QueuedAfterReading ) )        // Skip key repeats
+                    {
+                        XEvent x_nextevent;
+                        XPeekEvent( x_display, &x_nextevent );
+                        
+                        if( x_nextevent.type == KeyPress
+                            && x_nextevent.xkey.time == x_event.xkey.time
+                            && x_nextevent.xkey.keycode == x_event.xkey.keycode )   // Key repeat
+                        {
+                            XNextEvent( x_display, &x_event );                  // Get the repeated key press
+                            XNextEvent( x_display, &x_event );                  // Get the event after the repeat
+                        }
+                    }                                                           // Fall through
+                case KeyPress:
                     handleKeyEvent( x_event );
                     break;
                 case ButtonPress:
@@ -940,6 +942,22 @@ namespace bqt
                     break;                                                      // Ignore, for now
                 default:
                     handleMotionEvent( x_event );                               // DeviceMotion events have a dynamic type
+                    
+                    // if( XEventsQueued( x_display, QueuedAfterReading ) )        // Skip MotionNotify events for input devices
+                    // {
+                    //     XEvent x_nextevent;
+                    //     XPeekEvent( x_display, &x_nextevent );
+                        
+                    //     XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&x_event ) );
+                        
+                    //     if( x_nextevent.type == MotionNotify 
+                    //         && x_nextevent.xmotion.x == x_dmevent.x
+                    //         && x_nextevent.xmotion.y == x_dmevent.y )
+                    //         // && x_nextevent.xmotion.time == x_dmevent.time )
+                    //     {
+                    //         XNextEvent( x_display, &x_event );                  // Skip the MotionNotify event
+                    //     }
+                    // }
                     break;
                 }
             }
