@@ -168,6 +168,7 @@ namespace bqt
         {
             group* test_group_a = new group( *this, 0, 0, 256, 256 );
             group* test_group_b = new group( *this, 0, 0, 256, 256 );
+            group* test_group_c = new group( *this, 0, 0, 256, 256 );
             
             test_group_a -> addElement( new button( *this, 10, 10, 60, 40 ) );
             test_group_a -> addElement( new button( *this, 72, 10, 26, 40 ) );
@@ -188,7 +189,8 @@ namespace bqt
             // test_tabset -> addTab( test_group_a, "test tab A" );
             // test_tabset -> addTab( test_group_b, "test tab B" );
             test_tabset -> addTab( test_group_a, "Open_file_A.bqt" );
-            test_tabset -> addTab( test_group_b, "Open_file_とってもうれしいだよ.bqt" );
+            test_tabset -> addTab( test_group_b, "難しい漢字の時.bqt" );
+            test_tabset -> addTab( test_group_c, "النص العربي.bqt" );
             
             elements.push_back( test_tabset );
             

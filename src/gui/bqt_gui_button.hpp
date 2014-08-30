@@ -31,6 +31,7 @@ namespace bqt
     {
     protected:
         button_state state;
+        bqt_platform_idevid_t captured_dev;
     public:
         button( window& parent,
                 int x = 0,

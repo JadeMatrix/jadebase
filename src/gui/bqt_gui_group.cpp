@@ -113,15 +113,10 @@ namespace bqt
     {
         event_fallthrough = false;
         
-        scroll_limits[ 0 ] = -256;
-        scroll_limits[ 1 ] = 256;
-        scroll_limits[ 2 ] = -256;
-        scroll_limits[ 3 ] = 256;
-        
-        // scroll_limits[ 0 ] = 0;
-        // scroll_limits[ 1 ] = 0;
-        // scroll_limits[ 2 ] = 0;
-        // scroll_limits[ 3 ] = 0;
+        scroll_limits[ 0 ] = 0;
+        scroll_limits[ 1 ] = 0;
+        scroll_limits[ 2 ] = 0;
+        scroll_limits[ 3 ] = 0;
         
         scroll_offset[ 0 ] = 0;
         scroll_offset[ 1 ] = 0;
@@ -217,12 +212,11 @@ namespace bqt
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
         
-        ff::write( bqt_out,
-                   "Setting group dimensions to ",
-                   w,
-                   " x ",
-                   h,
-                   "\n" );
+        #warning bqt::group compiled with hard-coded scroll limit setting
+        scroll_limits[ 0 ] = -1 * dimensions[ 0 ];
+        scroll_limits[ 1 ] = 0;
+        scroll_limits[ 2 ] = -1 * dimensions[ 1 ];
+        scroll_limits[ 3 ] = 0;
         
         // inform lua_state
         
@@ -252,25 +246,25 @@ namespace bqt
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        // std::pair< int, int > v_position = getVisualPosition();
+        std::pair< int, int > v_position = getVisualPosition();
         std::pair< unsigned int, unsigned int > v_dimensions = getRealDimensions();
         
-        // if( v_position.first < position[ 0 ] )                                  // Always guaranteed to be <= from getVisualPosition()
-        //     v_dimensions.first += position[ 0 ] - v_position.first;
-        // if( v_position.second < position[ 1 ] )
-        //     v_dimensions.second += position[ 1 ] - v_position.second;
+        if( v_position.first < position[ 0 ] )                                  // Always guaranteed to be <= from getVisualPosition()
+            v_dimensions.first += position[ 0 ] - v_position.first;
+        if( v_position.second < position[ 1 ] )
+            v_dimensions.second += position[ 1 ] - v_position.second;
         
-        // for( int i = 0; i < elements.size(); ++i )
-        // {
-        //     std::pair< int, int > evp = elements[ i ] -> getVisualPosition();
-        //     std::pair< unsigned int, unsigned int > evd = elements[ i ] -> getVisualPosition();
+        for( int i = 0; i < elements.size(); ++i )
+        {
+            std::pair< int, int > evp = elements[ i ] -> getVisualPosition();
+            std::pair< unsigned int, unsigned int > evd = elements[ i ] -> getVisualPosition();
             
-        //     if( evp.first + evd.first > v_position.first + v_dimensions.first )
-        //         v_dimensions.first = evd.first;
+            if( evp.first + evd.first > v_position.first + v_dimensions.first )
+                v_dimensions.first = evd.first;
             
-        //     if( evp.second + evd.second > v_position.second + v_dimensions.second )
-        //         v_dimensions.second = evd.second;
-        // }
+            if( evp.second + evd.second > v_position.second + v_dimensions.second )
+                v_dimensions.second = evd.second;
+        }
         
         return v_dimensions;
     }
@@ -333,8 +327,11 @@ namespace bqt
         if( scroll_offset[ 1 ] + y < scroll_limits[ 2 ] )
             y = scroll_limits[ 2 ] - scroll_offset[ 1 ];
         else
-            if( y > scroll_limits[ 3 ] )
+            if( scroll_offset[ 1 ] + y > scroll_limits[ 3 ] )
                 y = scroll_limits[ 3 ] - scroll_offset[ 1 ];
+        
+        scroll_offset[ 0 ] += x;
+        scroll_offset[ 1 ] += y;
         
         for( int i = 0; i < elements.size(); ++i )
         {
@@ -346,7 +343,23 @@ namespace bqt
     }
     void group::scrollPercent( float x, int y )
     {
+        scoped_lock< mutex > slock( element_mutex );
+        
         scrollPixels( x * dimensions[ 0 ], y * dimensions[ 1 ] );
+    }
+    
+    void group::setScrollPixels( int x, int y )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        scrollPixels( x - scroll_offset[ 0 ], y - scroll_offset[ 1 ] );
+    }
+    void group::setScrollPercent( float x, int y )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        scrollPixels( x * dimensions[ 0 ] - scroll_offset[ 0 ],
+                      y * dimensions[ 1 ] - scroll_offset[ 1 ] );
     }
     
     std::pair< int, int > group::getScrollPixels()
@@ -359,7 +372,8 @@ namespace bqt
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return std::pair< float, float >( ( float )scroll_offset[ 0 ], ( float )scroll_offset[ 1 ] );
+        return std::pair< float, float >( ( float )scroll_offset[ 0 ] / ( float )dimensions[ 0 ],
+                                          ( float )scroll_offset[ 1 ] / ( float )dimensions[ 1 ] );
     }
     
     bool group::hasScrollLimit()
@@ -385,10 +399,10 @@ namespace bqt
         
         limit_percent l;
         
-        l.first.first = ( float )scroll_limits[ 0 ];
-        l.first.second = ( float )scroll_limits[ 1 ];
-        l.second.first = ( float )scroll_limits[ 2 ];
-        l.second.second = ( float )scroll_limits[ 3 ];
+        l.first.first   = ( float )scroll_limits[ 0 ] / ( float )dimensions[ 0 ];
+        l.first.second  = ( float )scroll_limits[ 1 ] / ( float )dimensions[ 0 ];
+        l.second.first  = ( float )scroll_limits[ 2 ] / ( float )dimensions[ 1 ];
+        l.second.second = ( float )scroll_limits[ 3 ] / ( float )dimensions[ 1 ];
         
         return l;
     }

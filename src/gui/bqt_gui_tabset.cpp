@@ -326,52 +326,59 @@ namespace bqt
                 {
                     if( capturing )
                     {
-                        if( e.stroke.click & CLICK_PRIMARY )
+                        // if( !bqt_platform_idevid_t_equal( e.stroke.dev_id, captured_dev ) )
+                        //     capturing = false;
+                        // else
                         {
-                            if( current_tab < 0 || current_tab >= tabs.size() )
-                                throw exception( "tabset::acceptEvent(): Capturing without valid tab" );
-                            
-                            tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ];
-                            
-                            if( tabs[ current_tab ].position < 0 )
-                                tabs[ current_tab ].position = 0;
-                            
-                            if( current_tab > 0
-                                && tabs[ current_tab ].position
-                                   <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width / 2 )
+                            if( e.stroke.click & CLICK_PRIMARY )
                             {
-                                tab_data temp = tabs[ current_tab - 1 ];
-                                tabs[ current_tab - 1 ] = tabs[ current_tab ];
-                                tabs[ current_tab ] = temp;
+                                if( current_tab < 0 || current_tab >= tabs.size() )
+                                    throw exception( "tabset::acceptEvent(): Capturing without valid tab" );
                                 
-                                current_tab--;
+                                tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ];
+                                
+                                if( tabs[ current_tab ].position < 0 )
+                                    tabs[ current_tab ].position = 0;
+                                
+                                if( current_tab > 0
+                                    && tabs[ current_tab ].position
+                                       <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width / 2 )
+                                {
+                                    tab_data temp = tabs[ current_tab - 1 ];
+                                    tabs[ current_tab - 1 ] = tabs[ current_tab ];
+                                    tabs[ current_tab ] = temp;
+                                    
+                                    current_tab--;
+                                }
+                                else
+                                {
+                                    if( current_tab < tabs.size() - 1
+                                        && tabs[ current_tab ].position + tabs[ current_tab ].width
+                                           >= tabs[ current_tab + 1 ].position + tabs[ current_tab + 1 ].width / 2 )
+                                    {
+                                        tab_data temp = tabs[ current_tab + 1 ];
+                                        tabs[ current_tab + 1 ] = tabs[ current_tab ];
+                                        tabs[ current_tab ] = temp;
+                                        
+                                        current_tab++;
+                                    }
+                                }
+                                
+                                reorganizeTabs();                                           // Calls parent.requestRedraw()
+                                
+                                return true;
                             }
                             else
                             {
-                                if( current_tab < tabs.size() - 1
-                                    && tabs[ current_tab ].position + tabs[ current_tab ].width
-                                       >= tabs[ current_tab + 1 ].position + tabs[ current_tab + 1 ].width / 2 )
-                                {
-                                    tab_data temp = tabs[ current_tab + 1 ];
-                                    tabs[ current_tab + 1 ] = tabs[ current_tab ];
-                                    tabs[ current_tab ] = temp;
-                                    
-                                    current_tab++;
-                                }
+                                capturing = false;
+                                parent.deassociateDevice( e.stroke.dev_id );
+                                reorganizeTabs();
+                                return true;
                             }
-                            
-                            reorganizeTabs();                                           // Calls parent.requestRedraw()
-                            
-                            return true;
-                        }
-                        else
-                        {
-                            capturing = false;
-                            parent.deassociateDevice( e.stroke.dev_id );
-                            reorganizeTabs();
                         }
                     }
-                    else
+                    
+                    if( !capturing )
                     {
                         if( pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
                                              e.stroke.position[ 1 ] - e.offset[ 1 ],
@@ -382,14 +389,14 @@ namespace bqt
                         {
                             for( int i = 0; i < tabs.size(); ++i )
                             {
-                                if( e.stroke.position[ 0 ] - e.offset[ 0 ] >= tabs[ i ].position + bar_scroll
-                                    && e.stroke.position[ 0 ] - e.offset[ 0 ] < tabs[ i ].position + bar_scroll + tabs[ i ].width
-                                    && e.stroke.position[ 1 ] - e.offset[ 1 ] < TABSET_TAB_HEIGHT )
+                                if( e.stroke.position[ 0 ] - e.offset[ 0 ] >= position[ 0 ] + tabs[ i ].position + bar_scroll
+                                    && e.stroke.position[ 0 ] - e.offset[ 0 ] < position[ 0 ] + tabs[ i ].position + bar_scroll + tabs[ i ].width
+                                    && e.stroke.position[ 1 ] - e.offset[ 1 ] < position[ 1 ] + TABSET_TAB_HEIGHT )
                                 {
                                     if( pointInsideCircle( e.stroke.position[ 0 ] - e.offset[ 0 ],
                                                            e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                                           tabs[ i ].position + tabs[ i ].width - 13,
-                                                           13,
+                                                           position[ 0 ] + tabs[ i ].position + tabs[ i ].width - 13 + bar_scroll,
+                                                           position[ 1 ] + 13,
                                                            7 ) )                // Current stroke in button
                                     {
                                         if( e.stroke.click & CLICK_PRIMARY )
@@ -417,8 +424,8 @@ namespace bqt
                                     {
                                         if( pointInsideCircle( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
                                                                e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
-                                                               tabs[ i ].position + tabs[ i ].width - 13,
-                                                               13,
+                                                               position[ 0 ] + tabs[ i ].position + tabs[ i ].width - 13 + bar_scroll,
+                                                               position[ 1 ] + 13,
                                                                7 ) )            // Previous stroke in button
                                         {
                                             tabs[ i ].button_state = tab_data::UP;

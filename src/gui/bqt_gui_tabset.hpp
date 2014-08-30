@@ -59,6 +59,7 @@ namespace bqt
         int bar_scroll;
         
         bool capturing;
+        bqt_platform_idevid_t captured_dev;
         float capture_start[ 3 ];
         
         int getTabIndex( group* g );

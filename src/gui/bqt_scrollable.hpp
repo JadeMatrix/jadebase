@@ -6,7 +6,8 @@
  * 
  * Abstract class for scrollable gui elements
  * 
- * scroll***(): Scroll an amount
+ * scroll***(): Scroll a relative amount
+ * setScroll***(): Scroll an absolute amount
  * getScroll***(): Get current scroll amount
  * getScrollLimit***(): Get minimum & maximum x & y scroll limits
  * 
@@ -41,12 +42,15 @@ namespace bqt
         virtual void scrollPixels( int x, int y ) = 0;
         virtual void scrollPercent( float x, int y ) = 0;
         
+        virtual void setScrollPixels( int x, int y ) = 0;
+        virtual void setScrollPercent( float x, int y ) = 0;
+        
         virtual std::pair< int, int > getScrollPixels() = 0;
-        virtual std::pair< float, float > getScrollPercent() = 0;
+        virtual std::pair< float, float > getScrollPercent() = 0;               // ... as a +/- % of real dimensions
         
         virtual bool hasScrollLimit() = 0;
         virtual limit_pixels getScrollLimitPixels() = 0;
-        virtual limit_percent getScrollLimitPercent() = 0;
+        virtual limit_percent getScrollLimitPercent() = 0;                      // ... as a +/- % of real dimensions
     };
 }
 

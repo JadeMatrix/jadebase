@@ -99,7 +99,7 @@ int bqt_main()
         
         if( bqt::initTaskSystem( true ) )
         {
-            bqt::initNamedResources();                                               // These will be deinitialized when quitting
+            bqt::initNamedResources();                                          // These will be deinitialized when quitting
             
             bqt::submitTask( new bqt::StartBQTDraw_task() );
             

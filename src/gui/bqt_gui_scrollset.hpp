@@ -40,11 +40,21 @@ namespace bqt
         button_state corner_state;
         
         button_state slider_state[ 2 ];                                         // horizontal, vertical
-        unsigned int slider_pos[ 2 ];                                           // horizontal, vertical
+        int          slider_pos[ 2 ];                                           // horizontal, vertical
         unsigned int slider_width[ 2 ];                                         // horizontal, vertical
         
-        bool capturing;
-        int capture_start[ 2 ];
+        enum
+        {
+            NONE = 0,
+            HORIZONTAL_BAR,
+            VERTICAL_BAR,
+            LEFT_BUTTON,
+            RIGHT_BUTTON,
+            TOP_BUTTON,
+            BOTTOM_BUTTON,
+            CORNER
+        } capturing;
+        int capture_start[ 3 ];
         
         void arrangeBars();
     public:

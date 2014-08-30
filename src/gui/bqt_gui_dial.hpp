@@ -36,6 +36,7 @@ namespace bqt
             VERTICAL,
             CIRCULAR
         } capturing;
+        bqt_platform_idevid_t captured_dev;
         float capture_start[ 3 ];
     public:
         dial( window& parent,

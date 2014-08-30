@@ -79,6 +79,9 @@ namespace bqt
         void scrollPixels( int x, int y );
         void scrollPercent( float x, int y );
         
+        void setScrollPixels( int x, int y );
+        void setScrollPercent( float x, int y );
+        
         std::pair< int, int > getScrollPixels();
         std::pair< float, float > getScrollPercent();
         
