@@ -299,8 +299,8 @@ namespace bqt
         named_resources[ ruler_mark_outside_small ] = new image_rsrc( GUI_RESOURCE_FILE, 60, 51, 1, 15 );
         named_resources[ ruler_fill ] = new image_rsrc( GUI_RESOURCE_FILE, 13, 241, 1, 15 );
         named_resources[ divider ] = new image_rsrc( GUI_RESOURCE_FILE, 1, 254, 1, 1 );
-        named_resources[ scrollbar_button_left_top_up ] = new image_rsrc( GUI_RESOURCE_FILE, 189, 9, 25, 12 );
-        named_resources[ scrollbar_button_left_top_down ] = new image_rsrc( GUI_RESOURCE_FILE, 189, 12, 25, 12 );
+        named_resources[ scrollbar_button_left_top_up ] = new image_rsrc( GUI_RESOURCE_FILE, 150, 0, 25, 12 );
+        named_resources[ scrollbar_button_left_top_down ] = new image_rsrc( GUI_RESOURCE_FILE, 150, 12, 25, 12 );
         named_resources[ scrollbar_button_right_bottom_up ] = new image_rsrc( GUI_RESOURCE_FILE, 188, 0, 25, 12 );
         named_resources[ scrollbar_button_right_bottom_down ] = new image_rsrc( GUI_RESOURCE_FILE, 188, 12, 25, 12 );
         named_resources[ scrollbar_bar_left_top_up ] = new image_rsrc( GUI_RESOURCE_FILE, 175, 0, 6, 12 );

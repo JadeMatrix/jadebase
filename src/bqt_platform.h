@@ -106,6 +106,8 @@ extern "C"
                                     const bqt_platform_idevid_t right );
     typedef int ( * bqt_platform_idevid_t_comp_t )( const bqt_platform_idevid_t,
                                                     const bqt_platform_idevid_t );
+    int bqt_platform_idevid_t_equal( const bqt_platform_idevid_t a,
+                                     const bqt_platform_idevid_t b );
     
     typedef unsigned int bqt_platform_keycode_t;                                // XLib's keycode type
     

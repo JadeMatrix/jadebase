@@ -16,7 +16,8 @@ extern "C"
 {
 #endif
     
-    int bqt_platform_idevid_t_comp( const bqt_platform_idevid_t left, const bqt_platform_idevid_t right )
+    int bqt_platform_idevid_t_comp( const bqt_platform_idevid_t left,
+                                    const bqt_platform_idevid_t right )
     {
         if( left.x_real_dev == right.x_real_dev )                               // bqt_platform_idevid_t::x_real_dev is a bool, so this works as XNOR
         {
@@ -29,6 +30,12 @@ extern "C"
             else
                 return 1;
         }
+    }
+    
+    int bqt_platform_idevid_t_equal( const bqt_platform_idevid_t a,
+                                     const bqt_platform_idevid_t b )
+    {
+        return ( a.x_real_dev == b.x_real_dev ) && ( a.x_devid == b.x_devid );
     }
     
 #ifdef __cplusplus
