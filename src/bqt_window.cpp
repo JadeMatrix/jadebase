@@ -232,7 +232,7 @@ namespace bqt
         #endif
     }
     
-    window::window() : input_assoc( bqt_platform_idevid_t_comp )
+    window::window()
     {
         platform_window.good = false;
         

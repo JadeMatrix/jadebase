@@ -28,7 +28,7 @@ namespace bqt
             {
                 ff::write( str,
                            "STROKE from device 0x",
-                           ff::to_x( e.stroke.dev_id.x_devid, 2, 2 ),
+                           ff::to_x( e.stroke.dev_id, 2, 2 ),
                            ": " );
                 
                 if( e.stroke.click & CLICK_PRIMARY )

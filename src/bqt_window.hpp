@@ -89,8 +89,7 @@ namespace bqt
         };
         
         std::map< bqt_platform_idevid_t,
-                  idev_assoc,
-                  bqt_platform_idevid_t_comp_t > input_assoc;
+                  idev_assoc > input_assoc;
         std::vector< gui_element* > elements;
         
         /**********************************************************************//******************************************************************************/

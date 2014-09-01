@@ -94,10 +94,9 @@ namespace
     // INPUT EVENT ACCUMULATING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     std::map< bqt_platform_idevid_t,
-              bqt::stroke_waypoint,
-              bqt_platform_idevid_t_comp_t > prev_motion_events( &bqt_platform_idevid_t_comp );
+              bqt::stroke_waypoint > prev_motion_events;
     
-    static bqt_platform_idevid_t dummy_idevid = { false, 0x02 };                // Could have used 0x00, but xinput lists Virtual Core Pointer as 2
+    static bqt_platform_idevid_t dummy_idevid = 0x00;                           // Could have used 0x00, but xinput lists Virtual Core Pointer as 2
     static bqt::stroke_waypoint initial_waypoint = { dummy_idevid,
                                                      0x00,
                                                      false,
@@ -294,8 +293,7 @@ namespace bqt
                     
                     bqt_platform_idevid_t platform_devid;
                     
-                    platform_devid.x_real_dev = true;
-                    platform_devid.x_devid = detail.x_devid;
+                    platform_devid = detail.x_devid;
                     
                     if( !prev_motion_events.count( platform_devid ) )           // Add previous up motion events
                     {
@@ -329,8 +327,7 @@ namespace bqt
             {
                 bqt_platform_idevid_t platform_devid;
                 
-                platform_devid.x_real_dev = true;
-                platform_devid.x_devid = new_devices[ i ].x_devid;
+                platform_devid = new_devices[ i ].x_devid;
                 
                 if( prev_motion_events.count( platform_devid ) )                // Clean up previous motion events
                     prev_motion_events.erase( platform_devid );
@@ -352,8 +349,7 @@ namespace bqt
         {
             bqt_platform_idevid_t platform_devid;
             
-            platform_devid.x_real_dev = true;
-            platform_devid.x_devid = x_tablet_devices[ i ].x_devid;
+            platform_devid = x_tablet_devices[ i ].x_devid;
             
             if( prev_motion_events.count( platform_devid ) )                    // Clean up previous motion events
                 prev_motion_events.erase( platform_devid );
