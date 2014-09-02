@@ -16,6 +16,7 @@
 
 #include <lua.hpp>
 #include <pango/pangocairo.h>
+#include <png.h>
 
 #include "bqt_launchargs.hpp"
 #include "bqt_exception.hpp"
@@ -60,9 +61,14 @@ namespace bqt
             
             ff::write( bqt_out,
                        "Using:\n",
-                       "  - ", LUA_VERSION, " [ lua.org ]\n",
-                       "  - Pango ", pango_version_string(), " [ pango.org ]\n",
-                       "  - Cairo ", cairo_version_string(), " [ cairographics.org ]\n");
+                       "  - Cairo ", cairo_version_string(), " [ http://cairographics.org ]\n",
+                       "  - libpng ", PNG_LIBPNG_VER / 10000,
+                                      ".",
+                                      ( PNG_LIBPNG_VER / 100 ) % 100,
+                                      ".",
+                                      PNG_LIBPNG_VER % 100, " [ http://libpng.org ] \n",
+                       "  - ", LUA_VERSION, " [ http://lua.org ]\n",
+                       "  - Pango ", pango_version_string(), " [ http://pango.org ]\n" );
             
             return true;
         }
@@ -99,8 +105,6 @@ int bqt_main()
         
         if( bqt::initTaskSystem( true ) )
         {
-            bqt::initNamedResources();                                          // These will be deinitialized when quitting
-            
             bqt::submitTask( new bqt::StartBQTDraw_task() );
             
             bqt::task_mask main_mask = bqt::TASK_TASK | bqt::TASK_SYSTEM;

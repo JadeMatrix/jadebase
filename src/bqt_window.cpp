@@ -164,6 +164,8 @@ namespace bqt
         
         registerWindow( *this );
         
+        bqt::initNamedResources();                                              // These will be deinitialized when quitting
+        
         // Devel
         {
             group* test_group_a = new group( *this, 0, 0, 256, 256 );
