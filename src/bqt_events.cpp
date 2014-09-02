@@ -255,6 +255,7 @@ namespace bqt
             Display* x_display = getXDisplay();
             
             refreshInputDevices();
+            setQuitFlag();
             
             for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )
                  queue_size > 0;

@@ -22,39 +22,6 @@
 
 namespace bqt
 {
-    // struct idev_description
-    // {
-    //     enum
-    //     {
-    //         OTHER,
-    //         MOUSE,
-    //         TOUCH,
-    //         STYLUS
-    //     } type;
-        
-    //     std::string name;
-        
-    //     union
-    //     {
-    //         struct
-    //         {
-                
-    //         } mouse;
-    //         struct
-    //         {
-                
-    //         } touch;
-    //         struct
-    //         {
-    //             pen_type type;
-    //             XAxisInfo axes[ 6 ];
-    //             bqt_platform_idevid_t x_devid;
-    //             XDevice* x_device;
-    //             int x_motioneventtype;
-    //         } stylus;
-    //     };
-    // };
-    
     void openInputDevices();
     void closeInputDevices();
     void refreshInputDevices();

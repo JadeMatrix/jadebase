@@ -47,7 +47,7 @@ namespace bqt
             {
                 submitTask( new HandleEvents_task() );
                 
-                submitTask( new window::manipulate( NULL ) );
+                // submitTask( new window::manipulate( NULL ) );
                 // submitTask( new window::manipulate( NULL ) );
                 
                 
