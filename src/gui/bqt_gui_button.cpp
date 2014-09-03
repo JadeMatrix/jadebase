@@ -182,6 +182,13 @@ namespace bqt
             // acceptEvent() should prevent this) as the button state will bug
             // out.
             
+            if( ( state == OFF_DOWN
+                  || state == ON_DOWN )
+                && e.stroke.dev_id != captured_dev )                            // Ignore but accept other devices wile capturing another
+            {
+                return true;
+            }
+            
             switch( state )
             {
             case OFF_UP:
@@ -195,6 +202,7 @@ namespace bqt
                 {
                     state = OFF_DOWN;
                     parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    captured_dev = e.stroke.dev_id;
                     parent.requestRedraw();
                 }
                 break;
@@ -231,6 +239,7 @@ namespace bqt
                 {
                     state = ON_DOWN;
                     parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    captured_dev = e.stroke.dev_id;
                     parent.requestRedraw();
                 }
                 break;

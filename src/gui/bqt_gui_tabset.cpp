@@ -326,59 +326,56 @@ namespace bqt
                 {
                     if( capturing )
                     {
-                        // if( !bqt_platform_idevid_t_equal( e.stroke.dev_id, captured_dev ) )
-                        //     capturing = false;
-                        // else
+                        if( e.stroke.dev_id != captured_dev )                   // Ignore other devices wile capturing another
+                            break;
+                        
+                        if( e.stroke.click & CLICK_PRIMARY )
                         {
-                            if( e.stroke.click & CLICK_PRIMARY )
+                            if( current_tab < 0 || current_tab >= tabs.size() )
+                                throw exception( "tabset::acceptEvent(): Capturing without valid tab" );
+                            
+                            tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ];
+                            
+                            if( tabs[ current_tab ].position < 0 )
+                                tabs[ current_tab ].position = 0;
+                            
+                            if( current_tab > 0
+                                && tabs[ current_tab ].position
+                                   <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width / 2 )
                             {
-                                if( current_tab < 0 || current_tab >= tabs.size() )
-                                    throw exception( "tabset::acceptEvent(): Capturing without valid tab" );
+                                tab_data temp = tabs[ current_tab - 1 ];
+                                tabs[ current_tab - 1 ] = tabs[ current_tab ];
+                                tabs[ current_tab ] = temp;
                                 
-                                tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ];
-                                
-                                if( tabs[ current_tab ].position < 0 )
-                                    tabs[ current_tab ].position = 0;
-                                
-                                if( current_tab > 0
-                                    && tabs[ current_tab ].position
-                                       <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width / 2 )
-                                {
-                                    tab_data temp = tabs[ current_tab - 1 ];
-                                    tabs[ current_tab - 1 ] = tabs[ current_tab ];
-                                    tabs[ current_tab ] = temp;
-                                    
-                                    current_tab--;
-                                }
-                                else
-                                {
-                                    if( current_tab < tabs.size() - 1
-                                        && tabs[ current_tab ].position + tabs[ current_tab ].width
-                                           >= tabs[ current_tab + 1 ].position + tabs[ current_tab + 1 ].width / 2 )
-                                    {
-                                        tab_data temp = tabs[ current_tab + 1 ];
-                                        tabs[ current_tab + 1 ] = tabs[ current_tab ];
-                                        tabs[ current_tab ] = temp;
-                                        
-                                        current_tab++;
-                                    }
-                                }
-                                
-                                reorganizeTabs();                                           // Calls parent.requestRedraw()
-                                
-                                return true;
+                                current_tab--;
                             }
                             else
                             {
-                                capturing = false;
-                                parent.deassociateDevice( e.stroke.dev_id );
-                                reorganizeTabs();
-                                return true;
+                                if( current_tab < tabs.size() - 1
+                                    && tabs[ current_tab ].position + tabs[ current_tab ].width
+                                       >= tabs[ current_tab + 1 ].position + tabs[ current_tab + 1 ].width / 2 )
+                                {
+                                    tab_data temp = tabs[ current_tab + 1 ];
+                                    tabs[ current_tab + 1 ] = tabs[ current_tab ];
+                                    tabs[ current_tab ] = temp;
+                                    
+                                    current_tab++;
+                                }
                             }
+                            
+                            reorganizeTabs();                                           // Calls parent.requestRedraw()
+                            
+                            return true;
+                        }
+                        else
+                        {
+                            capturing = false;
+                            parent.deassociateDevice( e.stroke.dev_id );
+                            reorganizeTabs();
+                            return true;
                         }
                     }
-                    
-                    if( !capturing )
+                    else
                     {
                         if( pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
                                              e.stroke.position[ 1 ] - e.offset[ 1 ],
@@ -443,6 +440,7 @@ namespace bqt
                                             capture_start[ 2 ] = tabs[ i ].position;
                                             
                                             parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                                            captured_dev = e.stroke.dev_id;
                                             
                                             parent.requestRedraw();
                                         }

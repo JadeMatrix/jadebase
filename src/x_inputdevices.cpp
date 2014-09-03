@@ -251,23 +251,11 @@ namespace bqt
                                     ++x_eventclass_count;                       // DeviceMotionNotify() is a macro; we have to increment outside
                                     event_type_map[ x_event ] = BUTTON_PRESS;
                                     
-                                    if( getDevMode() )
-                                        ff::write( bqt_out,
-                                                   "  - Button press event: ",
-                                                   x_event,
-                                                   "\n" );
-                                    
                                     DeviceButtonRelease( detail.x_device,
                                                          x_event,
                                                          x_eventclass_list[ x_eventclass_count ] );
                                     ++x_eventclass_count;
                                     event_type_map[ x_event ] = BUTTON_RELEASE;
-                                    
-                                    if( getDevMode() )
-                                        ff::write( bqt_out,
-                                                   "  - Button release event: ",
-                                                   x_event,
-                                                   "\n" );
                                     
                                     register_device = true;
                                 }
@@ -307,12 +295,6 @@ namespace bqt
                                                         x_eventclass_list[ x_eventclass_count ] );
                                     ++x_eventclass_count;
                                     event_type_map[ x_event ] = MOTION;
-                                    
-                                    if( getDevMode() )
-                                        ff::write( bqt_out,
-                                                   "  - Motion event: ",
-                                                   x_event,
-                                                   "\n" );
                                     
                                     register_device = true;
                                 }

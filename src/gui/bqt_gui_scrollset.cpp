@@ -243,6 +243,13 @@ namespace bqt
     {
         scoped_lock< mutex > slock( element_mutex );
         
+        if( capturing
+            && e.type == STROKE
+            && e.stroke.dev_id != captured_dev )                                // Ignore other devices wile capturing another (just pass to contents)
+        {
+            return contents -> acceptEvent( e );
+        }
+        
         if( capturing && e.type == STROKE )
         {
             int rect_pos[ 2 ];
@@ -483,6 +490,8 @@ namespace bqt
                     capture_start[ 0 ] = e.stroke.position[ 0 ] + e.offset[ 0 ];
                     capture_start[ 1 ] = e.stroke.position[ 1 ] + e.offset[ 1 ];
                     parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    captured_dev = e.stroke.dev_id;
+                    
                     arrangeBars();
                 }
                 

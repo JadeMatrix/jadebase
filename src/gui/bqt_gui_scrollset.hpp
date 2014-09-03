@@ -54,6 +54,7 @@ namespace bqt
             BOTTOM_BUTTON,
             CORNER
         } capturing;
+        bqt_platform_idevid_t captured_dev;
         int capture_start[ 3 ];
         
         void arrangeBars();

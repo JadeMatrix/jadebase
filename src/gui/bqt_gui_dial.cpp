@@ -103,6 +103,9 @@ namespace bqt
         {
             if( capturing != NONE )
             {
+                if( e.stroke.dev_id != captured_dev )                           // Ignore but accept other devices wile capturing another
+                    return true;
+                
                 if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled
                 {
                     capturing = NONE;
@@ -156,6 +159,7 @@ namespace bqt
                     capture_start[ 2 ] = value;
                     
                     parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    captured_dev = e.stroke.dev_id;
                     
                     // Don't need a redraw request
                     
