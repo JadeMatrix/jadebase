@@ -10,6 +10,7 @@
 #include "bqt_gui_button.hpp"
 
 #include <map>
+#include <cmath>
 
 #include "bqt_gui_resource.hpp"
 #include "../bqt_log.hpp"
@@ -65,6 +66,10 @@ namespace bqt
         state = OFF_UP;
         
         scoped_lock< mutex > slock( button_rsrc_mutex );
+        
+        contents = NULL;
+        contents_owner = true;
+        contents_align = CENTER_CENTER;
         
         if( !got_resources )
         {
@@ -151,6 +156,11 @@ namespace bqt
             got_resources = true;
         }
     }
+    button::~button()
+    {
+        if( contents_owner )
+            delete contents;
+    }
     
     void button::setRealDimensions( unsigned int w, unsigned int h )
     {
@@ -165,6 +175,31 @@ namespace bqt
             dimensions[ 1 ] = BUTTON_MIN_HEIGHT;
         else
             dimensions[ 1 ] = h;
+        
+        parent.requestRedraw();
+    }
+    
+    void button::setContents( gui_resource* c,
+                              resource_align a,
+                              bool r,
+                              bool o )
+    {
+        if( contents_owner )
+        {
+            if( contents != NULL )
+                delete contents;
+        }
+        
+        contents = c;
+        contents_align = a;
+        contents_owner = o;
+        
+        if( contents != NULL && r )
+        {
+            std::pair< unsigned int, unsigned int > rsrc_dim = c -> getDimensions();
+            
+            setRealDimensions( rsrc_dim.first, rsrc_dim.second );
+        }
         
         parent.requestRedraw();
     }
@@ -352,6 +387,57 @@ namespace bqt
             glPopMatrix();
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
+        
+        if( contents != NULL )
+        {
+            glPushMatrix();
+            {
+                switch( contents_align )
+                {
+                case TOP_LEFT:
+                case CENTER_LEFT:
+                case BOTTOM_LEFT:
+                    glTranslatef( position[ 0 ], 0.0f, 0.0f );
+                    break;
+                case TOP_CENTER:
+                case CENTER_CENTER:
+                case BOTTOM_CENTER:
+                    glTranslatef( position[ 0 ] + floor( ( dimensions[ 0 ] - contents -> getDimensions().first ) / 2.0f ), 0.0f, 0.0f );
+                    break;
+                case TOP_RIGHT:
+                case CENTER_RIGHT:
+                case BOTTOM_RIGHT:
+                    glTranslatef( position[ 0 ] + dimensions[ 0 ] - contents -> getDimensions().first, 0.0f, 0.0f );
+                    break;
+                default:
+                    throw exception( "button::draw(): Uknown contents alignment" );
+                }
+                
+                switch( contents_align )
+                {
+                case TOP_LEFT:
+                case TOP_CENTER:
+                case TOP_RIGHT:
+                    glTranslatef( 0.0f, position[ 1 ], 0.0f );
+                    break;
+                case CENTER_LEFT:
+                case CENTER_CENTER:
+                case CENTER_RIGHT:
+                    glTranslatef( 0.0f, position[ 1 ] + floor( ( dimensions[ 1 ] - contents -> getDimensions().second ) / 2.0f ), 0.0f );
+                    break;
+                case BOTTOM_LEFT:
+                case BOTTOM_CENTER:
+                case BOTTOM_RIGHT:
+                    glTranslatef( 0.0f, position[ 1 ] + dimensions[ 1 ] - contents -> getDimensions().second, 0.0f );
+                    break;
+                default:
+                    throw exception( "button::draw(): Uknown contents alignment" );
+                }
+                
+                contents -> draw();
+            }
+            glPopMatrix();
+        }
     }
 }
 
