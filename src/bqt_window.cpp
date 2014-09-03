@@ -25,6 +25,7 @@
 #include "gui/bqt_gui_tabset.hpp"
 #include "gui/bqt_gui_group.hpp"
 #include "gui/bqt_gui_scrollset.hpp"
+#include "gui/bqt_gui_image_rsrc.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -168,14 +169,18 @@ namespace bqt
         
         // Devel
         {
+            // Group A
+            
             group* test_group_a = new group( *this, 0, 0, 256, 256 );
-            group* test_group_b = new group( *this, 0, 0, 256, 256 );
-            group* test_group_c = new group( *this, 0, 0, 256, 256 );
             
             test_group_a -> addElement( new button( *this, 10, 10, 60, 40 ) );
             test_group_a -> addElement( new button( *this, 72, 10, 26, 40 ) );
             test_group_a -> addElement( new button( *this, 100, 10, 40, 19 ) );
             test_group_a -> addElement( new button( *this, 100, 31, 40, 19 ) );
+            
+            // Group B
+            
+            group* test_group_b = new group( *this, 0, 0, 256, 256 );
             
             group* scroll_group = new group( *this, 0, 0, 256, 256 );
             scroll_group -> setEventFallthrough( true );
@@ -186,10 +191,34 @@ namespace bqt
             // Groups can't set their elements' dimensions automatically, so we subtract TABSET_BAR_HEIGHT
             test_group_b -> addElement( new scrollset( *this, 0, 0, 256, 256 - TABSET_BAR_HEIGHT, scroll_group ) );
             
+            // Group C
+            
+            group* test_group_c = new group( *this, 0, 0, 256, 256 );
+            
+            #define ICON_FILE "make/BQTDraw/Resources/gui_icons.png"
+            for( int i = 0; i < 11; ++i )
+            {
+                int pos[] = { 10 + ( i / 5 ) * 30,
+                              10 + ( i % 5 ) * 30 };
+                
+                button* b = new button( *this, pos[ 0 ], pos[ 1 ], 27, 27 );
+                
+                b -> setContents( new image_rsrc( ICON_FILE, 0, i * 15, 15, 15 ),
+                                  CENTER_CENTER );
+                
+                test_group_c -> addElement( b );
+            }
+            
+            // button* button_a = 
+            // button_a -> setContents( new image_rsrc( ICON_FILE, 0, 0, 15, 15 ),
+            //                          CENTER_CENTER );
+            
+            // test_group_c -> addElement( button_a );
+            
+            // Tabset
+            
             tabset* test_tabset = new tabset( *this, 0, 0, 256, 256 );
             
-            // test_tabset -> addTab( test_group_a, "test tab A" );
-            // test_tabset -> addTab( test_group_b, "test tab B" );
             test_tabset -> addTab( test_group_a, "Open_file_A.bqt" );
             test_tabset -> addTab( test_group_b, "難しい漢字の時.bqt" );
             test_tabset -> addTab( test_group_c, "النص العربي.bqt" );
