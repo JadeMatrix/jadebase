@@ -85,28 +85,23 @@ namespace
     
     std::map< bqt_platform_idevid_t, x_input_detail > x_input_devices;
     
-    struct event_detail
+    enum event_class
     {
-        enum
-        {
-            BUTTON_PRESS,
-            BUTTON_RELEASE,
-            MOTION
-        } event_class;
-        bqt_platform_idevid_t x_devid;
+        BUTTON_PRESS,
+        BUTTON_RELEASE,
+        MOTION
     };
     
-    std::map< event_type, event_detail > event_type_map;
+    std::map< event_type, event_class > event_type_map;                         // Event types are per-class, not per-device-class, so we only need ~3
     
     int x_total_device_count = 0;                                               // Needed for checking if there are new devices
     
     // INPUT EVENT ACCUMULATING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     std::map< bqt_platform_idevid_t,
-              bqt::stroke_waypoint > prev_motion_events;
+              bqt::stroke_waypoint > prev_strokes;
     
-    static bqt_platform_idevid_t dummy_idevid = 0x00;                           // Could have used 0x00, but xinput lists Virtual Core Pointer as 2
-    static bqt::stroke_waypoint initial_waypoint = { dummy_idevid,
+    static bqt::stroke_waypoint initial_waypoint = { 0x00,
                                                      0x00,
                                                      false,
                                                      false,
@@ -254,15 +249,25 @@ namespace bqt
                                                        x_event,
                                                        x_eventclass_list[ x_eventclass_count ] );
                                     ++x_eventclass_count;                       // DeviceMotionNotify() is a macro; we have to increment outside
-                                    event_type_map[ x_event ].x_devid = detail.x_devid;
-                                    event_type_map[ x_event ].event_class = event_detail::BUTTON_PRESS;
+                                    event_type_map[ x_event ] = BUTTON_PRESS;
+                                    
+                                    if( getDevMode() )
+                                        ff::write( bqt_out,
+                                                   "  - Button press event: ",
+                                                   x_event,
+                                                   "\n" );
                                     
                                     DeviceButtonRelease( detail.x_device,
                                                          x_event,
                                                          x_eventclass_list[ x_eventclass_count ] );
                                     ++x_eventclass_count;
-                                    event_type_map[ x_event ].x_devid = detail.x_devid;
-                                    event_type_map[ x_event ].event_class = event_detail::BUTTON_RELEASE;
+                                    event_type_map[ x_event ] = BUTTON_RELEASE;
+                                    
+                                    if( getDevMode() )
+                                        ff::write( bqt_out,
+                                                   "  - Button release event: ",
+                                                   x_event,
+                                                   "\n" );
                                     
                                     register_device = true;
                                 }
@@ -301,9 +306,13 @@ namespace bqt
                                                         x_event,
                                                         x_eventclass_list[ x_eventclass_count ] );
                                     ++x_eventclass_count;
+                                    event_type_map[ x_event ] = MOTION;
                                     
-                                    event_type_map[ x_event ].x_devid = detail.x_devid;
-                                    event_type_map[ x_event ].event_class = event_detail::MOTION;
+                                    if( getDevMode() )
+                                        ff::write( bqt_out,
+                                                   "  - Motion event: ",
+                                                   x_event,
+                                                   "\n" );
                                     
                                     register_device = true;
                                 }
@@ -323,8 +332,40 @@ namespace bqt
                                                detail.name,
                                                "\" has a larger resolution than the screen\n" );
                                 }
+                                // { XI_MOUSE,
+                                //    XI_TABLET,
+                                //    XI_TOUCHSCREEN,
+                                //    "STYLUS",
+                                //    "ERASER",
+                                //    "TOUCH",
+                                //    // "AIRBRUSH",
+                                //    "TOUCHPAD" }; 
+                                
+                                // INVALID,
+                                // PEN_STYLUS,
+                                // AIRBRUSH_STYLUS,
+                                // ERASER_STYLUS,
+                                // TOUCH_STYLUS
+                                
+                                if( x_dev_info[ i ].type == XInternAtom( x_display, "ERASER", true ) )
+                                {
+                                    detail.type = ERASER_STYLUS;
+                                }
+                                else if( x_dev_info[ i ].type == XInternAtom( x_display, XI_TOUCHSCREEN, true )
+                                         || x_dev_info[ i ].type == XInternAtom( x_display, "TOUCH", true )
+                                         || x_dev_info[ i ].type == XInternAtom( x_display, "TOUCHPAD", true ) )
+                                {
+                                    detail.type = TOUCH_STYLUS;
+                                }
+                                else
+                                {
+                                    detail.type = PEN_STYLUS;
+                                }
                                 
                                 new_devices[ detail.x_devid ] = detail;         // Add the device to the new list
+                                
+                                prev_strokes[ detail.x_devid ] = initial_waypoint;
+                                                                                // Load initial waypoint, no need to change its dev_id
                             }
                             
                             if( x_eventclass_count >= DEVICE_CLASS_LIST_START_LENGTH )
@@ -390,18 +431,7 @@ namespace bqt
              ++newdev_iter )                                                    // Clean up previous motion events & close unplugged devices (if possible)
                                                                                 // At this point new_devices will only hold devics no longer available
         {
-            prev_motion_events.erase( newdev_iter -> second.x_devid );
-            
-            for( std::map< event_type, event_detail >::iterator event_iter = event_type_map.begin();
-                 event_iter != event_type_map.end();
-                 ++event_iter )                                                 // Remove all associated XInput event types
-            {
-                if( event_iter -> second.x_devid == newdev_iter -> second.x_devid )
-                {
-                    event_type_map.erase( event_iter );
-                    // Continue since there might be more
-                }
-            }
+            prev_strokes.erase( newdev_iter -> second.x_devid );
             
             if( getDevMode() )
                 ff::write( bqt_out,
@@ -433,7 +463,7 @@ namespace bqt
                 ff::write( bqt_out, "Closed device \"", iter -> second.name, "\"\n" );
         }
         
-        prev_motion_events.clear();
+        prev_strokes.clear();
         event_type_map.clear();
     }
     void refreshInputDevices()
@@ -485,6 +515,8 @@ namespace bqt
     {
         scoped_lock< mutex > slock( idev_mutex );
                 
+        static bool warn_relative = true;                                       // Relative motion event resolution warning flag
+        
         bqt::window* target = bqt::getActiveWindow();
         if( target == NULL )
         {
@@ -494,39 +526,12 @@ namespace bqt
             return;
         }
         
+        event_type x_eventtype;
+        
         if( event_type_map.count( x_event.type ) )
-        {
-            bqt::window_event w_event;
-            w_event.type = NONE;
-            
-            x_input_detail& device_detail( x_input_devices[ event_type_map[ x_event.type ].x_devid ] );
-            
-            switch( event_type_map[ x_event.type ].event_class )
-            {
-            case event_detail::BUTTON_PRESS:
-                {
-                    
-                }
-                break;
-            case event_detail::BUTTON_RELEASE:
-                {
-                    
-                }
-                break;
-            case event_detail::MOTION:
-                {
-                    
-                }
-                break;
-            default:
-                throw exception( "handleStrokeEvent(): Unknown input event class" );
-            }
-            
-            if( w_event.type != NONE )
-                target -> acceptEvent( w_event );
-        }
+            x_eventtype = event_type_map[ x_event.type ];
         else
-            if( getDevMode() )
+            if( getDevMode() )                                                  // Ignore unknown event types
             {
                 static std::set< event_type > unknown_event_types;
                 
@@ -539,7 +544,276 @@ namespace bqt
                                x_event.type,
                                "), ignoring this type until registered\n" );
                 }
+                
+                return;
             }
+        
+        XDeviceButtonEvent x_eventdata;                                         // Use an XDeviceButtonEvent since it holds all the info we need
+        if( x_eventtype == MOTION )
+        {
+            XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&x_event ) );
+            
+            x_eventdata.type         = x_dmevent.type;
+            x_eventdata.serial       = x_dmevent.serial;
+            x_eventdata.send_event   = x_dmevent.send_event;
+            x_eventdata.display     = x_dmevent.display;
+            x_eventdata.window       = x_dmevent.window;
+            x_eventdata.deviceid     = x_dmevent.deviceid;
+            x_eventdata.root         = x_dmevent.root;
+            x_eventdata.subwindow    = x_dmevent.subwindow;
+            x_eventdata.time         = x_dmevent.time;
+            x_eventdata.x            = x_dmevent.x;
+            x_eventdata.y            = x_dmevent.y;
+            x_eventdata.x_root       = x_dmevent.x_root;
+            x_eventdata.y_root       = x_dmevent.y_root;
+            x_eventdata.state        = x_dmevent.state;
+            x_eventdata.button       = 0x00;
+            x_eventdata.same_screen  = x_dmevent.same_screen;
+            x_eventdata.device_state = x_dmevent.device_state;
+            x_eventdata.axes_count   = x_dmevent.axes_count;
+            x_eventdata.first_axis   = x_dmevent.first_axis;
+            x_eventdata.axis_data[0] = x_dmevent.axis_data[0];
+            x_eventdata.axis_data[1] = x_dmevent.axis_data[1];
+            x_eventdata.axis_data[2] = x_dmevent.axis_data[2];
+            x_eventdata.axis_data[3] = x_dmevent.axis_data[3];
+            x_eventdata.axis_data[4] = x_dmevent.axis_data[4];
+            x_eventdata.axis_data[5] = x_dmevent.axis_data[5];
+        }
+        else
+        {
+            x_eventdata = *( XDeviceButtonEvent* )&x_event;
+        }
+        
+        bqt::window_event w_event;
+        w_event.type = NONE;
+        
+        Screen* x_screen = DefaultScreenOfDisplay( x_event.xany.display );
+
+        int x_screen_px[ 2 ];
+        float x_screen_mm[ 2 ];
+        float x_screen_res[ 2 ];
+
+        x_screen_px[ 0 ] = WidthOfScreen( x_screen );
+        x_screen_px[ 1 ] = HeightOfScreen( x_screen );
+        x_screen_mm[ 0 ] = WidthMMOfScreen( x_screen );
+        x_screen_mm[ 1 ] = HeightMMOfScreen( x_screen );
+        x_screen_res[ 0 ] = x_screen_mm[ 0 ] / x_screen_px[ 0 ];
+        x_screen_res[ 1 ] = x_screen_mm[ 1 ] / x_screen_px[ 1 ];
+        
+        if( x_eventtype == BUTTON_RELEASE
+            && x_eventdata.button > Button3 )                                   // Ignore scroll button up events
+        {
+            return;
+        }
+        
+        x_input_detail& device_detail( x_input_devices[ x_eventdata.deviceid ] );
+        
+        if( x_eventtype == MOTION )
+            w_event.type = STROKE;
+        else
+        {
+            switch( x_eventdata.button )
+            {
+                case Button1:
+                case Button2:
+                case Button3:
+                    w_event.type = STROKE;
+                    break;
+                case Button4:
+                case Button5:
+                case ( Button5 + 1 ):                                           // aka Button6
+                case ( Button5 + 2 ):                                           // aka Button7
+                    w_event.type = SCROLL;
+                    break;
+                default:
+                    break;                                                      // Ignore all other buttons for now
+            }
+        }
+        
+        switch( w_event.type )
+        {
+            case STROKE:
+                {
+                    w_event.stroke.dev_id = device_detail.x_devid;
+                    
+                    w_event.stroke.click = 0x00;
+                    
+                    if( device_detail.relative )
+                    {
+                        if( warn_relative )
+                        {
+                            ff::write( bqt_out, "Warning: Devices in relative mode will not have sub-pixel accuracy\n" );
+                            warn_relative = false;
+                        }
+                        
+                        if( x_eventdata.state & Button1Mask )                   // Button1 = left click
+                            w_event.stroke.click |= CLICK_PRIMARY;
+                        if( x_eventdata.state & Button3Mask )                   // Button3 = right click
+                            w_event.stroke.click |= CLICK_SECONDARY;
+                        if( x_eventdata.state & Button2Mask )                   // Button2 = middle click
+                            w_event.stroke.click |= CLICK_ALT;
+                        
+                        w_event.stroke.position[ 0 ] = ( float )x_eventdata.x;
+                        w_event.stroke.position[ 1 ] = ( float )x_eventdata.y;
+                        
+                        w_event.stroke.pressure = 0.0f;                         // Pressure may be set later
+                        
+                        w_event.stroke.tilt[ 0 ] = 0.0f;
+                        w_event.stroke.tilt[ 1 ] = 0.0f;
+                        
+                        w_event.stroke.wheel = 0.0f;
+                        w_event.stroke.rotation = 0.0f;
+                    }
+                    else
+                    {
+                        #warning Assuming any absolute device is a tablet with at least 6 axes
+                        
+                        if( x_eventdata.state & Button1Mask )
+                            w_event.stroke.click |= CLICK_PRIMARY;
+                        
+                        w_event.stroke.position[ 0 ] = ( ( float )x_eventdata.axis_data[ 0 ]
+                                                         / ( float )device_detail.axes[ 0 ].max_value )
+                                                       * ( float )x_screen_px[ 0 ];
+                        w_event.stroke.position[ 1 ] = ( ( float )x_eventdata.axis_data[ 1 ]
+                                                         / ( float )device_detail.axes[ 1 ].max_value )
+                                                       * ( float )x_screen_px[ 1 ];
+                        
+                        w_event.stroke.pressure = ( float )x_eventdata.axis_data[ 2 ]
+                                                  / ( float )device_detail.axes[ 2 ].max_value;
+                        
+                        // TODO: Account for | min_value | > | max_value |
+                        
+                        w_event.stroke.tilt[ 0 ] = ( float )x_eventdata.axis_data[ 3 ]
+                                                   / ( float )device_detail.axes[ 3 ].max_value;
+                        w_event.stroke.tilt[ 1 ] = ( float )x_eventdata.axis_data[ 4 ]
+                                                   / ( float )device_detail.axes[ 4 ].max_value;
+                        
+                        // Note that for at least some styluses with no wheel,
+                        // the Linux Wacom driver reports the wheel at minimum
+                        // value rather than rest value (0.0) - however there
+                        // doesn't seem to be a way to tell if this value is
+                        // being used this way or if it's real input.
+                        if( device_detail.type == AIRBRUSH_STYLUS )             // Wacom 6th axis' meaning depends on device
+                        {
+                            w_event.stroke.wheel = ( float )x_eventdata.axis_data[ 5 ]
+                                                   / ( float )device_detail.axes[ 5 ].max_value;
+                            w_event.stroke.rotation = 0.0f;
+                        }
+                        else
+                        {
+                            w_event.stroke.wheel = 0.0f;
+                            w_event.stroke.rotation = ( float )x_eventdata.axis_data[ 5 ]
+                                                      / ( float )device_detail.axes[ 5 ].max_value;
+                        }
+                    }
+                    
+                    if( x_eventtype != MOTION )
+                    {
+                        switch( x_eventdata.button )                            // Fix for XInput not reporting the pressed button in the mask, but reporting it
+                                                                                // for releases (complete opposite of what we'd want)
+                        {
+                            case Button1:
+                                if( x_eventtype == BUTTON_PRESS )
+                                    w_event.stroke.click |= CLICK_PRIMARY;      // Add click, which isn't there
+                                else
+                                    w_event.stroke.click &= ~CLICK_PRIMARY;     // Remove click, which is already there
+                                break;
+                            case Button3:
+                                if( x_eventtype == BUTTON_PRESS )
+                                    w_event.stroke.click |= CLICK_SECONDARY;
+                                else
+                                    w_event.stroke.click &= ~CLICK_SECONDARY;
+                                break;
+                            case Button2:
+                                if( x_eventtype == BUTTON_PRESS )
+                                    w_event.stroke.click |= CLICK_ALT;
+                                else
+                                    w_event.stroke.click &= ~CLICK_ALT;
+                                break;
+                            default:
+                                break;                                          // Only interested in first three
+                        }
+                    }
+                    if( w_event.stroke.click & CLICK_PRIMARY )                  // Set pressure & stylus type here now that we know the click
+                    {
+                        if( device_detail.relative )                            // Pressure is already set for tablets
+                            w_event.stroke.pressure = 1.0f;
+                        
+                        switch( device_detail.type )
+                        {
+                            case PEN_STYLUS:
+                            case AIRBRUSH_STYLUS:
+                            case TOUCH_STYLUS:
+                            default:
+                                w_event.stroke.click |= CLICK_PRIMARY;
+                                break;
+                            case ERASER_STYLUS:
+                                w_event.stroke.click |= CLICK_ERASE;
+                                break;
+                        }
+                    }
+                    
+                    w_event.stroke.shift = ( bool )( x_eventdata.state & ShiftMask   );
+                    w_event.stroke.ctrl  = ( bool )( x_eventdata.state & ControlMask );
+                    w_event.stroke.alt   = ( bool )( x_eventdata.state & Mod1Mask    );
+                    w_event.stroke.super = ( bool )( x_eventdata.state & Mod4Mask    );
+                    
+                    #ifdef PLATFORM_MACOSX
+                    w_event.stroke.cmd = w_event.stroke.super;
+                    #else
+                    w_event.stroke.cmd = w_event.stroke.ctrl;
+                    #endif
+                    
+                    stroke_waypoint& prev_waypoint( prev_strokes[ device_detail.x_devid ] );
+                    w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
+                    w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
+                    prev_waypoint = w_event.stroke;                             // Update previous stroke
+                }
+                break;
+            case SCROLL:
+                {
+                    w_event.scroll.position[ 0 ] = x_eventdata.x;               // XDeviceButtonEvent::x & x_root seemt to report the same value
+                    w_event.scroll.position[ 1 ] = x_eventdata.y;
+                    
+                    w_event.scroll.amount[ 0 ] = 0.0f;                          // Initialize to 0.0
+                    w_event.scroll.amount[ 1 ] = 0.0f;
+                    switch( x_eventdata.button )
+                    {
+                    case Button4:                                               // Scroll wheel up
+                        w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
+                        break;
+                    case Button5:                                               // Scroll wheel down
+                        w_event.scroll.amount[ 1 ] = -1.0f * bqt::getWheelScrollDistance();
+                        break;
+                    case ( Button5 + 1 ):                                       // Scroll wheel left
+                        w_event.scroll.amount[ 0 ] =  1.0f * bqt::getWheelScrollDistance();
+                        break;
+                    case ( Button5 + 2 ):                                       // Scroll wheel right
+                        w_event.scroll.amount[ 0 ] = -1.0f * bqt::getWheelScrollDistance();
+                        break;
+                    default:
+                        break;                                                  // Realistically we'll never get here
+                    }
+                    
+                    w_event.scroll.shift = ( bool )( x_eventdata.state & ShiftMask   );
+                    w_event.scroll.ctrl  = ( bool )( x_eventdata.state & ControlMask );
+                    w_event.scroll.alt   = ( bool )( x_eventdata.state & Mod1Mask    );
+                    w_event.scroll.super = ( bool )( x_eventdata.state & Mod4Mask    );
+                    
+                    #ifdef PLATFORM_MACOSX
+                    w_event.scroll.cmd = w_event.scroll.super;
+                    #else
+                    w_event.scroll.cmd = w_event.scroll.ctrl;
+                    #endif
+                }
+                break;
+            case NONE:
+            default:
+                break;                                                          // Nothing to do
+        }
+        
+        if( w_event.type != NONE )
+            target -> acceptEvent( w_event );
     }
 }
 

@@ -255,7 +255,7 @@ namespace bqt
             Display* x_display = getXDisplay();
             
             refreshInputDevices();
-            setQuitFlag();
+            // setQuitFlag();
             
             for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )
                  queue_size > 0;
@@ -312,9 +312,10 @@ namespace bqt
                 case ColormapNotify:
                 case PropertyNotify:
                     break;                                                      // Ignore, for now
-                case MotionNotify:                                              // Still send, but will be ignored (we get motion events throug the device)
+                case MotionNotify:
                 case ButtonPress:
-                case ButtonRelease:    
+                case ButtonRelease:
+                    break;
                 default:
                     handleStrokeEvent( x_event );
                     break;
