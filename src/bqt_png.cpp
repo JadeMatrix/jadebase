@@ -28,7 +28,7 @@ namespace bqt
         {
             open = false;
             
-            bqt::exception e;
+            exception e;
             ff::write( *e, "png_file::png_file(): Could not open file \"", filename, "\"" );
             throw e;
         }
@@ -41,7 +41,7 @@ namespace bqt
             
             open = false;
             
-            bqt::exception e;
+            exception e;
             ff::write( *e, "png_file::png_file(): File \"", filename, "\" is not a PNG" );
             throw e;
         }
@@ -57,7 +57,7 @@ namespace bqt
             
             open = false;
             
-            bqt::exception e;
+            exception e;
             ff::write( *e, "png_file::png_file(): Could not create a png_struct for file \"", filename, "\"" );
             throw e;
         }
@@ -70,7 +70,7 @@ namespace bqt
             
             open = false;
             
-            bqt::exception e;
+            exception e;
             ff::write( *e, "png_file::png_file(): Could not create a png_info for file \"", filename, "\"" );
             throw e;
         }
@@ -82,7 +82,7 @@ namespace bqt
             
             open = false;
             
-            bqt::exception e;
+            exception e;
             ff::write( *e, "png_file::png_file(): Error reading file \"", filename, "\"" );
             throw e;
         }
