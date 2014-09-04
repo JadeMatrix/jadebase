@@ -209,12 +209,6 @@ namespace bqt
                 test_group_c -> addElement( b );
             }
             
-            // button* button_a = 
-            // button_a -> setContents( new image_rsrc( ICON_FILE, 0, 0, 15, 15 ),
-            //                          CENTER_CENTER );
-            
-            // test_group_c -> addElement( button_a );
-            
             // Tabset
             
             tabset* test_tabset = new tabset( *this, 0, 0, 256, 256 );

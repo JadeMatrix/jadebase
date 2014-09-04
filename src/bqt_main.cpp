@@ -47,7 +47,12 @@ namespace bqt
             {
                 submitTask( new HandleEvents_task() );
                 
-                submitTask( new window::manipulate( NULL ) );
+                window* initial_window = new window();
+                
+                window::manipulate* manip = new window::manipulate( initial_window );
+                // manip -> 
+                
+                submitTask( manip );
                 
                 
             }
