@@ -114,6 +114,17 @@ namespace bqt
         else
             throw exception( "makeWindowActive(): No window associated with platform window" );
     }
+    void makeWindowInactive( bqt_platform_window_t& w )
+    {
+        scoped_lock< mutex > slock( wm_mutex );
+        
+        Window window_id = w.x_window;
+        
+        if( id_window_map.count( window_id ) )
+            active_window = NULL;
+        else
+            throw exception( "makeWindowInactive(): No window associated with platform window" );
+    }
     window* getActiveWindow()
     {
         scoped_lock< mutex > slock( wm_mutex );

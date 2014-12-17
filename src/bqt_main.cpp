@@ -54,7 +54,7 @@ namespace bqt
                 
                 submitTask( manip );
                 
-                
+                submitTask( new window::manipulate() );
             }
             
             ff::write( bqt_out,

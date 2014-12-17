@@ -122,85 +122,100 @@ namespace
         
         bqt_platform_window_t platform_window;
         platform_window.x_window = x_event.xany.window;
-        bqt::window& bqt_window( getWindow( platform_window ) );
         
-        if( isRegisteredWindow( platform_window ) )
+        try
         {
-            if( !window_manipulates.count( platform_window.x_window ) )
-                window_manipulates[ platform_window.x_window ] = new window::manipulate( &bqt_window );
-        }
-        else
-        {
-            if( getDevMode() )
-                ff::write( bqt_out, "X window event received for unregistered window, ignoring\n" );
+            bqt::window& bqt_window( getWindow( platform_window ) );            // Try block is for this statement
             
-            return;
-        }
-        
-        window::manipulate* current_manip = window_manipulates[ platform_window.x_window ];
-        
-        switch( x_event.type )
-        {
-        // case :  // Shown
-        //     break;
-        case Expose:
-            if( x_event.xexpose.count != 0 )
-                current_manip -> redraw();
-            current_manip -> makeActive();
-            break;
-        case ConfigureRequest:
-            // ff::write( bqt_out, "ConfigureRequest\n" );
-            // x_event.xconfigurerequest
-            break;
-        case ConfigureNotify:
+            if( isRegisteredWindow( platform_window ) )
             {
-                // if( x_event.xconfigure.value_mask & CWX || x_event.xconfigure.value_mask & CWY )
-                if( x_event.xconfigure.x !=bqt_window.getPosition().first
-                    || x_event.xconfigure.y !=bqt_window.getPosition().second )
-                {
-                    current_manip -> setPosition( x_event.xconfigure.x, x_event.xconfigure.y );
-                }
-                
-                // if( x_event.xconfigure.value_mask & CWWidth || x_event.xconfigure.value_mask & CWHeight )
-                if( x_event.xconfigure.width != bqt_window.getDimensions().first
-                    || x_event.xconfigure.height != bqt_window.getDimensions().second )
-                {
-                    if( x_event.xconfigure.width < 1
-                        || x_event.xconfigure.height < 1 )                      // Trust no one
-                        throw exception( "handleWindowEvent(): Width or height not within limits" );
-                    
-                    // ff::write( bqt_out, "Setting dimensions\n" );
-                    current_manip -> setDimensions( x_event.xconfigure.width,
-                                                    x_event.xconfigure.height );
-                }
+                if( !window_manipulates.count( platform_window.x_window ) )
+                    window_manipulates[ platform_window.x_window ] = new window::manipulate( &bqt_window );
             }
-            break;
-        case MapNotify:
-        case MapRequest:
-        case VisibilityNotify:
-        case FocusIn:
-            current_manip -> restore();
-            current_manip -> makeActive();
-            break;
-        case ClientMessage:
-            // http://tronche.com/gui/x/icccm/sec-4.html#s-4.2.8.1
-            if( x_event.xclient.data.l[ 0 ] == XInternAtom( getXDisplay(), "WM_DELETE_WINDOW", False ) )
-                current_manip -> close();
-            break;
-        // case :  // Minimize
-        //     current_manip -> minimize();
-        //     break;
-        // case :  // Maximize
-        //     current_manip -> maximize();
-        //     break;
-        // case :  // Mouse Focus
-        //     break;
-        // case :  // Keyboard Focus
-        //     break;
-        default:
-            if( getDevMode() )
-                ff::write( bqt_out, "Received unrecognized X window event, ignoring\n" );
-            break;
+            else
+            {
+                if( getDevMode() )
+                    ff::write( bqt_out, "X window event received for unregistered window, ignoring\n" );
+                
+                return;
+            }
+            
+            window::manipulate* current_manip = window_manipulates[ platform_window.x_window ];
+            
+            switch( x_event.type )
+            {
+            // case :  // Shown
+            //     break;
+            case Expose:
+                if( x_event.xexpose.count != 0 )
+                    current_manip -> redraw();
+                current_manip -> makeActive();
+                break;
+            case ConfigureRequest:
+                // ff::write( bqt_out, "ConfigureRequest\n" );
+                // x_event.xconfigurerequest
+                break;
+            case ConfigureNotify:
+                {
+                    // if( x_event.xconfigure.value_mask & CWX || x_event.xconfigure.value_mask & CWY )
+                    if( x_event.xconfigure.x !=bqt_window.getPosition().first
+                        || x_event.xconfigure.y !=bqt_window.getPosition().second )
+                    {
+                        current_manip -> setPosition( x_event.xconfigure.x, x_event.xconfigure.y );
+                    }
+                    
+                    // if( x_event.xconfigure.value_mask & CWWidth || x_event.xconfigure.value_mask & CWHeight )
+                    if( x_event.xconfigure.width != bqt_window.getDimensions().first
+                        || x_event.xconfigure.height != bqt_window.getDimensions().second )
+                    {
+                        if( x_event.xconfigure.width < 1
+                            || x_event.xconfigure.height < 1 )                      // Trust no one
+                            throw exception( "handleWindowEvent(): Width or height not within limits" );
+                        
+                        // ff::write( bqt_out, "Setting dimensions\n" );
+                        current_manip -> setDimensions( x_event.xconfigure.width,
+                                                        x_event.xconfigure.height );
+                    }
+                }
+                break;
+            case MapNotify:
+            case MapRequest:
+            case VisibilityNotify:
+            case FocusIn:
+                current_manip -> restore();
+                current_manip -> makeActive();
+                break;
+            case FocusOut:
+                current_manip -> makeInactive();
+                break;
+            case ClientMessage:
+                // http://tronche.com/gui/x/icccm/sec-4.html#s-4.2.8.1
+                if( x_event.xclient.data.l[ 0 ] == XInternAtom( getXDisplay(), "WM_DELETE_WINDOW", False ) )
+                    current_manip -> close();
+                break;
+            // case :  // Minimize
+            //     current_manip -> minimize();
+            //     break;
+            // case :  // Maximize
+            //     current_manip -> maximize();
+            //     break;
+            // case :  // Mouse Focus
+            //     break;
+            // case :  // Keyboard Focus
+            //     break;
+            default:
+                if( getDevMode() )
+                    ff::write( bqt_out, "Received unrecognized X window event, ignoring\n" );
+                break;
+            }
+        }
+        catch( exception& e )
+        {
+            if( x_event.type != FocusOut )                                      // Window close generates a FocusOut event, but window is already gone
+                throw e;
+            else
+                if( getDevMode() )
+                    ff::write( bqt_out, "Got FocusOut X event for invalid window, assumed closed\n" );
         }
     }
     
@@ -255,7 +270,9 @@ namespace bqt
             Display* x_display = getXDisplay();
             
             refreshInputDevices();
-            // setQuitFlag();
+            
+            XEvent last_x_dmevent;                                              // For storing DeviceMotion events until we can fill out their window field
+            bool dmevent_waiting = false;
             
             for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )
                  queue_size > 0;
@@ -292,6 +309,7 @@ namespace bqt
                 case ClientMessage:
                 case VisibilityNotify:
                 case FocusIn:
+                case FocusOut:
                     handleWindowEvent( x_event );
                     break;
                 case DestroyNotify:
@@ -299,7 +317,6 @@ namespace bqt
                 case UnmapNotify:
                 case ReparentNotify:
                 case GravityNotify:
-                case FocusOut:
                 case EnterNotify:
                 case LeaveNotify:
                 case GraphicsExpose:
@@ -313,11 +330,39 @@ namespace bqt
                 case PropertyNotify:
                     break;                                                      // Ignore, for now
                 case MotionNotify:
+                    if( dmevent_waiting )
+                    {
+                        XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&last_x_dmevent ) );
+                        
+                        if( x_dmevent.time == x_event.xmotion.time )
+                        {
+                            x_dmevent.window = x_event.xmotion.window;          // Copy over window
+                            
+                            handleStrokeEvent( last_x_dmevent );
+                            
+                            dmevent_waiting = false;
+                        }
+                    }
+                    break;
                 case ButtonPress:
                 case ButtonRelease:
+                    if( dmevent_waiting )
+                    {
+                        XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&last_x_dmevent ) );
+                        
+                        if( x_dmevent.time == x_event.xbutton.time )
+                        {
+                            x_dmevent.window = x_event.xmotion.window;          // Copy over window
+                            
+                            handleStrokeEvent( last_x_dmevent );
+                            
+                            dmevent_waiting = false;
+                        }
+                    }
                     break;
                 default:
-                    handleStrokeEvent( x_event );
+                    last_x_dmevent = x_event;                                   // Save event so we can fill out the window field later
+                    dmevent_waiting = true;
                     break;
                 }
             }

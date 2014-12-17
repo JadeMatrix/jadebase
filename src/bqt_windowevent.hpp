@@ -58,6 +58,8 @@ namespace bqt
         float   rotation;                                                       // Rotation (0.0 up to but not including 1.0 is a full rotation, can contain
                                                                                 // multiple rotations but usually not)
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
+        
+        // float      speed;                                                       // Speed scalar in mm/s
     };
     
     // class droppable;

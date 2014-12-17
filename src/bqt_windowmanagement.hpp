@@ -24,7 +24,8 @@ namespace bqt
     
     int getRegisteredWindowCount();
     
-    void makeWindowActive( bqt_platform_window_t& w );
+    void makeWindowActive(   bqt_platform_window_t& w );
+    void makeWindowInactive( bqt_platform_window_t& w );
     window* getActiveWindow();                                                  // Returns NULL if there is no active window
     window& getWindow( bqt_platform_window_t& w );                              // Throws an exception if no window matches the platform window
     

@@ -1,7 +1,11 @@
 /* 
  * x_inputdevices.cpp
  * 
- * About
+ * http://www.x.org/archive/X11R7.5/doc/man/man3/XOpenDevice.3.html
+ * http://linux.die.net/man/3/xlistinputdevices
+ * http://tronche.com/gui/x/xlib/events/structures.html#XEvent
+ * 
+ * Use xev to listen to Xlib events (does not report DeviceMotion)
  * 
  */
 
@@ -138,12 +142,13 @@ namespace bqt
         XEventClass* x_eventclass_list = new XEventClass[ x_eventclass_size ];
         int x_eventclass_count = 0;
         
-        float x_screen_res[ 2 ];                                                // This is used for checking the resolution of device axes
-        {
-            Screen* x_screen_ptr = DefaultScreenOfDisplay( x_display );
-            x_screen_res[ 0 ] = WidthMMOfScreen( x_screen_ptr ) / WidthOfScreen( x_screen_ptr );
-            x_screen_res[ 1 ] = HeightMMOfScreen( x_screen_ptr ) / HeightOfScreen( x_screen_ptr );
-        }
+        // TODO: Re-think how this might work
+        // float x_screen_lpmm[ 2 ];                                               // This is used for checking the resolution of device axes
+        // {
+        //     Screen* x_screen_ptr = DefaultScreenOfDisplay( x_display );
+        //     x_screen_lpmm[ 0 ] = ( float )WidthOfScreen( x_screen_ptr ) / ( float )WidthMMOfScreen( x_screen_ptr );
+        //     x_screen_lpmm[ 1 ] = ( float )HeightOfScreen( x_screen_ptr ) / ( float )HeightMMOfScreen( x_screen_ptr );
+        // }
         
         XDeviceInfo* x_dev_info = XListInputDevices( x_display,
                                                      &x_total_device_count );   // Get device list & update global count
@@ -286,7 +291,7 @@ namespace bqt
                                                    detail.axis_count,
                                                    " axes\n" );
                                     
-                                    for( int axis = 0; i < detail.axis_count; ++i )
+                                    for( int axis = 0; axis < detail.axis_count; ++axis )
                                         detail.axes[ axis ] = xval_info -> axes[ axis ];
                                     
                                     event_type x_event;
@@ -303,31 +308,21 @@ namespace bqt
                                 break;                                          // Ignore others (eg KeyClass)
                             }
                             
-                            if( register_device )
+                            if( j + 1 == x_dev_info[ i ].num_classes
+                                && register_device )                            // If last one
                             {
-                                if( 1000 / detail.axes[ 0 ].resolution          // If the device l/mm is larger than the smallest screen l/mm
-                                                                                // (We just check the first axis, that should be OK)
-                                    > ( x_screen_res[ 0 ] < x_screen_res[ 1 ] ? x_screen_res[ 0 ] : x_screen_res[ 1 ] ) )
-                                {
-                                    ff::write( bqt_out,
-                                               "Warning: Device \"",
-                                               detail.name,
-                                               "\" has a larger resolution than the screen\n" );
-                                }
-                                // { XI_MOUSE,
-                                //    XI_TABLET,
-                                //    XI_TOUCHSCREEN,
-                                //    "STYLUS",
-                                //    "ERASER",
-                                //    "TOUCH",
-                                //    // "AIRBRUSH",
-                                //    "TOUCHPAD" }; 
-                                
-                                // INVALID,
-                                // PEN_STYLUS,
-                                // AIRBRUSH_STYLUS,
-                                // ERASER_STYLUS,
-                                // TOUCH_STYLUS
+                                // if( ( float )( detail.axes[ 0 ].resolution ) / 1000.0f // Axes resolution reported in lines per meter
+                                //     < ( x_screen_lpmm[ 0 ] < x_screen_lpmm[ 1 ] ? x_screen_lpmm[ 0 ] : x_screen_lpmm[ 1 ] ) )
+                                // {
+                                //     ff::write( bqt_out,
+                                //                "  - Warning: Device \"",
+                                //                detail.name,
+                                //                "\" has a lower resolution (",
+                                //                ( float )( detail.axes[ 0 ].resolution ) / 1000.0f,
+                                //                " l/mm) than the screen (",
+                                //                ( x_screen_lpmm[ 0 ] < x_screen_lpmm[ 1 ] ? x_screen_lpmm[ 0 ] : x_screen_lpmm[ 1 ] ),
+                                //                " l/mm)\n" );
+                                // }
                                 
                                 if( x_dev_info[ i ].type == XInternAtom( x_display, "ERASER", true ) )
                                 {
@@ -348,6 +343,8 @@ namespace bqt
                                 
                                 prev_strokes[ detail.x_devid ] = initial_waypoint;
                                                                                 // Load initial waypoint, no need to change its dev_id
+                                
+                                ff::write( bqt_out, "  - device registered\n" );
                             }
                             
                             if( x_eventclass_count >= DEVICE_CLASS_LIST_START_LENGTH )
@@ -499,14 +496,19 @@ namespace bqt
                 
         static bool warn_relative = true;                                       // Relative motion event resolution warning flag
         
-        bqt::window* target = bqt::getActiveWindow();
-        if( target == NULL )
+        // ff::write( bqt_out, "got stroke event in window 0x", ff::to_x( ( unsigned long )x_event.xany.window ), "\n" );
+        
+        bqt_platform_window_t target_pwin;
+        target_pwin.x_window = ( ( XDeviceMotionEvent* )&x_event ) -> window;
+        
+        if( !isRegisteredWindow( target_pwin) )
         {
             if( bqt::getDevMode() )
                 ff::write( bqt_out, "Warning: Got motion event not matched to a known window, ignoring\n" );
             
             return;
         }
+        bqt::window& target = getWindow( target_pwin );
         
         event_type x_eventtype;
         
@@ -538,7 +540,7 @@ namespace bqt
             x_eventdata.type         = x_dmevent.type;
             x_eventdata.serial       = x_dmevent.serial;
             x_eventdata.send_event   = x_dmevent.send_event;
-            x_eventdata.display     = x_dmevent.display;
+            x_eventdata.display      = x_dmevent.display;
             x_eventdata.window       = x_dmevent.window;
             x_eventdata.deviceid     = x_dmevent.deviceid;
             x_eventdata.root         = x_dmevent.root;
@@ -660,8 +662,11 @@ namespace bqt
                                                          / ( float )device_detail.axes[ 1 ].max_value )
                                                        * ( float )x_screen_px[ 1 ];
                         
-                        w_event.stroke.pressure = ( float )x_eventdata.axis_data[ 2 ]
-                                                  / ( float )device_detail.axes[ 2 ].max_value;
+                        if( device_detail.type == TOUCH_STYLUS )                // Unpressured touch events report a 0 pressure
+                            w_event.stroke.pressure = 1.0f;
+                        else
+                            w_event.stroke.pressure = ( float )x_eventdata.axis_data[ 2 ]
+                                                      / ( float )device_detail.axes[ 2 ].max_value;
                         
                         // TODO: Account for | min_value | > | max_value |
                         
@@ -795,7 +800,7 @@ namespace bqt
         }
         
         if( w_event.type != NONE )
-            target -> acceptEvent( w_event );
+            target.acceptEvent( w_event );
     }
 }
 

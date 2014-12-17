@@ -26,6 +26,7 @@
 #include "gui/bqt_gui_group.hpp"
 #include "gui/bqt_gui_scrollset.hpp"
 #include "gui/bqt_gui_image_rsrc.hpp"
+#include "gui/bqt_gui_canvasview.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -128,6 +129,7 @@ namespace bqt
             
             glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
             
+            glewExperimental = GL_TRUE;                                         // To allow FBOs in OpenGL <3.0
             GLenum err = glewInit();                                            // Init GLEW first time only
                                                                                 // TODO: Move to initOpenGL()?
             if( err != GLEW_OK )
@@ -173,10 +175,19 @@ namespace bqt
             
             group* test_group_a = new group( *this, 0, 0, 256, 256 );
             
-            test_group_a -> addElement( new button( *this, 10, 10, 60, 40 ) );
-            test_group_a -> addElement( new button( *this, 72, 10, 26, 40 ) );
-            test_group_a -> addElement( new button( *this, 100, 10, 40, 19 ) );
-            test_group_a -> addElement( new button( *this, 100, 31, 40, 19 ) );
+            #define ICON_FILE "make/BQTDraw/Resources/gui_icons.png"
+            for( int i = 0; i < 11; ++i )
+            {
+                int pos[] = { 10 + ( i / 5 ) * 30,
+                              10 + ( i % 5 ) * 30 };
+                
+                button* b = new button( *this, pos[ 0 ], pos[ 1 ], 27, 27 );
+                
+                b -> setContents( new image_rsrc( ICON_FILE, 0, i * 15, 15, 15 ),
+                                  CENTER_CENTER );
+                
+                test_group_a -> addElement( b );
+            }
             
             // Group B
             
@@ -195,19 +206,18 @@ namespace bqt
             
             group* test_group_c = new group( *this, 0, 0, 256, 256 );
             
-            #define ICON_FILE "make/BQTDraw/Resources/gui_icons.png"
-            for( int i = 0; i < 11; ++i )
-            {
-                int pos[] = { 10 + ( i / 5 ) * 30,
-                              10 + ( i % 5 ) * 30 };
-                
-                button* b = new button( *this, pos[ 0 ], pos[ 1 ], 27, 27 );
-                
-                b -> setContents( new image_rsrc( ICON_FILE, 0, i * 15, 15, 15 ),
-                                  CENTER_CENTER );
-                
-                test_group_c -> addElement( b );
-            }
+            // test_group_c -> addElement( new scrollset( *this,
+            //                                            0,
+            //                                            0,
+            //                                            256,
+            //                                            256 - TABSET_BAR_HEIGHT,
+            //                                            new canvas_view( *this,
+            //                                                             0,
+            //                                                             0,
+            //                                                             256,
+            //                                                             256,
+            //                                                             128,
+            //                                                             128 ) ) );
             
             // Tabset
             
@@ -697,6 +707,14 @@ namespace bqt
         
         target -> updates.changed = true;
     }
+    void window::manipulate::makeInactive()
+    {
+        scoped_lock< mutex > slock( target -> window_mutex );
+        
+        ff::write( bqt_out, "Inactivating window 0x", ff::to_x( ( unsigned long )target ), "\n" );
+        
+        target -> updates.changed = true;
+    }
     
     void window::manipulate::center()
     {
@@ -769,7 +787,6 @@ namespace bqt
             if( target.pending_redraws != 1 )                                   // Sanity check
                 throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
             
-            // glLoadIdentity();
             glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
             glLoadIdentity();
             glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
@@ -780,7 +797,7 @@ namespace bqt
             // glEnable( GL_DEPTH_TEST );
             glClearColor( 0.05f, 0.05f, 0.05f, 1.0f );
             glClearStencil( 0 );
-            // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+            // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
             glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
             
             glEnable( GL_TEXTURE_2D );

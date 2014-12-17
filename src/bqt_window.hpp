@@ -157,7 +157,8 @@ namespace bqt
             void setTitle( std::string t );
             
             // void setFocus( bool f );                                            // Change any window styles to fit in- or out-of-focus
-            void makeActive();
+            void makeActive();                                                  // Make target the active window
+            void makeInactive();                                                // Remove target as the active window
             
             void center();
             void minimize();
