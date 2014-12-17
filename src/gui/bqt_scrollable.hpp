@@ -14,6 +14,9 @@
  * Classes that inherit from scrollable are responsible for clamping values from
  * scroll***() calls.
  * 
+ * Scrolling with negative values will result in a negative offset, and vice
+ * versa.
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -24,9 +27,6 @@
 
 namespace bqt
 {
-    typedef std::pair< std::pair< int, int >, std::pair< int, int > > limit_pixels;
-    typedef std::pair< std::pair< float, float >, std::pair< float, float > > limit_percent;
-    
     class scrollable : public gui_element
     {
     public:
@@ -39,18 +39,18 @@ namespace bqt
         
         virtual void setRealDimensions( unsigned int w, unsigned int h ) = 0;
         
-        virtual void scrollPixels( int x, int y ) = 0;
-        virtual void scrollPercent( float x, int y ) = 0;
+        virtual void scrollPixels(    int x,   int y ) = 0;
+        virtual void scrollPercent( float x, float y ) = 0;
         
-        virtual void setScrollPixels( int x, int y ) = 0;
-        virtual void setScrollPercent( float x, int y ) = 0;
+        virtual void setScrollPixels(   int x,    int y ) = 0;
+        virtual void setScrollPercent( float x, float y ) = 0;
         
-        virtual std::pair< int, int > getScrollPixels() = 0;
+        virtual std::pair<   int,   int > getScrollPixels()  = 0;
         virtual std::pair< float, float > getScrollPercent() = 0;               // ... as a +/- % of real dimensions
         
         virtual bool hasScrollLimit() = 0;
-        virtual limit_pixels getScrollLimitPixels() = 0;
-        virtual limit_percent getScrollLimitPercent() = 0;                      // ... as a +/- % of real dimensions
+        virtual std::pair<    int,  int > getScrollLimitPixels()  = 0;
+        virtual std::pair< float, float > getScrollLimitPercent() = 0;          // ... as a +/- % of real dimensions
     };
 }
 

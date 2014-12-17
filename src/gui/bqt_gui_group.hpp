@@ -33,15 +33,18 @@ namespace bqt
     {
     protected:
         std::vector< gui_element* > elements;
+        unsigned int internal_dims[ 2 ];                                        // Dimensions of the internal layout of the group
         
         lua_State* lua_state;
         
         bool event_fallthrough;
         
-        int scroll_limits[ 4 ];                                                 // X min, X max, Y min, Y max
+        int scroll_limits[ 2 ];                                                 // X min, X max, Y min, Y max
         int scroll_offset[ 2 ];
         
         bool acceptEvent_copy( window_event e );                                // Copies event first for modification
+        
+        void updateScrollParams();                                              // Utility, not thread-safe
     public:
         group( window& parent,
                int x,
@@ -76,18 +79,18 @@ namespace bqt
         
         // SCROLLABLE //////////////////////////////////////////////////////////
         
-        void scrollPixels( int x, int y );
-        void scrollPercent( float x, int y );
+        void scrollPixels(    int x,   int y );
+        void scrollPercent( float x, float y );
         
-        void setScrollPixels( int x, int y );
-        void setScrollPercent( float x, int y );
+        void setScrollPixels(    int x,   int y );
+        void setScrollPercent( float x, float y );
         
-        std::pair< int, int > getScrollPixels();
+        std::pair<   int,   int > getScrollPixels();
         std::pair< float, float > getScrollPercent();
         
         bool hasScrollLimit();
-        limit_pixels getScrollLimitPixels();
-        limit_percent getScrollLimitPercent();
+        std::pair<   int,   int > getScrollLimitPixels();
+        std::pair< float, float > getScrollLimitPercent();
     };
 }
 

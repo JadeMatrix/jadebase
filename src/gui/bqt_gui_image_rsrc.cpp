@@ -57,18 +57,18 @@ namespace bqt
     
     void image_rsrc::drawTempGraphic()
     {
-        glBegin( GL_QUADS );                                            // Using rect.i.* as conversion shouldn't have happened yet
+        glBegin( GL_QUADS );                                                    // Using rect.i.* as conversion shouldn't have happened yet
         {
-            glColor4f( 0.0, 1.0, 1.0, 1.0 );                            // C
+            glColor4f( 0.0, 1.0, 1.0, 1.0 );                                    // C
             glVertex2f( 0, 0 );
             
-            glColor4f( 1.0, 0.0, 1.0, 1.0 );                            // M
+            glColor4f( 1.0, 0.0, 1.0, 1.0 );                                    // M
             glVertex2f( dimensions[ 0 ], 0 );
             
-            glColor4f( 1.0, 1.0, 0.0, 1.0 );                            // Y
+            glColor4f( 1.0, 1.0, 0.0, 1.0 );                                    // Y
             glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
             
-            glColor4f( 0.0, 0.0, 0.0, 1.0 );                            // K
+            glColor4f( 0.0, 0.0, 0.0, 1.0 );                                    // K
             glVertex2f( 0, dimensions[ 1 ] );
         }
         glEnd();

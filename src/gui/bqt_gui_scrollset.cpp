@@ -57,10 +57,10 @@ namespace
 
 /******************************************************************************//******************************************************************************/
 
-#define SCROLLBAR_WIDTH                 12
+#define SCROLLBAR_HEIGHT                12
 #define MIN_SCROLLBAR_LENGTH            12
-#define SCROLLBAR_BUTTON_REAL_WIDTH     18
-#define SCROLLBAR_BUTTON_VISUAL_WIDTH   25
+#define SCROLLBAR_BUTTON_REAL_WIDTH     18                                      // Width of the button bounds
+#define SCROLLBAR_BUTTON_VISUAL_WIDTH   25                                      // Width of the button sprite
 #define SLIDER_END_WIDTH                6
 
 // #define DEPRESSABLE_SLIDER_BARS
@@ -71,67 +71,196 @@ namespace bqt
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        limit_percent contents_limits = contents -> getScrollLimitPercent();
+        std::pair< int, int > scroll_limits = contents -> getScrollLimitPixels();
+        std::pair< int, int > scroll_offsets = contents -> getScrollPixels();
         
-        int slide_space[ 2 ] = { ( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_WIDTH ) ),
-                                 ( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_WIDTH ) ) };
+        // Enable/disable slider bars, corner //////////////////////////////////
         
-        slider_width[ 0 ] = ( 1.0f / ( 1.0f + contents_limits.first.second - contents_limits.first.first ) )
-                            * slide_space[ 0 ];
-        slider_width[ 1 ] = ( 1.0f / ( 1.0f + contents_limits.second.second - contents_limits.second.first ) )
-                            * slide_space[ 1 ];
-        
-        std::pair< float, float > contents_scroll = contents -> getScrollPercent();
-        
-        slider_pos[ 0 ] = slider_width[ 0 ] - ( slide_space[ 0 ] - slider_width[ 0 ] ) * ( contents_scroll.first - contents_limits.first.first );
-        slider_pos[ 1 ] = slider_width[ 1 ] - ( slide_space[ 1 ] - slider_width[ 1 ] ) * ( contents_scroll.second - contents_limits.second.first );
-        
-        if( capturing == LEFT_BUTTON )
-            horz_state[ 0 ] = DOWN;
-        else
-            horz_state[ 0 ] = UP;
-        if( capturing == RIGHT_BUTTON )
-            horz_state[ 1 ] = DOWN;
-        else
-            horz_state[ 1 ] = UP;
-        if( capturing == TOP_BUTTON )
-            vert_state[ 0 ] = DOWN;
-        else
-            vert_state[ 0 ] = UP;
-        if( capturing == BOTTOM_BUTTON )
-            vert_state[ 1 ] = DOWN;
-        else
-            vert_state[ 1 ] = UP;
-        
-        if( slider_width[ 0 ] > slide_space[ 0 ] )
+        if( scroll_limits.first == 0 )                                          // Horizontal
         {
-            slider_state[ 0 ] = DISABLED;
             horz_state[ 0 ] = DISABLED;
             horz_state[ 1 ] = DISABLED;
+            slider_state[ 0 ] = DISABLED;
         }
         else
         {
-            if( capturing == HORIZONTAL_BAR )
-                slider_state[ 0 ] = DOWN;
-            else
-                slider_state[ 0 ] = UP;
+            horz_state[ 0 ] = UP;
+            horz_state[ 1 ] = UP;
+            slider_state[ 0 ] = UP;
         }
         
-        if( slider_width[ 1 ] > slide_space[ 1 ] )
+        if( scroll_limits.second == 0 )                                         // Vertical
         {
-            slider_state[ 1 ] = DISABLED;
             vert_state[ 0 ] = DISABLED;
             vert_state[ 1 ] = DISABLED;
+            slider_state[ 1 ] = DISABLED;
         }
         else
         {
-            if( capturing == VERTICAL_BAR )
-                slider_state[ 1 ] = DOWN;
+            vert_state[ 0 ] = UP;
+            vert_state[ 1 ] = UP;
+            slider_state[ 1 ] = UP;
+        }
+        
+        if( bars_always_visible
+            || slider_state[ 0 ] != DISABLED
+            || slider_state[ 1 ] != DISABLED )                                  // Corner
+        {
+            if( corner_state == DISABLED )
+                corner_state = UP;
+            // else leave in current state
+        }
+        else
+            corner_state = DISABLED;
+        
+        // Set actual bar states ///////////////////////////////////////////////
+        
+        bool release_capture = false;
+        
+        switch( capturing )
+        {
+            case NONE:
+                break;                                                          // Nothing needs to be done
+            case HORIZONTAL_BAR:
+                if( slider_state[ 0 ] == DISABLED )
+                    release_capture = true;
+                else
+                    slider_state[ 0 ] = DOWN;
+                break;
+            case VERTICAL_BAR:
+                if( slider_state[ 1 ] == DISABLED )
+                    release_capture = true;
+                else
+                    slider_state[ 1 ] = DOWN;
+                break;
+            case LEFT_BUTTON:
+                if( vert_state[ 0 ] == DISABLED )
+                    release_capture = true;
+                else
+                    vert_state[ 0 ] = DOWN;
+                break;
+            case RIGHT_BUTTON:
+                if( vert_state[ 1 ] == DISABLED )
+                    release_capture = true;
+                else
+                    vert_state[ 1 ] = DOWN;
+                break;
+            case TOP_BUTTON:
+                if( horz_state[ 0 ] == DISABLED )
+                    release_capture = true;
+                else
+                    horz_state[ 0 ] = DOWN;
+                break;
+            case BOTTOM_BUTTON:
+                if( horz_state[ 1 ] == DISABLED )
+                    release_capture = true;
+                else
+                    horz_state[ 1 ] = DOWN;
+                break;
+            case CORNER:
+                if( corner_state == DISABLED )
+                    release_capture = true;
+                // No else, acceptEvent() takes care of non-DISABLED state
+                break;
+            default:
+                throw exception( "scrollset::arrangeBars(): Unknown capturing state" );
+        }
+        
+        if( release_capture )
+        {
+            parent.deassociateDevice( captured_dev );
+            capturing = NONE;
+        }
+        
+        // Position slider bars ////////////////////////////////////////////////
+        
+        for( int i = 0; i < 2; ++i )
+        {
+            float scroll_limit = i ? scroll_limits.second : scroll_limits.first;
+            float scroll_offset = i ? scroll_offsets.second : scroll_offsets.first;
+            
+            float visible_dim;
+            
+            if( bars_always_visible
+                || slider_state[ 1 - i ] != DISABLED )
+            {
+                visible_dim = dimensions[ i ] - SCROLLBAR_HEIGHT;
+            }
             else
-                slider_state[ 1 ] = UP;
+                visible_dim = dimensions[ i ];                                  // If the other bar is invisible use entire width
+            
+            float max_length = visible_dim - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 );
+            
+            slider_width[ i ] = max_length * visible_dim
+                                / ( visible_dim + ( scroll_limit * ( scroll_limit < 0 ? -1 : 1 ) ) );
+            
+            slider_pos[ i ] = SCROLLBAR_BUTTON_REAL_WIDTH + ( max_length - slider_width[ i ] )
+                     * ( scroll_limit < 0 ? ( 1 - ( scroll_offset / scroll_limit ) ) : ( scroll_offset / scroll_limit ) );
         }
         
         parent.requestRedraw();
+        
+        // limit_percent contents_limits = contents -> getScrollLimitPercent();
+        
+        // int slide_space[ 2 ] = { ( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) ),
+        //                          ( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) ) };
+        
+        // slider_width[ 0 ] = ( 1.0f / ( 1.0f + contents_limits.first.second - contents_limits.first.first ) )
+        //                     * slide_space[ 0 ];
+        // slider_width[ 1 ] = ( 1.0f / ( 1.0f + contents_limits.second.second - contents_limits.second.first ) )
+        //                     * slide_space[ 1 ];
+        
+        // std::pair< float, float > contents_scroll = contents -> getScrollPercent();
+        
+        // slider_pos[ 0 ] = slider_width[ 0 ] - ( slide_space[ 0 ] - slider_width[ 0 ] ) * ( contents_scroll.first - contents_limits.first.first );
+        // slider_pos[ 1 ] = slider_width[ 1 ] - ( slide_space[ 1 ] - slider_width[ 1 ] ) * ( contents_scroll.second - contents_limits.second.first );
+        
+        // if( capturing == LEFT_BUTTON )
+        //     horz_state[ 0 ] = DOWN;
+        // else
+        //     horz_state[ 0 ] = UP;
+        // if( capturing == RIGHT_BUTTON )
+        //     horz_state[ 1 ] = DOWN;
+        // else
+        //     horz_state[ 1 ] = UP;
+        // if( capturing == TOP_BUTTON )
+        //     vert_state[ 0 ] = DOWN;
+        // else
+        //     vert_state[ 0 ] = UP;
+        // if( capturing == BOTTOM_BUTTON )
+        //     vert_state[ 1 ] = DOWN;
+        // else
+        //     vert_state[ 1 ] = UP;
+        
+        // if( slider_width[ 0 ] > slide_space[ 0 ] )
+        // {
+        //     slider_state[ 0 ] = DISABLED;
+        //     horz_state[ 0 ] = DISABLED;
+        //     horz_state[ 1 ] = DISABLED;
+        // }
+        // else
+        // {
+        //     if( capturing == HORIZONTAL_BAR )
+        //         slider_state[ 0 ] = DOWN;
+        //     else
+        //         slider_state[ 0 ] = UP;
+        // }
+        
+        // if( slider_width[ 1 ] > slide_space[ 1 ] )
+        // {
+        //     slider_state[ 1 ] = DISABLED;
+        //     vert_state[ 0 ] = DISABLED;
+        //     vert_state[ 1 ] = DISABLED;
+        // }
+        // else
+        // {
+        //     if( capturing == VERTICAL_BAR )
+        //         slider_state[ 1 ] = DOWN;
+        //     else
+        //         slider_state[ 1 ] = UP;
+        // }
+        
+        // parent.requestRedraw();
     }
     
     scrollset::scrollset( window& parent,
@@ -152,13 +281,15 @@ namespace bqt
         
         capturing = NONE;
         
+        bars_always_visible = false;
+        
         if( c == NULL )
         {
             group* g = new group( parent,
                                   position[ 0 ],
                                   position[ 1 ],
-                                  dimensions[ 0 ] - SCROLLBAR_WIDTH,
-                                  dimensions[ 1 ] - SCROLLBAR_WIDTH );
+                                  dimensions[ 0 ] - SCROLLBAR_HEIGHT,
+                                  dimensions[ 1 ] - SCROLLBAR_HEIGHT );
             g -> setEventFallthrough( true );
             
             contents = g;
@@ -166,8 +297,8 @@ namespace bqt
         else
         {
             c -> setRealPosition( position[ 0 ], position[ 1 ] );
-            c -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_WIDTH,
-                                    dimensions[ 1 ] - SCROLLBAR_WIDTH );
+            c -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
+                                    dimensions[ 1 ] - SCROLLBAR_HEIGHT );
             
             contents = c;
         }
@@ -186,8 +317,8 @@ namespace bqt
             
             scroll_set.bar.left_top.up       = getNamedResource( scrollbar_bar_left_top_up );
             scroll_set.bar.left_top.down     = getNamedResource( scrollbar_bar_left_top_down );
-            scroll_set.bar.fill.up         = getNamedResource( scrollbar_bar_center_up );
-            scroll_set.bar.fill.down       = getNamedResource( scrollbar_bar_center_down );
+            scroll_set.bar.fill.up           = getNamedResource( scrollbar_bar_center_up );
+            scroll_set.bar.fill.down         = getNamedResource( scrollbar_bar_center_down );
             scroll_set.bar.right_bottom.up   = getNamedResource( scrollbar_bar_right_bottom_up );
             scroll_set.bar.right_bottom.down = getNamedResource( scrollbar_bar_right_bottom_down );
             
@@ -213,8 +344,8 @@ namespace bqt
         position[ 1 ] = y;
         
         contents -> setRealPosition( position[ 0 ], position[ 1 ] );
-        contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_WIDTH,
-                                       dimensions[ 1 ] - SCROLLBAR_WIDTH );
+        contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
+                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
         parent.requestRedraw();
     }
@@ -233,10 +364,25 @@ namespace bqt
                    "\n" );
         
         contents -> setRealPosition( position[ 0 ], position[ 1 ] );
-        contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_WIDTH,
-                                       dimensions[ 1 ] - SCROLLBAR_WIDTH );
+        contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
+                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
         arrangeBars();                                                          // Calls parent.requestRedraw()
+    }
+    
+    void scrollset::setBarsAlwaysVisible( bool v )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        bars_always_visible = v;
+        
+        arrangeBars();                                                          // Calls parent.requestRedraw()
+    }
+    bool scrollset::getBarsAlwaysVisible()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        return bars_always_visible;
     }
     
     bool scrollset::acceptEvent( window_event& e )
@@ -262,33 +408,33 @@ namespace bqt
                     break;
                 case LEFT_BUTTON:
                     rect_pos[ 0 ] = 0;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_WIDTH;
+                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
                     rect_dim[ 0 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_dim[ 1 ] = SCROLLBAR_WIDTH;
+                    rect_dim[ 1 ] = SCROLLBAR_HEIGHT;
                     break;
                 case RIGHT_BUTTON:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_WIDTH - SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_WIDTH;
+                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT - SCROLLBAR_BUTTON_REAL_WIDTH;
+                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
                     rect_dim[ 0 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_dim[ 1 ] = SCROLLBAR_WIDTH;
+                    rect_dim[ 1 ] = SCROLLBAR_HEIGHT;
                     break;
                 case TOP_BUTTON:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_WIDTH;
+                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
                     rect_pos[ 1 ] = 0;
-                    rect_dim[ 0 ] = SCROLLBAR_WIDTH;
+                    rect_dim[ 0 ] = SCROLLBAR_HEIGHT;
                     rect_dim[ 1 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
                     break;
                 case BOTTOM_BUTTON:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_WIDTH;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_WIDTH - SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_dim[ 0 ] = SCROLLBAR_WIDTH;
+                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
+                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT - SCROLLBAR_BUTTON_REAL_WIDTH;
+                    rect_dim[ 0 ] = SCROLLBAR_HEIGHT;
                     rect_dim[ 1 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
                     break;
                 case CORNER:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_WIDTH;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_WIDTH;
-                    rect_dim[ 0 ] = SCROLLBAR_WIDTH;
-                    rect_dim[ 1 ] = SCROLLBAR_WIDTH;
+                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
+                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
+                    rect_dim[ 0 ] = SCROLLBAR_HEIGHT;
+                    rect_dim[ 1 ] = SCROLLBAR_HEIGHT;
                     break;
                 case NONE:
                     /* won't get here */
@@ -317,8 +463,8 @@ namespace bqt
                 // limit_percent contents_limits = contents -> getScrollLimitPercent();
                 // std::pair< float, float > contents_scroll = contents -> getScrollPercent();
                 
-                // float slide_space[ 2 ] =  { ( float )( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_WIDTH ) - slider_width[ 0 ] ),
-                //                             ( float )( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_WIDTH ) - slider_width[ 1 ] ) };
+                // float slide_space[ 2 ] =  { ( float )( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ] ),
+                //                             ( float )( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ] ) };
                 
                 // // ( ( e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] )
                 // // / slide_space[ 0 ] ) / ( 1.0f + contents_limits.first.second - contents_limits.first.first )
@@ -412,14 +558,14 @@ namespace bqt
         bool inside_horz = pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
                                             e.stroke.position[ 1 ] - e.offset[ 1 ],
                                             position[ 0 ],
-                                            position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_WIDTH,
+                                            position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_HEIGHT,
                                             dimensions[ 0 ],
-                                            SCROLLBAR_WIDTH );
+                                            SCROLLBAR_HEIGHT );
         bool inside_vert = pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
                                             e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                            position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_WIDTH,
+                                            position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_HEIGHT,
                                             position[ 1 ],
-                                            SCROLLBAR_WIDTH,
+                                            SCROLLBAR_HEIGHT,
                                             dimensions[ 1 ] );
         bool inside_corner = inside_horz && inside_vert;
         
@@ -449,7 +595,7 @@ namespace bqt
                     }
                     
                     if( e.stroke.position[ 0 ] - e.offset[ 0 ]
-                        >= position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_WIDTH )
+                        >= position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
                     {
                         capturing = RIGHT_BUTTON;
                     }
@@ -470,7 +616,7 @@ namespace bqt
                     }
                     
                     if( e.stroke.position[ 1 ] - e.offset[ 1 ]
-                        >= position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_WIDTH )
+                        >= position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
                     {
                         capturing = BOTTOM_BUTTON;
                     }
@@ -521,31 +667,37 @@ namespace bqt
         scoped_lock< mutex > slock_e( element_mutex );
         scoped_lock< mutex > slock_r( scroll_rsrc_mutex );
         
+        // Draw bars first (below) /////////////////////////////////////////////
+        
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
-            for( int i = 0; i < 2; ++i )                                        // This is some nasty stuff
+            for( int i = 0; i < 2; ++i )                                        // Iterate through the 2 scrollbars for code reuse
             {
                 glPushMatrix();
                 {
                     if( i == 1 )
-                        glRotatef( 180.0f, 1.0f, 1.0f, 0.0f );                  // Flips around a vector pointing down left
+                        glRotatef( 180.0f, 1.0f, 1.0f, 0.0f );                  // Flips around a vector pointing down left for the vertical bar
+                                                                                // This means that the corners furthest from CORNER are always the draw origin
                     
-                    glTranslatef( 0.0f, dimensions[ 1 - i ] - SCROLLBAR_WIDTH, 0.0f );
-                    
-                    glPushMatrix();
+                    if( slider_state[ i ] != DISABLED || bars_always_visible )
                     {
-                        glScalef( dimensions[ i ], 1.0f, 1.0f );
-                        scroll_set.fill -> draw();
+                        glTranslatef( 0.0f, dimensions[ 1 - i ] - SCROLLBAR_HEIGHT, 0.0f );
+                        
+                        glPushMatrix();
+                        {
+                            glScalef( dimensions[ i ], 1.0f, 1.0f );
+                            scroll_set.fill -> draw();
+                        }
+                        glPopMatrix();
                     }
-                    glPopMatrix();
                     
-                    if( slider_state[ i ] != DISABLED )                         // If the slider is disabled, so are the buttons
+                    if( slider_state[ i ] != DISABLED )
                     {
                         glPushMatrix();
                         {
-                            for( int j = 0; j < 2; ++j )                        // More magic
+                            for( int j = 0; j < 2; ++j )
                             {
-                                switch( ( i ? vert_state : horz_state )[ j ] )  // And more
+                                switch( ( i ? vert_state : horz_state )[ j ] )  // Nice little bit of pointer magic
                                 {
                                 case UP:
                                     if( j )
@@ -563,8 +715,16 @@ namespace bqt
                                     throw exception( "scrollset::draw(): Invalid/unknown button state" );
                                 }
                                 
-                                if( !j )                                        // Not really neccessary, but probably faster
-                                    glTranslatef( dimensions[ i ] - SCROLLBAR_BUTTON_VISUAL_WIDTH - SCROLLBAR_WIDTH, 0.0f, 0.0f );
+                                if( !j )
+                                {
+                                    if( bars_always_visible
+                                        || slider_state[ 1 - i ] != DISABLED )  // If the other slider takes up its space
+                                    {
+                                        glTranslatef( dimensions[ i ] - SCROLLBAR_BUTTON_VISUAL_WIDTH - SCROLLBAR_HEIGHT, 0.0f, 0.0f );
+                                    }
+                                    else
+                                        glTranslatef( dimensions[ i ] - SCROLLBAR_BUTTON_VISUAL_WIDTH, 0.0f, 0.0f );
+                                }
                             }
                         }
                         glPopMatrix();
@@ -647,27 +807,36 @@ namespace bqt
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
         
-        glPushMatrix();                                                         // Corner
+        // Then draw corner ////////////////////////////////////////////////////
+        
+        if( bars_always_visible
+            || slider_state[ 0 ] != DISABLED 
+            || slider_state[ 1 ] != DISABLED )
         {
-            glTranslatef( dimensions[ 0 ] - SCROLLBAR_WIDTH, dimensions[ 1 ] - SCROLLBAR_WIDTH, 0.0f );
-            
-            switch( corner_state )
+            glPushMatrix();
             {
-            case UP:
-                scroll_set.corner.up -> draw();
-                break;
-            case DOWN:
-            case EVIL_DOWN:
-                scroll_set.corner.down -> draw();
-                break;
-            case EVIL:
-                scroll_set.corner.evil -> draw();
-                break;
-            default:
-                throw exception( "scrollset::draw(): Invalid corner state" );
+                glTranslatef( dimensions[ 0 ] - SCROLLBAR_HEIGHT, dimensions[ 1 ] - SCROLLBAR_HEIGHT, 0.0f );
+                
+                switch( corner_state )
+                {
+                case UP:
+                    scroll_set.corner.up -> draw();
+                    break;
+                case DOWN:
+                case EVIL_DOWN:
+                    scroll_set.corner.down -> draw();
+                    break;
+                case EVIL:
+                    scroll_set.corner.evil -> draw();
+                    break;
+                default:
+                    throw exception( "scrollset::draw(): Invalid corner state" );
+                }
             }
+            glPopMatrix();
         }
-        glPopMatrix();
+        
+        // Finally draw contents (on top); they mask themselves ////////////////
         
         contents -> draw();                                                     // Contents keep track of their own position & dimensions
     }

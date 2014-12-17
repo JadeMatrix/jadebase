@@ -104,6 +104,24 @@ namespace bqt
             // return true;
     }
     
+    void group::updateScrollParams()
+    {
+        #warning bqt::group internal dimensions hardcoded to 2 * dimensions
+        
+        internal_dims[ 0 ] = dimensions[ 0 ] * 2;
+        internal_dims[ 1 ] = dimensions[ 1 ] * 2;
+        
+        if( internal_dims[ 0 ] > dimensions[ 0 ] )
+            scroll_limits[ 0 ] = dimensions[ 0 ] - internal_dims[ 0 ];
+        else
+            scroll_limits[ 0 ] = 0;
+        
+        if( internal_dims[ 1 ] > dimensions[ 1 ] )
+            scroll_limits[ 1 ] = dimensions[ 1 ] - internal_dims[ 1 ];
+        else
+            scroll_limits[ 1 ] = 0;
+    }
+    
     group::group( window& parent,
                   int x,
                   int y,
@@ -113,10 +131,11 @@ namespace bqt
     {
         event_fallthrough = false;
         
+        internal_dims[ 0 ] = dimensions[ 0 ];
+        internal_dims[ 1 ] = dimensions[ 1 ];
+        
         scroll_limits[ 0 ] = 0;
         scroll_limits[ 1 ] = 0;
-        scroll_limits[ 2 ] = 0;
-        scroll_limits[ 3 ] = 0;
         
         scroll_offset[ 0 ] = 0;
         scroll_offset[ 1 ] = 0;
@@ -212,12 +231,6 @@ namespace bqt
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
         
-        #warning bqt::group compiled with hard-coded scroll limit setting
-        scroll_limits[ 0 ] = -1 * dimensions[ 0 ];
-        scroll_limits[ 1 ] = 0;
-        scroll_limits[ 2 ] = -1 * dimensions[ 1 ];
-        scroll_limits[ 3 ] = 0;
-        
         // inform lua_state
         
         parent.requestRedraw();
@@ -312,23 +325,16 @@ namespace bqt
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        if( scroll_limits[ 0 ] > scroll_limits[ 1 ]
-            || scroll_limits[ 2 ] > scroll_limits[ 3 ] )
-        {
-            throw exception( "group::scrollPixels(): Some min limit above max limit" );
-        }
+        updateScrollParams();
         
-        if( scroll_offset[ 0 ] + x < scroll_limits[ 0 ] )
+        if( scroll_offset[ 0 ] + x < scroll_limits[ 0 ] )                       // We have to modify x & y as they are used later
             x = scroll_limits[ 0 ] - scroll_offset[ 0 ];
-        else
-            if( scroll_offset[ 0 ] + x > scroll_limits[ 1 ] )
-                x = scroll_limits[ 1 ] - scroll_offset[ 0 ];
-        
-        if( scroll_offset[ 1 ] + y < scroll_limits[ 2 ] )
-            y = scroll_limits[ 2 ] - scroll_offset[ 1 ];
-        else
-            if( scroll_offset[ 1 ] + y > scroll_limits[ 3 ] )
-                y = scroll_limits[ 3 ] - scroll_offset[ 1 ];
+        else if( scroll_offset[ 0 ] + x > 0 )
+            x = 0 - scroll_offset[ 0 ];
+        if( scroll_offset[ 1 ] + y < scroll_limits[ 1 ] )
+            y = scroll_limits[ 1 ] - scroll_offset[ 1 ];
+        else if( scroll_offset[ 1 ] + y > 0 )
+            y = 0 - scroll_offset[ 1 ];
         
         scroll_offset[ 0 ] += x;
         scroll_offset[ 1 ] += y;
@@ -341,7 +347,7 @@ namespace bqt
         
         parent.requestRedraw();
     }
-    void group::scrollPercent( float x, int y )
+    void group::scrollPercent( float x, float y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -354,7 +360,7 @@ namespace bqt
         
         scrollPixels( x - scroll_offset[ 0 ], y - scroll_offset[ 1 ] );
     }
-    void group::setScrollPercent( float x, int y )
+    void group::setScrollPercent( float x, float y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -380,31 +386,18 @@ namespace bqt
     {
         return true;
     }
-    limit_pixels group::getScrollLimitPixels()
+    std::pair< int, int > group::getScrollLimitPixels()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        limit_pixels l;
-        
-        l.first.first = scroll_limits[ 0 ];
-        l.first.second = scroll_limits[ 1 ];
-        l.second.first = scroll_limits[ 2 ];
-        l.second.second = scroll_limits[ 3 ];
-        
-        return l;
+        return std::pair< int, int >( scroll_limits[ 0 ], scroll_limits[ 1 ] );
     }
-    limit_percent group::getScrollLimitPercent()
+    std::pair< float, float> group::getScrollLimitPercent()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        limit_percent l;
-        
-        l.first.first   = ( float )scroll_limits[ 0 ] / ( float )dimensions[ 0 ];
-        l.first.second  = ( float )scroll_limits[ 1 ] / ( float )dimensions[ 0 ];
-        l.second.first  = ( float )scroll_limits[ 2 ] / ( float )dimensions[ 1 ];
-        l.second.second = ( float )scroll_limits[ 3 ] / ( float )dimensions[ 1 ];
-        
-        return l;
+        return std::pair< float, float >( ( float )scroll_limits[ 0 ] / ( float )dimensions[ 0 ],
+                                          ( float )scroll_limits[ 1 ] / ( float )dimensions[ 1 ] );
     }
 }
 

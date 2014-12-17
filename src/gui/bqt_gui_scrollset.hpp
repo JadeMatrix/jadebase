@@ -40,7 +40,7 @@ namespace bqt
         button_state corner_state;
         
         button_state slider_state[ 2 ];                                         // horizontal, vertical
-        int          slider_pos[ 2 ];                                           // horizontal, vertical
+        int          slider_pos  [ 2 ];                                         // horizontal, vertical
         unsigned int slider_width[ 2 ];                                         // horizontal, vertical
         
         enum
@@ -57,6 +57,8 @@ namespace bqt
         bqt_platform_idevid_t captured_dev;
         int capture_start[ 3 ];
         
+        bool bars_always_visible;
+        
         void arrangeBars();
     public:
         scrollset( window& parent,
@@ -69,6 +71,9 @@ namespace bqt
         
         void setRealPosition( int x, int y );
         void setRealDimensions( unsigned int w, unsigned int h );
+        
+        void setBarsAlwaysVisible( bool v );
+        bool getBarsAlwaysVisible();
         
         bool acceptEvent( window_event& e );
         
