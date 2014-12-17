@@ -4,6 +4,8 @@
  * http://www.x.org/archive/X11R7.5/doc/man/man3/XOpenDevice.3.html
  * http://linux.die.net/man/3/xlistinputdevices
  * http://tronche.com/gui/x/xlib/events/structures.html#XEvent
+ * XDeviceMotionEvent:
+ *    http://libxi.sourcearchive.com/documentation/2:1.5.99.2-1/XInput_8h_source.html#l00264
  * 
  * Use xev to listen to Xlib events (does not report DeviceMotion)
  * 
