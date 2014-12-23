@@ -60,54 +60,43 @@ namespace
     {
         bqt_platform_window_t platform_window;
         platform_window.x_window = x_event.xany.window;
-        bqt::window* target_window = &bqt::getWindow( platform_window );
         
-        if( target_window == NULL )
+        if( !bqt::isRegisteredWindow( platform_window ) )
+            throw bqt::exception( "handleKeyEvent(): No such window registered" );
+        
+        bqt::window& target_window( bqt::getWindow( platform_window ) );
+        
+        bqt::window_event w_event;
+        w_event.type = bqt::KEYCOMMAND;
+        
+        switch( x_event.xkey.type )
         {
-            if( bqt::getDevMode() )
-                ff::write( bqt_out, "Got key event for unknown window, using active window\n" );
-            target_window = bqt::getActiveWindow();
+            case KeyPress:
+                w_event.key.up = false;
+                break;
+            case KeyRelease:
+                w_event.key.up = true;
+                break;
+            default:
+                throw bqt::exception( "handleKeyEvent(): Key event neither up nor down" );
         }
         
-        if( target_window == NULL )
+        w_event.key.key = bqt::convertPlatformKeycode( XLookupKeysym( &x_event.xkey, 0 ) );
+        
+        if( w_event.key.key != bqt::KEY_INVALID )                           // Simply ignore invalid keys
         {
-            if( bqt::getDevMode() )
-                ff::write( bqt_out, "Got key event with no active window, ignoring\n" );
-        }
-        else
-        {
-            bqt::window_event w_event;
-            w_event.type = bqt::KEYCOMMAND;
+            w_event.key.shift = ( bool )( x_event.xkey.state & ShiftMask );
+            w_event.key.ctrl  = ( bool )( x_event.xkey.state & ControlMask );
+            w_event.key.alt   = ( bool )( x_event.xkey.state & Mod1Mask );
+            w_event.key.super = ( bool )( x_event.xkey.state & Mod4Mask );      // Run xmodmap to find these on a given system
             
-            switch( x_event.xkey.type )
-            {
-                case KeyPress:
-                    w_event.key.up = false;
-                    break;
-                case KeyRelease:
-                    w_event.key.up = true;
-                    break;
-                default:
-                    throw bqt::exception( "handleKeyEvent(): Key event neither up nor down" );
-            }
+            #ifdef PLATFORM_MACOSX
+            w_event.key.cmd = w_event.key.super;
+            #else
+            w_event.key.cmd = w_event.key.ctrl;
+            #endif
             
-            w_event.key.key = bqt::convertPlatformKeycode( XLookupKeysym( &x_event.xkey, 0 ) );
-            
-            if( w_event.key.key != bqt::KEY_INVALID )                           // Simply ignore invalid keys
-            {
-                w_event.key.shift = ( bool )( x_event.xkey.state & ShiftMask );
-                w_event.key.ctrl  = ( bool )( x_event.xkey.state & ControlMask );
-                w_event.key.alt   = ( bool )( x_event.xkey.state & Mod1Mask );
-                w_event.key.super = ( bool )( x_event.xkey.state & Mod4Mask );      // Run xmodmap to find these on a given system
-                
-                #ifdef PLATFORM_MACOSX
-                w_event.key.cmd = w_event.key.super;
-                #else
-                w_event.key.cmd = w_event.key.ctrl;
-                #endif
-                
-                target_window -> acceptEvent( w_event );
-            }
+            target_window.acceptEvent( w_event );
         }
     }
     
@@ -125,7 +114,7 @@ namespace
         
         try
         {
-            bqt::window& bqt_window( getWindow( platform_window ) );            // Try block is for this statement
+            bqt::window& bqt_window( getWindow( platform_window ) );            // Try block is for this statement, see comment in catch
             
             if( isRegisteredWindow( platform_window ) )
             {
@@ -272,6 +261,11 @@ namespace bqt
             refreshInputDevices();
             
             XEvent last_x_dmevent;                                              // For storing DeviceMotion events until we can fill out their window field
+                                                                                // Ideally we'd have a map of device ids -> XEvents in case we have multiple
+                                                                                // devices' worth of events waiting for windows, but MotionEvents don't include
+                                                                                // device information, so we just have to trust that X gives us events grouped
+                                                                                // together (DeviceMotion event will be followed by its MotionEvent before any
+                                                                                // other DeviceMotion events).
             bool dmevent_waiting = false;
             
             for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )

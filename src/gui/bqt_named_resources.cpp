@@ -77,7 +77,7 @@ namespace
             
             if( current_mask == bqt::TASK_SYSTEM )
             {
-                if( !cleanup && bqt::getActiveWindow() == NULL )
+                if( !cleanup && !bqt::getRegisteredWindowCount() )              // No window open yet = no OpenGL context yet
                 {
                     if( bqt::getDevMode() )
                         ff::write( bqt_out, "No active window, requeuing resource management\n" );

@@ -111,8 +111,7 @@ namespace bqt
         
         XFlush( x_display );                                                    // We need to flush X before creating the GLX Context
         
-        window* active_window = getActiveWindow();
-        if( active_window == NULL )
+        if( !getRegisteredWindowCount() )                                       // No windows registered, so create a context
         {
             if( getDevMode() )
                 ff::write( bqt_out,
@@ -141,17 +140,19 @@ namespace bqt
         }
         else
         {
+            window& context_source( getAnyWindow() );
+            
             if( getDevMode() )
                 ff::write( bqt_out,
                            "Creating a GLX context for window id 0x",
                            ff::to_x( platform_window.x_window ),
                            " from window id 0x",
-                           ff::to_x( active_window -> getPlatformWindow().x_window ),
+                           ff::to_x( context_source.getPlatformWindow().x_window ),
                            "\n" );
             
             platform_window.glx_context = glXCreateContext( x_display,
                                                         platform_window.x_visual_info,
-                                                        active_window -> getPlatformWindow().glx_context,
+                                                        context_source.getPlatformWindow().glx_context,
                                                         GL_TRUE );
             
             glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
@@ -555,7 +556,7 @@ namespace bqt
                 {
                     // target -> updates.restore = true;
                     
-                    makeWindowActive( target -> getPlatformWindow() );
+                    
                 }
                 
                 if( target -> updates.position )
@@ -612,7 +613,7 @@ namespace bqt
                     // TODO: implement
                     #warning window::manipulate::execute(): Maximize not implemented
                     
-                    makeWindowActive( target -> getPlatformWindow() );
+                    
                     
                     target -> updates.maximize = false;
                     redraw_window = true;
@@ -623,7 +624,7 @@ namespace bqt
                     XMapWindow( x_display,
                                 target -> platform_window.x_window );
                     
-                    makeWindowActive( target -> getPlatformWindow() );
+                    
                     
                     target -> updates.restore = false;
                     redraw_window = true;

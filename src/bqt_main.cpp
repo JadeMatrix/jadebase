@@ -50,11 +50,10 @@ namespace bqt
                 window* initial_window = new window();
                 
                 window::manipulate* manip = new window::manipulate( initial_window );
-                // manip -> 
                 
                 submitTask( manip );
                 
-                submitTask( new window::manipulate() );
+                // submitTask( new window::manipulate() );
             }
             
             ff::write( bqt_out,

@@ -24,7 +24,7 @@ namespace
 {
     bqt::mutex wm_mutex;
     
-    bqt::window* active_window = NULL;
+    // bqt::window* active_window = NULL;
     std::map< Window, bqt::window* > id_window_map;                             // SDL window id's are Uint32
 }
 
@@ -37,9 +37,6 @@ namespace bqt
         scoped_lock< mutex > slock( wm_mutex );
         
         Window window_id = w.getPlatformWindow().x_window;
-        
-        if( id_window_map.size() == 0 )
-            active_window = &w;
         
         if( id_window_map.count( window_id ) )
             throw exception( "registerWindow(): Window already registered" );
@@ -65,21 +62,6 @@ namespace bqt
         if( id_window_map.erase( window_id ) < 1 )
             throw exception( "deregisterWindow(): No window associated with platform window" );
         
-        if( erased_window == active_window )
-        {
-            if( id_window_map.size() )
-            {
-                active_window = id_window_map.begin() -> second;
-                
-                window::manipulate* active_manip = new window::manipulate( active_window );
-                active_manip -> makeActive();
-                
-                submitTask( active_manip );
-            }
-            else
-                active_window = NULL;
-        }
-        
         if( getDevMode() )
             ff::write( bqt_out,
                        "Deregistered a window (id 0x",
@@ -103,34 +85,43 @@ namespace bqt
         return id_window_map.size();
     }
     
-    void makeWindowActive( bqt_platform_window_t& w )
+    window& getAnyWindow()
     {
         scoped_lock< mutex > slock( wm_mutex );
         
-        Window window_id = w.x_window;
-        
-        if( id_window_map.count( window_id ) )
-            active_window = id_window_map[ window_id ];
+        if( !id_window_map.size() )
+            throw exception( "getAnyWindow(): No windows registered" );
         else
-            throw exception( "makeWindowActive(): No window associated with platform window" );
+            return *( id_window_map.begin() -> second );                        // Just grab the 'first' iterable one
     }
-    void makeWindowInactive( bqt_platform_window_t& w )
-    {
-        scoped_lock< mutex > slock( wm_mutex );
+    // void makeWindowActive( bqt_platform_window_t& w )
+    // {
+    //     scoped_lock< mutex > slock( wm_mutex );
         
-        Window window_id = w.x_window;
+    //     Window window_id = w.x_window;
         
-        if( id_window_map.count( window_id ) )
-            active_window = NULL;
-        else
-            throw exception( "makeWindowInactive(): No window associated with platform window" );
-    }
-    window* getActiveWindow()
-    {
-        scoped_lock< mutex > slock( wm_mutex );
+    //     if( id_window_map.count( window_id ) )
+    //         active_window = id_window_map[ window_id ];
+    //     else
+    //         throw exception( "makeWindowActive(): No window associated with platform window" );
+    // }
+    // void makeWindowInactive( bqt_platform_window_t& w )
+    // {
+    //     scoped_lock< mutex > slock( wm_mutex );
         
-        return active_window;
-    }
+    //     Window window_id = w.x_window;
+        
+    //     if( id_window_map.count( window_id ) )
+    //         active_window = NULL;
+    //     else
+    //         throw exception( "makeWindowInactive(): No window associated with platform window" );
+    // }
+    // window* getActiveWindow()
+    // {
+    //     scoped_lock< mutex > slock( wm_mutex );
+        
+    //     return active_window;
+    // }
     window& getWindow( bqt_platform_window_t& w )
     {
         scoped_lock< mutex > slock( wm_mutex );

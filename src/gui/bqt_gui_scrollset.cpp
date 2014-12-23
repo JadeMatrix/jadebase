@@ -5,6 +5,36 @@
  * 
  */
 
+// offset_temp[ i ] = scroll_offset[ i ] + offset[ i ];
+
+// if( offset_temp[ i ] / scroll_limits[ i ] >= 0 )  // same direction, clip to limit
+// {
+//     if( scroll_limits[ i ] < 0
+//         ? offset_temp[ i ] < scroll_limits[ i ]
+//         : offset_temp[ i ] > scroll_limits[ i ] )
+//     {
+//         offset[ i ] = scroll_limits[ i ] - scroll_offset[ i ];
+//     }
+// }
+// else  // different directions, clip to origin
+// {
+//     offset[ i ] = scroll_offset[ i ] * -1;  // will set scroll_offset[ i ] to 0
+// }
+
+
+
+
+
+
+// visible_dims[ i ] = dimensions[ i ] - SCROLLBAR_HEIGHT;
+// max_length[ i ] = visible_dims[ i ] - ( SCROLLBUTTON_LENGTH * 2 );
+
+// scrollbar_length[ i ] = max_length[ i ] * visible_dims[ i ] / ( visible_dims[ i ] + ( scroll_limits[ i ]
+//                                                                                       * ( scroll_limits[ i ] < 0 ? -1 : 1 ) ) );
+
+// scrollbar_pos[ i ] = SCROLLBUTTON_LENGTH + ( max_length[ i ] - scrollbar_length[ i ] )
+//                      * ( scroll_limit[ i ] < 0 ? ( 1 - ( offset[ i ] / scroll_limit[ i ] ) ) : ( offset[ i ] / scroll_limit[ i ] ) );
+
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "bqt_gui_scrollset.hpp"

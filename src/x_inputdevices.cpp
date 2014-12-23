@@ -535,6 +535,7 @@ namespace bqt
             }
         
         XDeviceButtonEvent x_eventdata;                                         // Use an XDeviceButtonEvent since it holds all the info we need
+                                                                                // (XDeviceMotionEvent is 'optimized' and missing field(s)).
         if( x_eventtype == MOTION )
         {
             XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&x_event ) );
