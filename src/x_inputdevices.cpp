@@ -516,23 +516,23 @@ namespace bqt
         
         if( event_type_map.count( x_event.type ) )
             x_eventtype = event_type_map[ x_event.type ];
-        else
-            if( getDevMode() )                                                  // Ignore unknown event types
+        else                                                                    // Ignore unknown event types
+        {
+            static std::set< event_type > unknown_event_types;
+            
+            if( unknown_event_types.count( x_event.type ) == 0 )
             {
-                static std::set< event_type > unknown_event_types;
+                unknown_event_types.insert( x_event.type );
                 
-                if( unknown_event_types.count( x_event.type ) == 0 )
-                {
-                    unknown_event_types.insert( x_event.type );
-                    
+                if( getDevMode() )
                     ff::write( bqt_out,
                                "Warning: Got unknown event type (",
                                x_event.type,
                                "), ignoring this type until registered\n" );
-                }
-                
-                return;
             }
+            
+            return;
+        }
         
         XDeviceButtonEvent x_eventdata;                                         // Use an XDeviceButtonEvent since it holds all the info we need
                                                                                 // (XDeviceMotionEvent is 'optimized' and missing field(s)).
