@@ -138,7 +138,7 @@ namespace
             case Expose:
                 if( x_event.xexpose.count != 0 )
                     current_manip -> redraw();
-                current_manip -> makeActive();
+                // current_manip -> makeActive();
                 break;
             case ConfigureRequest:
                 // ff::write( bqt_out, "ConfigureRequest\n" );
@@ -172,10 +172,10 @@ namespace
             case VisibilityNotify:
             case FocusIn:
                 current_manip -> restore();
-                current_manip -> makeActive();
+                // current_manip -> makeActive();
                 break;
             case FocusOut:
-                current_manip -> makeInactive();
+                // current_manip -> makeInactive();
                 break;
             case ClientMessage:
                 // http://tronche.com/gui/x/icccm/sec-4.html#s-4.2.8.1

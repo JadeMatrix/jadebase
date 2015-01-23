@@ -552,13 +552,6 @@ namespace bqt
                     target -> updates.dimensions = false;
                 }
                 
-                if( target -> updates.active )
-                {
-                    // target -> updates.restore = true;
-                    
-                    
-                }
-                
                 if( target -> updates.position )
                 {
                     // Actual moving handled by WM
@@ -700,22 +693,6 @@ namespace bqt
         
     //     target -> in_focus = true;
     // }
-    void window::manipulate::makeActive()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        target -> updates.active = true;
-        
-        target -> updates.changed = true;
-    }
-    void window::manipulate::makeInactive()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        ff::write( bqt_out, "Inactivating window 0x", ff::to_x( ( unsigned long )target ), "\n" );
-        
-        target -> updates.changed = true;
-    }
     
     void window::manipulate::center()
     {
