@@ -74,17 +74,10 @@ namespace bqt
             std::string strval;
             bool        blnval;
             
-            line_stream >> key;
+            line_stream >> std::ws >> key;
             
             if( line_stream.fail() )
-            {
-                exception e;
-                ff::write( *e,
-                           "loadSettingsFile(): Failed to retrieve a settings key from file \"",
-                           file,
-                           "\"; check file formatting and try again" );
-                throw e;
-            }
+                continue;                                                       // Blank line
             
             line_stream >> std::ws;
             std::streampos line_pos = line_stream.tellg();                      // Save start of value in line
@@ -261,6 +254,28 @@ namespace bqt
                             break;
                         }
                     }
+                    
+                    if( string_state != ENDED )
+                    {
+                        exception e;
+                        ff::write( *e,
+                                   "loadSettingsFile(): Failed to parse value for key \"",
+                                   key,
+                                   "\" in file \"",
+                                   file,
+                                   "\"" );
+                        throw e;
+                    }
+                    
+                    temp_str[ key ] = std::pair< std::string, bool >( strval, save );
+                    
+                    if( getDevMode() )
+                        ff::write( bqt_out,
+                                   "Loaded setting: ",
+                                   key,
+                                   " \"",
+                                   strval,
+                                   save ? "\" (saved)\n" : "\"\n" );
                 }
             }
         }
