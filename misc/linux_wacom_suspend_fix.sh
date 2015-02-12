@@ -1,10 +1,10 @@
 #!/bin/sh
-# Fix to restart wacom drivers after suspend
+# Fix to restart wacom drivers after suspend on Ubuntu
 # Taken from https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1251441
 
-touch /etc/pm/sleep.d/wacomsuspendfix
+touch /etc/pm/sleep.d/04_wacomsuspendfix
 
-cat << EOF > /etc/pm/sleep.d/wacomsuspendfix
+cat << EOF > /etc/pm/sleep.d/04_wacomsuspendfix
 #!/bin/sh
 # Fix to restart wacom drivers after suspend
 case "\${1}" in
@@ -14,4 +14,4 @@ case "\${1}" in
 esac
 EOF
 
-chmod +x /etc/pm/sleep.d/wacomsuspendfix
+chmod +x /etc/pm/sleep.d/04_wacomsuspendfix
