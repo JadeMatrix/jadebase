@@ -125,41 +125,142 @@ namespace bqt
                 {
                     line_stream.clear();
                     line_stream.seekg( line_pos );                              // Reset and try again as a string
-                    std::getline( line_stream, strval, '\"' );                  // Get rid of the first double quote
                     
-                    if( strval.size() == 0 )                                    // aka there are no non-ws characters before the double quote
+                    char got_c;
+                    enum
                     {
-                        std::getline( line_stream, strval, '\"' );
-                        
-                        if( !line_stream.fail() )
+                        START,
+                        GETTING,
+                        ESCAPED,
+                        ENDED
+                    } string_state = START;
+                    
+                    while( ( got_c = line_stream.get() ) != EOF )
+                    {
+                        switch( got_c )
                         {
-                            temp_str[ key ] = std::pair< std::string, bool >( strval, save );
-                            
-                            if( getDevMode() )
-                                ff::write( bqt_out,
-                                           "Loaded setting: ",
-                                           key,
-                                           " \"",
-                                           strval,
-                                           save ? "\" (saved)\n" : "\"\n" );
-                            
-                            goto string_success;
+                        case '\\':
+                            {
+                                switch( string_state )
+                                {
+                                case START:
+                                    {
+                                        exception e;
+                                        ff::write( *e,
+                                                   // "loadSettingsFile(): Starting escape sequence for key \"",
+                                                   "loadSettingsFile(): Unknown value format for key \"",
+                                                   key,
+                                                   "\" in file \"",
+                                                   file,
+                                                   "\"" );
+                                        throw e;
+                                    }
+                                    break;
+                                case GETTING:
+                                    string_state = ESCAPED;
+                                    break;
+                                case ESCAPED:
+                                    strval += '\\';
+                                    string_state = GETTING;
+                                    break;
+                                case ENDED:
+                                    {
+                                        exception e;
+                                        ff::write( *e,
+                                                   "loadSettingsFile(): Trailing escape sequence after string value for key \"",
+                                                   key,
+                                                   "\" in file \"",
+                                                   file,
+                                                   "\"" );
+                                        throw e;
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        case '\"':
+                            {
+                                switch( string_state )
+                                {
+                                case START:
+                                    string_state = GETTING;
+                                    break;
+                                case GETTING:
+                                    string_state = ENDED;
+                                    break;
+                                case ESCAPED:
+                                    strval += got_c;
+                                    string_state = GETTING;
+                                    break;
+                                case ENDED:
+                                    {
+                                        exception e;
+                                        ff::write( *e,
+                                                   "loadSettingsFile(): Extra \" on string value for key \"",
+                                                   key,
+                                                   "\" in file \"",
+                                                   file,
+                                                   "\"" );
+                                        throw e;
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        default:
+                            {
+                                switch( string_state )
+                                {
+                                case START:
+                                    {
+                                        exception e;
+                                        ff::write( *e,
+                                                   "loadSettingsFile(): Unknown value format for key \"",
+                                                   key,
+                                                   "\" in file \"",
+                                                   file,
+                                                   "\"" );
+                                        throw e;
+                                    }
+                                    break;
+                                case GETTING:
+                                    strval += got_c;
+                                    break;
+                                case ESCAPED:
+                                    {
+                                        // Can't remember how to send chars to FastFormat
+                                        std::string char_str;
+                                        char_str += got_c;
+                                        
+                                        exception e;
+                                        ff::write( *e,
+                                                   "loadSettingsFile(): Unknown escape sequence \"\\",
+                                                   char_str,
+                                                   "\" in string value for key \"",
+                                                   key,
+                                                   "\" in file \"",
+                                                   file,
+                                                   "\"" );
+                                        throw e;
+                                    }
+                                    break;
+                                case ENDED:
+                                    {
+                                        exception e;
+                                        ff::write( *e,
+                                                   "loadSettingsFile(): Trailing characters on string value for key \"",
+                                                   key,
+                                                   "\" in file \"",
+                                                   file,
+                                                   "\"" );
+                                        throw e;
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
                         }
                     }
-                    
-                    {
-                        exception e;
-                        ff::write( *e,
-                                   "loadSettingsFile(): Failed to parse settings value for key \"",
-                                   key,
-                                   "\" from file \"",
-                                   file,
-                                   "\"" );
-                        throw e;
-                    }
-                    
-                string_success:
-                    NULL;
                 }
             }
         }
@@ -266,10 +367,19 @@ namespace bqt
             {
                 if( str_iter -> second.second )
                 {
-                    settings_file << str_iter -> first
-                                  << " \""
-                                  << str_iter -> second.first
-                                  << "\"\n";
+                    std::string& strval( str_iter -> second.first );
+                    
+                    settings_file << " \"";
+                    
+                    for( int i = 0; i < strval.size(); ++i )
+                    {
+                        if( strval[ i ] == '\\' )
+                            settings_file << "\\\\";
+                        else
+                            settings_file << strval[ i ];
+                    }
+                    
+                    settings_file << "\"\n";
                 }
                 
                 ++str_iter;
