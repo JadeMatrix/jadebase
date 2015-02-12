@@ -26,7 +26,7 @@
 #include "bqt_log.hpp"
 #include "bqt_exception.hpp"
 #include "bqt_launchargs.hpp"
-#include "bqt_preferences.hpp"
+#include "bqt_settings.hpp"
 #include "bqt_windowevent.hpp"
 #include "bqt_windowmanagement.hpp"
 #include "threading/bqt_mutex.hpp"
@@ -346,7 +346,8 @@ namespace bqt
                                 prev_strokes[ detail.x_devid ] = initial_waypoint;
                                                                                 // Load initial waypoint, no need to change its dev_id
                                 
-                                ff::write( bqt_out, "  - device registered\n" );
+                                if( getDevMode() )
+                                    ff::write( bqt_out, "  - device registered\n" );
                             }
                             
                             if( x_eventclass_count >= DEVICE_CLASS_LIST_START_LENGTH )
@@ -770,16 +771,16 @@ namespace bqt
                     switch( x_eventdata.button )
                     {
                     case Button4:                                               // Scroll wheel up
-                        w_event.scroll.amount[ 1 ] =  1.0f * bqt::getWheelScrollDistance();
+                        w_event.scroll.amount[ 1 ] =  1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
                         break;
                     case Button5:                                               // Scroll wheel down
-                        w_event.scroll.amount[ 1 ] = -1.0f * bqt::getWheelScrollDistance();
+                        w_event.scroll.amount[ 1 ] = -1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
                         break;
                     case ( Button5 + 1 ):                                       // Scroll wheel left
-                        w_event.scroll.amount[ 0 ] =  1.0f * bqt::getWheelScrollDistance();
+                        w_event.scroll.amount[ 0 ] =  1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
                         break;
                     case ( Button5 + 2 ):                                       // Scroll wheel right
-                        w_event.scroll.amount[ 0 ] = -1.0f * bqt::getWheelScrollDistance();
+                        w_event.scroll.amount[ 0 ] = -1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
                         break;
                     default:
                         break;                                                  // Realistically we'll never get here

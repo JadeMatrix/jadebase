@@ -43,7 +43,7 @@
 #include "bqt_gui_group.hpp"
 #include "bqt_named_resources.hpp"
 #include "../bqt_exception.hpp"
-#include "../bqt_preferences.hpp"
+#include "../bqt_settings.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -534,20 +534,20 @@ namespace bqt
                     switch( capturing )
                     {
                         case LEFT_BUTTON:
-                            scroll_amount[ 0 ] = getWheelScrollDistance();
+                            scroll_amount[ 0 ] = getSetting_num( "bqt_ScrollDistance" );
                             scroll_amount[ 1 ] = 0;
                             break;
                         case RIGHT_BUTTON:
-                            scroll_amount[ 0 ] = getWheelScrollDistance() * -1;
+                            scroll_amount[ 0 ] = getSetting_num( "bqt_ScrollDistance" ) * -1;
                             scroll_amount[ 1 ] = 0;
                             break;
                         case TOP_BUTTON:
                             scroll_amount[ 0 ] = 0;
-                            scroll_amount[ 1 ] = getWheelScrollDistance();
+                            scroll_amount[ 1 ] = getSetting_num( "bqt_ScrollDistance" );
                             break;
                         case BOTTOM_BUTTON:
                             scroll_amount[ 0 ] = 0;
-                            scroll_amount[ 1 ] = getWheelScrollDistance() * -1;
+                            scroll_amount[ 1 ] = getSetting_num( "bqt_ScrollDistance" ) * -1;
                             break;
                         case CORNER:
                             break;

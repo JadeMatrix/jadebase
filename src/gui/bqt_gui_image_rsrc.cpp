@@ -97,8 +97,8 @@ namespace bqt
     
     void image_rsrc::draw()
     {
-        if( texture -> gl_texture == 0x00
-            && getDevMode() )                                                   // Resource not yet loaded (just in case)
+        if( texture -> gl_texture == 0x00 )
+            // && getDevMode() )                                                   // Resource not yet loaded (just in case)
         {
             drawTempGraphic();
             return;

@@ -15,7 +15,7 @@
 #include "bqt_log.hpp"
 #include "bqt_windowmanagement.hpp"
 #include "bqt_taskexec.hpp"
-#include "bqt_preferences.hpp"
+#include "bqt_settings.hpp"
 #include "bqt_launchargs.hpp"
 #include "bqt_gl.hpp"
 #include "gui/bqt_named_resources.hpp"
@@ -284,7 +284,8 @@ namespace bqt
         
         title = BQT_WINDOW_DEFAULT_NAME;
         
-        std::pair< unsigned int, unsigned int > def_dim = getDefaultWindowDimensions();
+        std::pair< unsigned int, unsigned int > def_dim( getSetting_num( "bqt_DefaultWindowW" ),
+                                                         getSetting_num( "bqt_DefaultWindowH" ) );
         
         dimensions[ 0 ] = def_dim.first;
         dimensions[ 1 ] = def_dim.second;
@@ -502,7 +503,7 @@ namespace bqt
             target -> window_mutex.unlock();
             delete target;
             
-            if( getQuitOnNoWindows() && getRegisteredWindowCount() < 1 )
+            if( getSetting_bln( "bqt_QuitOnNoWindows" ) && getRegisteredWindowCount() < 1 )
             {
                 if( getDevMode() )
                     ff::write( bqt_out, "All windows closed, quitting\n" );

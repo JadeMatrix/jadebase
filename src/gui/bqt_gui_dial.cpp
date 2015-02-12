@@ -16,7 +16,7 @@
 #endif
 
 #include "bqt_gui_resource.hpp"
-#include "../bqt_preferences.hpp"
+#include "../bqt_settings.hpp"
 #include "bqt_named_resources.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
@@ -139,7 +139,7 @@ namespace bqt
                                           position[ 1 ] + radius,
                                           radius ) )
                 {
-                    if( !getDialCircularManip()
+                    if( !getSetting_bln( "bqt_DialCircularManip" )
                         || small
                         || pointInsideCircle( e.stroke.position[ 0 ] - e.offset[ 0 ],
                                               e.stroke.position[ 1 ] - e.offset[ 1 ],
@@ -176,7 +176,7 @@ namespace bqt
                                       position[ 1 ] + radius,
                                       radius ) )
             {
-                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR * getWheelScrollDistance() / 2.0f ) );
+                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR * getSetting_num( "bqt_ScrollDistance" ) / 2.0f ) );
                 parent.requestRedraw();
                 return true;
             }

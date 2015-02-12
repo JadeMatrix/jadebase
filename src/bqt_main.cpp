@@ -27,6 +27,7 @@
 #include "bqt_events.hpp"
 #include "bqt_gl.hpp"
 #include "gui/bqt_named_resources.hpp"
+#include "bqt_settings.hpp"
 
 // TODO: Debug, remove later
 #include "bqt_window.hpp"
@@ -114,6 +115,11 @@ int bqt_main()
             bqt::becomeTaskThread( &main_mask );
             
             bqt::deInitTaskSystem();
+            
+            std::string user_settings_file( bqt::getUserSettingsFileName() );
+            if( user_settings_file != "" )
+                bqt::saveSettings( user_settings_file );                        // Make sure settings are saved on exit; they should ideally be saved every time
+                                                                                // they are changed.
         }
         else
             throw( bqt::exception( "bqt_main(): Failed to initialize task system" ) );
@@ -133,6 +139,8 @@ int bqt_main()
         
         exit_code = EXIT_STDERR;
     }
+    
+    ff::write( bqt_out, "Goodbye\n" );
     
     bqt::closeLog();
     

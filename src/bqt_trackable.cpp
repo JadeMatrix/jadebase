@@ -16,7 +16,7 @@
 
 #include "threading/bqt_mutex.hpp"
 #include "bqt_exception.hpp"
-#include "bqt_preferences.hpp"
+#include "bqt_settings.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -51,7 +51,7 @@ namespace bqt
         redo_stamps.clear();
         redo_history.clear();
         
-        long undo_steps = getMaxUndoSteps();
+        long undo_steps = getSetting_num( "bqt_MaxUndo" );
         if( undo_steps >= 0 && undo_stamps.size() > undo_steps )
         {
             if( undo_stamps.size() > ( undo_steps + 1 ) )                       // Sanity check, should always be false (we remove whenever one goes out)

@@ -31,14 +31,14 @@
 #include "bqt_log.hpp"
 #include "bqt_exception.hpp"
 #include "bqt_version.hpp"
-#include "bqt_preferences.hpp"
+#include "bqt_settings.hpp"
 
 /* DEFAULTS *******************************************************************//******************************************************************************/
 
 #define LAUNCHVAL_DEVMODE       false
 #define LAUNCHVAL_LOGFILE       ""
 #define LAUNCHVAL_TASKTHREADS   0
-#define LAUNCHVAL_PREFFILE      ""
+#define LAUNCHVAL_USETFILE      ""
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -48,12 +48,11 @@ namespace
     struct option long_flags[] = { {         "help",       no_argument, NULL, 'h' },
                                    {      "version",       no_argument, NULL, 'v' },
                                    {    "open-file", required_argument, NULL, 'f' },
-                                   // {     "max-undo", required_argument, NULL, 'u' },
                                    {     "log-file", required_argument, NULL, 'l' },
-                                   {    "pref-file", required_argument, NULL, 'p' },
                                    {     "dev-mode",       no_argument, NULL, 'd' },
                                    { "task-threads", required_argument, NULL, 't' },
-                                   // {    "block-exp", required_argument, NULL, 'e' },
+                                   {  "user-config", required_argument, NULL, 'g' },
+                                   {  "prog-config", required_argument, NULL, 'G' },
                                    {              0,                 0,    0,   0 } };
     #else
     #error "Launch argument parsing not implemented on non-POSIX platforms"
@@ -62,12 +61,11 @@ namespace
     std::string flags_list = "[ -h | --help         ]            Prints this guide & exits\n"
                              "[ -v | --version      ]            Prints the software version & exits\n"
                              "[ -f | --open-file    ] FILE       Opens file on startup\n"
-                             // "[ -u | --max-undo     ] INT        Max undo & redo steps; -1 for unlimited\n"
                              "[ -l | --log-file     ] FILE       Sets a log file, none by default\n"
-                             "[ -p | --pref-file    ] FILE       Sets a preferences file\n"
                              "[ -d | --dev-mode     ]            Enables developer mode options\n"
                              "[ -t | --task-threads ] UINT       Limits the max number of task threads; 0 = no limit\n"
-                             // "[ -e | --block-exp    ] UINT       Sets the block texture size: 2^exp x 2^exp; 1 <= exp <= 255\n"
+                             "[ -g | --user-config  ] FILE       Load a user config file (saves changes to last file specified)\n"
+                             "[ -G | --prog-config  ] FILE       Load a program config file (does not save changes)\n"
                              "Options are applied in order, so it is recommended to change the log file first to log any init errors\n";
     
     // Engine options are immutable after parseLaunchArgs is called.
@@ -75,7 +73,7 @@ namespace
     std::string   log_file_name;
     long          task_thread_limit;
     std::vector< std::string > startup_files;
-    std::string   pref_file_name;
+    std::string   user_settings_file;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
@@ -88,111 +86,87 @@ namespace bqt
     #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
     bool parseLaunchArgs( int argc, char* argv[] )
     {
-        dev_mode          = LAUNCHVAL_DEVMODE;
-        log_file_name     = LAUNCHVAL_LOGFILE;
-        task_thread_limit = LAUNCHVAL_TASKTHREADS;
-        pref_file_name    = LAUNCHVAL_PREFFILE;
-        
-        int flag;                                                               // <--
-        
-        while( ( flag = getopt_long( argc, argv, "hvf:l:p:dt:", long_flags, NULL ) ) != -1 )
+        try
         {
-            switch( flag )
+            dev_mode           = LAUNCHVAL_DEVMODE;
+            log_file_name      = LAUNCHVAL_LOGFILE;
+            task_thread_limit  = LAUNCHVAL_TASKTHREADS;
+            user_settings_file = LAUNCHVAL_USETFILE;
+            
+            int flag;                                                           // <--
+            
+            while( ( flag = getopt_long( argc, argv, "hvf:l:dt:g:G:", long_flags, NULL ) ) != -1 )
             {
-            case 'h':
-                ff::write( bqt_out, flags_list );
-                return false;
-            case 'v':
-                ff::write( bqt_out, BQT_VERSION_STRING, "\n" );
-                return false;
-            case 'f':
+                switch( flag )
                 {
-                    ff::write( bqt_out, "File opening not implemented yet\n" ); // TODO: implement
-                }
-                break;
-            // case 'u':
-            //     {
-            //         long optarg_l = strtol( optarg, NULL, 0 );
-                    
-            //         if( optarg_l < -1 )
-            //             throw exception( "Undo steps must be -1 or greater" );
-            //         else
-            //             max_undo_steps = optarg_l;
-                    
-            //         if( max_undo_steps < 0 )
-            //             ff::write( bqt_out, "Undo/redo steps not limited\n" );
-            //         else
-            //             ff::write( bqt_out, "Undo/redo limited to ", max_undo_steps, " steps\n" );
-            //     }
-            //     break;
-            case 'l':
-                {
-                    log_file_name = optarg;
-                    
-                    log_fb.open( log_file_name.c_str(), std::ios::out );
-                    
-                    if( !log_fb.is_open() )
+                case 'h':
+                    ff::write( bqt_out, flags_list );
+                    return false;
+                case 'v':
+                    ff::write( bqt_out, BQT_VERSION_STRING, "\n" );
+                    return false;
+                case 'f':
                     {
-                        throw exception( "Could not open \'"
-                                         + log_file_name
-                                         + "\' to use as a log file" );
+                        ff::write( bqt_out, "File opening not implemented yet\n" ); // TODO: implement
                     }
-                    
-                    ff::write( bqt_out, "Using file '", log_file_name, "' for logging\n" );
-                    
-                    log_stream.rdbuf( &log_fb );
-                }
-                break;
-            case 'p':
-                {
-                    pref_file_name = optarg;
-                }
-                break;
-            case 'd':
-                ff::write( bqt_out, "Developer mode enabled\n" );
-                dev_mode = true;
-                break;
-            case 't':
-                {
-                    long optarg_l = strtol( optarg, NULL, 0 );
-                    
-                    if( optarg_l < 0 )
-                        throw exception( "Task thread limit must be 0 or greater" );
-                    else
-                        task_thread_limit = optarg_l;
-                    
-                    ff::write( bqt_out, "Task threads limited to ", task_thread_limit, "\n" );
-                }
-                break;
-            // case 'e':
-            //     {
-            //         long optarg_l = strtol( optarg, NULL, 0 );
-                    
-            //         if( optarg_l < BLOCKEXPONENT_MIN || optarg_l > BLOCKEXPONENT_MAX )
-            //             throw exception( "Block size exponent must be between " MACROTOSTR( BLOCKEXPONENT_MIN ) " and " MACROTOSTR( BLOCKEXPONENT_MAX ) );
-            //         else
-            //         {
-            //             block_exponent = optarg_l;
+                    break;
+                case 'l':
+                    {
+                        log_file_name = optarg;
                         
-            //             if( block_exponent < LAUNCHVAL_BLOCKEXP_RMAX )
-            //                 ff::write( bqt_out, "Warning: block exponent below recommended minimum (", LAUNCHVAL_BLOCKEXP_RMAX, ")\n" );
-            //         }
-                    
-            //         long block_w = pow( 2, block_exponent );
-            //         ff::write( bqt_out, "Block size set to ", block_w, " x ", block_w, "\n" );
-            //     }
-            //     break;
-            default:
-                throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
+                        log_fb.open( log_file_name.c_str(), std::ios::out );
+                        
+                        if( !log_fb.is_open() )
+                        {
+                            throw exception( "Could not open \'"
+                                             + log_file_name
+                                             + "\' to use as a log file" );
+                        }
+                        
+                        ff::write( bqt_out, "Using file '", log_file_name, "' for logging\n" );
+                        
+                        log_stream.rdbuf( &log_fb );
+                    }
+                    break;
+                case 'd':
+                    ff::write( bqt_out, "Developer mode enabled\n" );
+                    dev_mode = true;
+                    break;
+                case 't':
+                    {
+                        long optarg_l = strtol( optarg, NULL, 0 );
+                        
+                        if( optarg_l < 0 )
+                            throw exception( "Task thread limit must be 0 or greater" );
+                        else
+                            task_thread_limit = optarg_l;
+                        
+                        ff::write( bqt_out, "Task threads limited to ", task_thread_limit, "\n" );
+                    }
+                    break;
+                case 'g':
+                    {
+                        loadSettingsFile( optarg, true, true );
+                        user_settings_file = optarg;
+                    }
+                    break;
+                case 'G':
+                    {
+                        loadSettingsFile( optarg, false, true );
+                    }
+                    break;
+                default:
+                    throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
+                }
             }
+            
+            return true;
         }
-        
-        if( pref_file_name == "" )
-            resetPreferencesToDefaults();
-        else
-            loadPreferencesFile( pref_file_name );
-        
-        return true;
+        catch( exception e )
+        {
+            ff::write( bqt_out, "parseLaunchArgs(): ", e.what(), "\n" );
+            return false;
+        }
     }
     #else
     #error "Launch argument parsing not implemented on non-POSIX platforms"
@@ -218,6 +192,10 @@ namespace bqt
     const std::vector< std::string >& getStartupFiles()
     {
         return startup_files;
+    }
+    std::string getUserSettingsFileName()
+    {
+        return user_settings_file;
     }
 }
 

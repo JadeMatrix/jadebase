@@ -4,7 +4,12 @@
 /* 
  * bqt_log.hpp
  * 
- * About
+ * Utilities for handling log output
+ * 
+ * While log output can be redirected to a file (see bqt_launchargs.cpp), the
+ * recommended method is to keep log output directed to std::cout and launch
+ * the program from a script that pipes all output to a crash log.  This
+ * guarantees that any stray uncaught exceptions still get logged.
  * 
  */
 
@@ -19,7 +24,7 @@
 #include <fastformat/inserters/to_x.hpp>
 #include <fastformat/ff.hpp>
 #ifdef FASTFORMAT_NO_FILTER_TYPE_CONVERSION_SHIM_SUPPORT
-# error "FastFormat: Cannot compile this file with a compiler that does not support the filter_type mechanism"
+#error "FastFormat: Cannot compile this file with a compiler that does not support the filter_type mechanism"
 #endif
 
 /******************************************************************************//******************************************************************************/

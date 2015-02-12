@@ -28,7 +28,6 @@
 #include "bqt_launchargs.hpp"
 #include "threading/bqt_mutex.hpp"
 #include "bqt_keycode.hpp"
-#include "bqt_preferences.hpp"
 #include "gui/bqt_named_resources.hpp"
 #include "bqt_log.hpp"
 
@@ -232,8 +231,7 @@ namespace bqt
     {
         if( getQuitFlag() )
         {
-            if( getDevMode() )
-                ff::write( bqt_out, "Quitting...\n" );
+            ff::write( bqt_out, "Quitting...\n" );
             
             #warning Quitting does not check open documents
             if( false /* !closeAllDocuments() */ )

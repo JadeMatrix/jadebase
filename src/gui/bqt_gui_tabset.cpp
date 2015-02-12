@@ -268,22 +268,22 @@ namespace bqt
         
         parent.requestRedraw();
     }
-    // void tabset::moveTabToLeft( group* g )
-    // {
-    //     scoped_lock< mutex > slock( element_mutex );
+    void tabset::moveTabToLeft( group* g )
+    {
+        scoped_lock< mutex > slock( element_mutex );
         
+        #warning tabset::moveTabToLeft() not implemented
         
+        parent.requestRedraw();
+    }
+    void tabset::moveTabToRight( group* g )
+    {
+        scoped_lock< mutex > slock( element_mutex );
         
-    //     parent.requestRedraw();
-    // }
-    // void tabset::moveTabToRight( group* g )
-    // {
-    //     scoped_lock< mutex > slock( element_mutex );
+        #warning tabset::moveTabToRight() not implemented
         
-        
-        
-    //     parent.requestRedraw();
-    // }
+        parent.requestRedraw();
+    }
     
     void tabset::setRealPosition( int x, int y )
     {
