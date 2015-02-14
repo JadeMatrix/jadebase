@@ -20,6 +20,8 @@
     jb_main();
 }
 
+// TODO: Figure out some way for this to call jade::getSetting_bln( "jb_QuitOnNoWindows" )
+
 // - ( BOOL )applicationShouldTerminateAfterLastWindowClosed:( NSApplication* )theApplication
 // {
 //     return NO;

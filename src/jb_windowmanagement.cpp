@@ -58,7 +58,7 @@ namespace jade
         
         Window window_id = w.getPlatformWindow().x_window;
         
-        jade::window* erased_window = id_window_map[ window_id ];
+        // jade::window* erased_window = id_window_map[ window_id ];
         
         if( id_window_map.erase( window_id ) < 1 )
             throw exception( "deregisterWindow(): No window associated with platform window" );

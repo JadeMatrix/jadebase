@@ -64,7 +64,10 @@ osx_install: osx
 	@echo "No install yet"
 
 linux_install: linux
-	@echo "No install yet"
+	sudo mkdir -p /opt/lib
+	sudo mv "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" /opt/lib/
+	sudo ln "/opt/lib/lib${PROJNAME}-${CC}.so.0.1" "/opt/lib/lib${PROJNAME}-${CC}.so.0"
+	sudo ln "/opt/lib/lib${PROJNAME}-${CC}.so.0" "/opt/lib/lib${PROJNAME}-${CC}.so"
 
 ################################################################################
 
@@ -73,11 +76,10 @@ linux_install: linux
 
 ################################################################################
 
-osx: build_osx
+osx:
 	@echo "No working OS X build yet"
 
 linux: build_linux
-	@echo "..."
 
 windows:
 	# Not supported yet
@@ -146,8 +148,8 @@ build_osx: ${CORE_OBJECTS} ${OSX_OBJECTS}
 
 build_linux: ${CORE_OBJECTS} ${LINUX_OBJECTS}
 	make fastformat
-	# mkdir -p ${BUILDDIR}
-	# ${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${LINKS} -lpthread -lX11 -lXext -lXi $? ${FF_OBJECTS}
+	mkdir -p ${BUILDDIR}
+	${CPPC} -shared -Wl,-soname,libjadebase-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lpthread -lX11 -lXext -lXi $? ${FF_OBJECTS}
 
 fastformat:
 	@echo Trying to automatically build FastFormat\; makefile may need manual editing to compile on some platforms
@@ -157,31 +159,31 @@ fastformat:
 
 ${OBJDIR}/unix_%.o: ${SOURCEDIR}/unix_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -c ${INCLUDE} $? -o ${OBJDIR}/unix_$*.o
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/unix_$*.o
 
 ${OBJDIR}/cocoa_%.o: ${SOURCEDIR}/cocoa_%.m
 	mkdir -p ${OBJDIR}
-	${OBJCC} ${DEFINES} -c ${INCLUDE} $? -o ${OBJDIR}/cocoa_$*.o
+	${OBJCC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/cocoa_$*.o
 
 ${OBJDIR}/jb_%.c.o: ${SOURCEDIR}/jb_%.c
 	mkdir -p ${OBJDIR}
-	${CC} ${DEFINES} -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.c.o
+	${CC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.c.o
 
 ${OBJDIR}/jb_%.o: ${SOURCEDIR}/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.o
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.o
 
 ${OBJDIR}/gui.jb_%.o: ${SOURCEDIR}/gui/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -c ${INCLUDE} $? -o ${OBJDIR}/gui.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/gui.jb_$*.o
 
 ${OBJDIR}/threading.jb_%.o: ${SOURCEDIR}/threading/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -c ${INCLUDE} $? -o ${OBJDIR}/threading.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/threading.jb_$*.o
 
 ${OBJDIR}/x_%.o: ${SOURCEDIR}/x_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -c ${INCLUDE} $? -o ${OBJDIR}/x_$*.o
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/x_$*.o
 
 ################################################################################
 
