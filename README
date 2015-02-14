@@ -1,23 +1,34 @@
 ////////////////////////////////////////////////////////////////////////////////
 
-BQTDraw copyright (C) 2014 Joseph Durel [ jadematrix.art@gmail.com ]
+jadebase copyright (C) 2014 Joseph Durel [ jadematrix.art@gmail.com ]
 
 ////////////////////////////////////////////////////////////////////////////////
 
-BQTDraw is a temporary name and will (WILL) be replaced later.  It stands for
-Bitmap Quad Tree on which the storage file format is based.
+jadebase is a cross-platform framework for developing professional software
+applications in C++ and Lua.  It provides a task-based threading framework and
+a GUI system, as well as various utilities.
 
-BQTDraw is a program for digital art.  It has two main focuses:
- -  Speediness to allow use on lower-end platforms such as tablets
- -  WYSIWYG format for illustration for print, with possible future support for
-    digital-targeted illustration.
+Threading
+    Classes for creating & controlling object-oriented threads, muteces,
+    conditions, and semaphores.  In addition, a scoped_lock template class is
+    provided for superior lock control.
 
-BQTDraw will end up sharing significant backbone code with the currently
-closed-source CEE [ http://jadematrix.wordpress.com/portfolio/software/cee/ ],
-as they share very similar low-level needs and are both primarily authored by
-Joseph Durel.
+Tasking
+    jadebase is structured to be almost entirely task-based.  By inheriting from
+    a base jade::task class, developers can create executable objects to pass to
+    a central control system that dispatches to worker threads.
 
-FastFormat by Matthew Wilson is used for text output formatting in place of
-std::cout; more info can be found at [ http://fastformat.sourceforge.net/ ].
+GUI
+    Provides a Lua-scriptable GUI system with buttons, sliders, tabs, scrolling,
+    groups, and more.
+
+Events
+    Unified, cross-platform-safe events, including tablet input
+
+Settings
+    Simple interface for storing & loading program settings from .CFG files
+
+Change Tracking
+    Unified, opaque multiple undo & redo system
 
 ////////////////////////////////////////////////////////////////////////////////
