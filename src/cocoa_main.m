@@ -1,8 +1,8 @@
 /* 
- * bqt_main.m
+ * jb_main.m
  * 
- * Implements main() wrapping on OS X with Cocoa; see AppDelegate.h &
- * AppDelegate.m for more Cocoa wrapping.
+ * Implements main() wrapping on OS X with Cocoa; see cocoa_appdelegate.h &
+ * cocoa_appdelegate.m for more Cocoa wrapping.
  * 
  */
 
@@ -10,14 +10,14 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "bqt_main.h"
-#import "bqt_appdelegate_cocoa.h"
+#import "jb_main.h"
+#import "cocoa_appdelegate.h"
 
 /******************************************************************************//******************************************************************************/
 
 int main( int argc, char* argv[] )
 {
-    if( bqt_parseLaunchArgs( argc, argv ) )
+    if( jb_parseLaunchArgs( argc, argv ) )
     {
         NSAutoreleasePool*    pool = [ [ NSAutoreleasePool alloc ] init ];
         NSApplication* application = [ NSApplication sharedApplication ];

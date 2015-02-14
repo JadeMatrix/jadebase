@@ -1,22 +1,25 @@
 /* 
- * unix_jb_main.cpp
+ * jb_platform.c
  * 
- * jb_main() wrapper stub for UNIX platforms
+ * Implements utility functions from jb_platform.h
  * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include "jb_main.h"
+#include "jb_platform.h"
 
 /******************************************************************************//******************************************************************************/
 
-int main( int argc, char* argv[] )
+#ifdef __cplusplus
+extern "C"
 {
-    if( jb_parseLaunchArgs( argc, argv ) )
-        return jb_main();
-    else
-        return 0;
+#endif
+    
+    // Empty
+    
+#ifdef __cplusplus
 }
+#endif
 
 

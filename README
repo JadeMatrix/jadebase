@@ -1,0 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+
+BQTDraw copyright (C) 2014 Joseph Durel [ jadematrix.art@gmail.com ]
+
+////////////////////////////////////////////////////////////////////////////////
+
+BQTDraw is a temporary name and will (WILL) be replaced later.  It stands for
+Bitmap Quad Tree on which the storage file format is based.
+
+BQTDraw is a program for digital art.  It has two main focuses:
+ -  Speediness to allow use on lower-end platforms such as tablets
+ -  WYSIWYG format for illustration for print, with possible future support for
+    digital-targeted illustration.
+
+BQTDraw will end up sharing significant backbone code with the currently
+closed-source CEE [ http://jadematrix.wordpress.com/portfolio/software/cee/ ],
+as they share very similar low-level needs and are both primarily authored by
+Joseph Durel.
+
+FastFormat by Matthew Wilson is used for text output formatting in place of
+std::cout; more info can be found at [ http://fastformat.sourceforge.net/ ].
+
+////////////////////////////////////////////////////////////////////////////////

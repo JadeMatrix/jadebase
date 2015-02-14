@@ -23,19 +23,19 @@
 #include <set>
 #include <cmath>
 
-#include "bqt_log.hpp"
-#include "bqt_exception.hpp"
-#include "bqt_launchargs.hpp"
-#include "bqt_settings.hpp"
-#include "bqt_windowevent.hpp"
-#include "bqt_windowmanagement.hpp"
-#include "threading/bqt_mutex.hpp"
+#include "jb_log.hpp"
+#include "jb_exception.hpp"
+#include "jb_launchargs.hpp"
+#include "jb_settings.hpp"
+#include "jb_windowevent.hpp"
+#include "jb_windowmanagement.hpp"
+#include "threading/jb_mutex.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
 {
-    bqt::mutex idev_mutex;                                                      // Isn't needed now since events are single-threaded, but may eventually
+    jade::mutex idev_mutex;                                                     // Isn't needed now since events are single-threaded, but may eventually be
     
     // INPUT DEVICE INFO ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -80,7 +80,7 @@ namespace
     {
         std::string name;                                                       // std::string instead of const char* so we copy the string easily
         
-        XID x_devid;                                                            // aka bqt_platform_idevid_t under X
+        XID x_devid;                                                            // aka jb_platform_idevid_t under X
         XDevice* x_device;
         
         bool relative;
@@ -89,7 +89,7 @@ namespace
         pen_type type;
     };
     
-    std::map< bqt_platform_idevid_t, x_input_detail > x_input_devices;
+    std::map< jb_platform_idevid_t, x_input_detail > x_input_devices;
     
     enum event_class
     {
@@ -104,29 +104,29 @@ namespace
     
     // INPUT EVENT ACCUMULATING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    std::map< bqt_platform_idevid_t,
-              bqt::stroke_waypoint > prev_strokes;
+    std::map< jb_platform_idevid_t,
+              jade::stroke_waypoint > prev_strokes;
     
-    static bqt::stroke_waypoint initial_waypoint = { 0x00,
-                                                     0x00,
-                                                     false,
-                                                     false,
-                                                     false,
-                                                     false,
-                                                     false,
-                                                     { -INFINITY, -INFINITY },  // Element masking checks left-right, so we want to fail early
-                                                     { -INFINITY, -INFINITY },
-                                                     0.0f,
-                                                     { 0.0f, 0.0f },
-                                                     0.0f,
-                                                     0.0f };
+    static jade::stroke_waypoint initial_waypoint = { 0x00,
+                                                      0x00,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      { -INFINITY, -INFINITY }, // Element masking checks left-right, so we want to fail early
+                                                      { -INFINITY, -INFINITY },
+                                                      0.0f,
+                                                      { 0.0f, 0.0f },
+                                                      0.0f,
+                                                      0.0f };
 }
 
 /******************************************************************************//******************************************************************************/
 
 #define DEVICE_CLASS_LIST_START_LENGTH  32
 
-namespace bqt
+namespace jade
 {
     void openInputDevices()
     {
@@ -135,10 +135,10 @@ namespace bqt
         Display* x_display = getXDisplay();
         int x_screen = DefaultScreen( x_display );
         
-        std::map< bqt_platform_idevid_t, x_input_detail > new_devices;          // For swapping with old list
+        std::map< jb_platform_idevid_t, x_input_detail > new_devices;          // For swapping with old list
         
         if( getDevMode() )
-            ff::write( bqt_out, "Opening input devices\n" );
+            ff::write( jb_out, "Opening input devices\n" );
         
         int x_eventclass_size = DEVICE_CLASS_LIST_START_LENGTH;                 // Max devices is 128 so int is OK
         XEventClass* x_eventclass_list = new XEventClass[ x_eventclass_size ];
@@ -164,18 +164,18 @@ namespace bqt
             if( supported_device_types.size() == SUPPORTED_DEVICE_TYPE_COUNT )
             {
                 if( getDevMode() )
-                    ff::write( bqt_out, "All supported device types available\n" );
+                    ff::write( jb_out, "All supported device types available\n" );
             }
             else
             {
                 if( getDevMode() )
-                    ff::write( bqt_out, "Not all supported device types available, some functionality might be missing\n" );
+                    ff::write( jb_out, "Not all supported device types available, some functionality might be missing\n" );
             }
             
             for( int i = 0; i < x_total_device_count; i++ )
             {
                 if( getDevMode() )
-                    ff::write( bqt_out,
+                    ff::write( jb_out,
                                "Found a device: \"",
                                x_dev_info[ i ].name,
                                "\" as id ",
@@ -186,26 +186,26 @@ namespace bqt
                     || x_dev_info[ i ].use == IsXPointer )                      // Ignore master devices, they are most likely virtual
                 {
                     if( getDevMode() )
-                        ff::write( bqt_out, "  - Master device, skipping\n" );
+                        ff::write( jb_out, "  - Master device, skipping\n" );
                     continue;
                 }
                 
                 if( x_dev_info[ i ].type == 0x00 )                              // Supported device type is unavailable
                 {
                     if( getDevMode() )
-                        ff::write( bqt_out, "  - Unavailable device type, skipping\n" );
+                        ff::write( jb_out, "  - Unavailable device type, skipping\n" );
                     continue;
                 }
                 
                 {
-                    for( std::map< bqt_platform_idevid_t, x_input_detail >::iterator iter = x_input_devices.begin();
+                    for( std::map< jb_platform_idevid_t, x_input_detail >::iterator iter = x_input_devices.begin();
                         iter != x_input_devices.end();
                         ++iter )                                                // If device is already open, add it to new_devices & erase from x_input_devices
                     {
                         if( iter -> second.x_devid == x_dev_info[ i ].id )
                         {
                             if( getDevMode() )
-                                ff::write( bqt_out, "  - Device already open, skipping\n" );
+                                ff::write( jb_out, "  - Device already open, skipping\n" );
                             
                             new_devices[ iter -> second.x_devid ] = iter -> second;
                             x_input_devices.erase( iter );
@@ -245,7 +245,7 @@ namespace bqt
                                     XButtonInfo* xbutt_info = ( XButtonInfo* )x_any;
                                     
                                     if( getDevMode() )
-                                        ff::write( bqt_out,
+                                        ff::write( jb_out,
                                                    "  - ",
                                                    xbutt_info -> num_buttons,
                                                    " buttons\n" );
@@ -280,7 +280,7 @@ namespace bqt
                                         detail.relative = true;
                                         break;
                                     default:
-                                        ff::write( bqt_out, "Warning: Input device found in neither absolute nor relative mode, ignoring\n" );
+                                        ff::write( jb_out, "Warning: Input device found in neither absolute nor relative mode, ignoring\n" );
                                         goto next_device;
                                         break;
                                     }
@@ -288,7 +288,7 @@ namespace bqt
                                     detail.axis_count = xval_info -> num_axes;
                                     
                                     if( getDevMode() )
-                                        ff::write( bqt_out,
+                                        ff::write( jb_out,
                                                    "  - ",
                                                    detail.axis_count,
                                                    " axes\n" );
@@ -316,7 +316,7 @@ namespace bqt
                                 // if( ( float )( detail.axes[ 0 ].resolution ) / 1000.0f // Axes resolution reported in lines per meter
                                 //     < ( x_screen_lpmm[ 0 ] < x_screen_lpmm[ 1 ] ? x_screen_lpmm[ 0 ] : x_screen_lpmm[ 1 ] ) )
                                 // {
-                                //     ff::write( bqt_out,
+                                //     ff::write( jb_out,
                                 //                "  - Warning: Device \"",
                                 //                detail.name,
                                 //                "\" has a lower resolution (",
@@ -347,12 +347,12 @@ namespace bqt
                                                                                 // Load initial waypoint, no need to change its dev_id
                                 
                                 if( getDevMode() )
-                                    ff::write( bqt_out, "  - device registered\n" );
+                                    ff::write( jb_out, "  - device registered\n" );
                             }
                             
                             if( x_eventclass_count >= DEVICE_CLASS_LIST_START_LENGTH )
                             {
-                                ff::write( bqt_out, "Warning: Max input device events registered, ignoring rest\n" );
+                                ff::write( jb_out, "Warning: Max input device events registered, ignoring rest\n" );
                                 goto devices_finish;
                                 
                                 // Tried using memcpy to expand x_eventclass_list, but
@@ -371,7 +371,7 @@ namespace bqt
                             //     x_eventclass_size *= 2;
                             //     delete[] old;
                             //     // free( old );
-                            //     ff::write( bqt_out, "successfully copied x_eventclass_list, expanded to ", x_eventclass_size, "\n" );
+                            //     ff::write( jb_out, "successfully copied x_eventclass_list, expanded to ", x_eventclass_size, "\n" );
                             // }
                             
                             x_any = ( XAnyClassPtr )( ( char* )x_any
@@ -384,7 +384,7 @@ namespace bqt
                     else
                         if( getDevMode() )
                         {
-                            ff::write( bqt_out,
+                            ff::write( jb_out,
                                        "  - Unsupported device type (atom \"",
                                        XGetAtomName( x_display, x_dev_info[ i ].type ),
                                        "\"), skipping\n" );
@@ -399,7 +399,7 @@ namespace bqt
         XFreeDeviceList( x_dev_info );
         
         if( getDevMode() && new_devices.size() == 0 )
-            ff::write( bqt_out, "No usable devices found\n" );
+            ff::write( jb_out, "No usable devices found\n" );
         
         XSelectExtensionEvent( x_display,
                                RootWindow( x_display, x_screen ),
@@ -408,7 +408,7 @@ namespace bqt
         
         x_input_devices.swap( new_devices );
         
-        for( std::map< bqt_platform_idevid_t, x_input_detail >::iterator newdev_iter = new_devices.begin();
+        for( std::map< jb_platform_idevid_t, x_input_detail >::iterator newdev_iter = new_devices.begin();
              newdev_iter != new_devices.end();
              ++newdev_iter )                                                    // Clean up previous motion events & close unplugged devices (if possible)
                                                                                 // At this point new_devices will only hold devics no longer available
@@ -416,7 +416,7 @@ namespace bqt
             prev_strokes.erase( newdev_iter -> second.x_devid );
             
             if( getDevMode() )
-                ff::write( bqt_out,
+                ff::write( jb_out,
                            "Leaking device \"",
                            newdev_iter -> second.name,
                            "\" (unplugged?)\n" );                               // If a device was unplugged while open, trying to close it will result in an
@@ -430,11 +430,11 @@ namespace bqt
         scoped_lock< mutex > slock( idev_mutex );
         
         if( getDevMode() )
-            ff::write( bqt_out, "Closing input devices\n" );
+            ff::write( jb_out, "Closing input devices\n" );
         
         Display* x_display = getXDisplay();
         
-        for( std::map< bqt_platform_idevid_t, x_input_detail >::iterator iter = x_input_devices.begin();
+        for( std::map< jb_platform_idevid_t, x_input_detail >::iterator iter = x_input_devices.begin();
              iter != x_input_devices.end();
              ++iter )
         {
@@ -442,7 +442,7 @@ namespace bqt
             XCloseDevice( x_display, iter -> second.x_device );
             
             if( getDevMode() )
-                ff::write( bqt_out, "Closed device \"", iter -> second.name, "\"\n" );
+                ff::write( jb_out, "Closed device \"", iter -> second.name, "\"\n" );
         }
         
         prev_strokes.clear();
@@ -472,7 +472,7 @@ namespace bqt
         {
             if( !dmx_unavailable_flag && getDevMode() )
             {
-                ff::write( bqt_out, "DMX unavailable\n" );
+                ff::write( jb_out, "DMX unavailable\n" );
                 dmx_unavailable_flag = true;
             }
             
@@ -487,6 +487,11 @@ namespace bqt
         
         #endif
         
+        #warning Currently only checking device list length for new devices
+        // TODO: Although it might be a heavy operation, consider storing a list
+        // of known available devices & comparing; start from last to first to
+        // potentially shave some time off.
+        
         if( new_device_count != x_total_device_count )
         {
             openInputDevices();
@@ -499,19 +504,19 @@ namespace bqt
                 
         static bool warn_relative = true;                                       // Relative motion event resolution warning flag
         
-        // ff::write( bqt_out, "got stroke event in window 0x", ff::to_x( ( unsigned long )x_event.xany.window ), "\n" );
+        // ff::write( jb_out, "got stroke event in window 0x", ff::to_x( ( unsigned long )x_event.xany.window ), "\n" );
         
-        bqt_platform_window_t target_pwin;
+        jb_platform_window_t target_pwin;
         target_pwin.x_window = ( ( XDeviceMotionEvent* )&x_event ) -> window;
         
         if( !isRegisteredWindow( target_pwin) )
         {
-            if( bqt::getDevMode() )
-                ff::write( bqt_out, "Warning: Got motion event not matched to a known window, ignoring\n" );
+            if( jade::getDevMode() )
+                ff::write( jb_out, "Warning: Got motion event not matched to a known window, ignoring\n" );
             
             return;
         }
-        bqt::window& target = getWindow( target_pwin );
+        jade::window& target = getWindow( target_pwin );
         
         event_type x_eventtype;
         
@@ -526,7 +531,7 @@ namespace bqt
                 unknown_event_types.insert( x_event.type );
                 
                 if( getDevMode() )
-                    ff::write( bqt_out,
+                    ff::write( jb_out,
                                "Warning: Got unknown event type (",
                                x_event.type,
                                "), ignoring this type until registered\n" );
@@ -536,7 +541,7 @@ namespace bqt
         }
         
         XDeviceButtonEvent x_eventdata;                                         // Use an XDeviceButtonEvent since it holds all the info we need
-                                                                                // (XDeviceMotionEvent is 'optimized' and missing field(s)).
+                                                                                // (XDeviceMotionEvent is 'optimized' and missing at least one field).
         if( x_eventtype == MOTION )
         {
             XDeviceMotionEvent& x_dmevent( *( ( XDeviceMotionEvent* )&x_event ) );
@@ -572,7 +577,7 @@ namespace bqt
             x_eventdata = *( XDeviceButtonEvent* )&x_event;
         }
         
-        bqt::window_event w_event;
+        jade::window_event w_event;
         w_event.type = NONE;
         
         Screen* x_screen = DefaultScreenOfDisplay( x_event.xany.display );
@@ -630,7 +635,7 @@ namespace bqt
                     {
                         if( warn_relative )
                         {
-                            ff::write( bqt_out, "Warning: Devices in relative mode will not have sub-pixel accuracy\n" );
+                            ff::write( jb_out, "Warning: Devices in relative mode will not have sub-pixel accuracy\n" );
                             warn_relative = false;
                         }
                         
@@ -771,16 +776,16 @@ namespace bqt
                     switch( x_eventdata.button )
                     {
                     case Button4:                                               // Scroll wheel up
-                        w_event.scroll.amount[ 1 ] =  1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
+                        w_event.scroll.amount[ 1 ] =  1.0f * jade::getSetting_num( "jb_ScrollDistance" );
                         break;
                     case Button5:                                               // Scroll wheel down
-                        w_event.scroll.amount[ 1 ] = -1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
+                        w_event.scroll.amount[ 1 ] = -1.0f * jade::getSetting_num( "jb_ScrollDistance" );
                         break;
                     case ( Button5 + 1 ):                                       // Scroll wheel left
-                        w_event.scroll.amount[ 0 ] =  1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
+                        w_event.scroll.amount[ 0 ] =  1.0f * jade::getSetting_num( "jb_ScrollDistance" );
                         break;
                     case ( Button5 + 2 ):                                       // Scroll wheel right
-                        w_event.scroll.amount[ 0 ] = -1.0f * bqt::getSetting_num( "bqt_ScrollDistance" );
+                        w_event.scroll.amount[ 0 ] = -1.0f * jade::getSetting_num( "jb_ScrollDistance" );
                         break;
                     default:
                         break;                                                  // Realistically we'll never get here

@@ -1,7 +1,7 @@
 /* 
- * sdl2_bqt_main.cpp
+ * sdl2_jb_main.cpp
  * 
- * bqt_main() wrapper for SDL2
+ * jb_main() wrapper for SDL2
  * 
  */
 
@@ -9,8 +9,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "bqt_main.h"
-#include "bqt_log.hpp"
+#include "jb_main.h"
+#include "jb_log.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -18,16 +18,16 @@ int main( int argc, char* argv[] )
 {
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )                                   // TODO: just what we need OR init everything + change POSIX stuff to SDL2
     {
-        ff::write( bqt_out, "Could not initialize SDL2\n" );
+        ff::write( jb_out, "Could not initialize SDL2\n" );
         return -1;
     }
     else
     {
         int rval = 0;
         
-        if( bqt_parseLaunchArgs( argc, argv ) )
+        if( jb_parseLaunchArgs( argc, argv ) )
         {
-            rval = bqt_main();
+            rval = jb_main();
             
             SDL_Quit();
         }
