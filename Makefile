@@ -41,6 +41,8 @@ LINKS = -lm `pkg-config --libs lua5.2 libpng gl glew pangocairo`
 FRAMEWORKS = -framework Foundation -framework AppKit
 DEFINES = -g -DDEBUG -DPLATFORM_XWS_GNUPOSIX
 
+PROJNAME = jadebase
+
 ################################################################################
 
 clean:
@@ -53,21 +55,6 @@ todo:
 
 linecount:
 	wc -l `find ./src -type f`
-
-################################################################################
-
-PROJNAME = jadebase
-
-################################################################################
-
-osx_install: osx
-	@echo "No install yet"
-
-linux_install: linux
-	sudo mkdir -p /opt/lib
-	sudo mv "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" /opt/lib/
-	sudo ln "/opt/lib/lib${PROJNAME}-${CC}.so.0.1" "/opt/lib/lib${PROJNAME}-${CC}.so.0"
-	sudo ln "/opt/lib/lib${PROJNAME}-${CC}.so.0" "/opt/lib/lib${PROJNAME}-${CC}.so"
 
 ################################################################################
 
@@ -91,7 +78,6 @@ CORE_OBJECTS =	${OBJDIR}/jb_events.o \
 				${OBJDIR}/jb_exception.o \
 				${OBJDIR}/jb_gl.o \
 				${OBJDIR}/jb_keycode.o \
-				${OBJDIR}/jb_launchargs.o \
 				${OBJDIR}/jb_platform.c.o \
 				${OBJDIR}/jb_png.o \
 				${OBJDIR}/jb_settings.o \
@@ -125,6 +111,46 @@ OSX_OBJECTS =	${OBJDIR}/cocoa_appdelegate.o \
 LINUX_OBJECTS = ${OBJDIR}/x_inputdevices.o \
 				${OBJDIR}/x_main.o
 
+HEADERS_ETC   = ${SOURCEDIR}/jb_exception.hpp \
+				${SOURCEDIR}/jb_gl.hpp \
+				${SOURCEDIR}/jb_keycode.hpp \
+				${SOURCEDIR}/jb_launchargs.hpp \
+				${SOURCEDIR}/jb_launchargs.cpp \
+				${SOURCEDIR}/jb_log.hpp \
+				${SOURCEDIR}/jb_main.h \
+				${SOURCEDIR}/jb_main.cpp \
+				${SOURCEDIR}/jb_platform.h \
+				${SOURCEDIR}/jb_png.hpp \
+				${SOURCEDIR}/jb_settings.hpp \
+				${SOURCEDIR}/jb_task.hpp \
+				${SOURCEDIR}/jb_taskexec.hpp \
+				${SOURCEDIR}/jb_taskutil.hpp \
+				${SOURCEDIR}/jb_timestamp.hpp \
+				${SOURCEDIR}/jb_trackable.hpp \
+				${SOURCEDIR}/jb_version.hpp \
+				${SOURCEDIR}/jb_window.hpp \
+				${SOURCEDIR}/jb_windowevent.hpp \
+				${SOURCEDIR}/jb_windowmanagement.hpp \
+				${SOURCEDIR}/gui/jb_button.hpp \
+				${SOURCEDIR}/gui/jb_dial.hpp \
+				${SOURCEDIR}/gui/jb_element.hpp \
+				${SOURCEDIR}/gui/jb_group.hpp \
+				${SOURCEDIR}/gui/jb_image_rsrc.hpp \
+				${SOURCEDIR}/gui/jb_named_resources.hpp \
+				${SOURCEDIR}/gui/jb_resource.hpp \
+				${SOURCEDIR}/gui/jb_resource_names.hpp \
+				${SOURCEDIR}/gui/jb_scrollable.hpp \
+				${SOURCEDIR}/gui/jb_scrollset.hpp \
+				${SOURCEDIR}/gui/jb_tabset.hpp \
+				${SOURCEDIR}/gui/jb_text_rsrc.hpp \
+				${SOURCEDIR}/gui/jb_texture.hpp \
+				${SOURCEDIR}/threading/jb_condition.hpp \
+				${SOURCEDIR}/threading/jb_mutex.hpp \
+				${SOURCEDIR}/threading/jb_scopedlock.hpp \
+				${SOURCEDIR}/threading/jb_semaphore.hpp \
+				${SOURCEDIR}/threading/jb_thread.hpp \
+				${SOURCEDIR}/threading/jb_threadutil.hpp
+
 # FastFormat is statically linked due to the non-standard build methods the
 # project uses.  Until there is an official dynamic installation it should
 # reamain statically linked for ease of (precompiled binary) distribution.
@@ -136,6 +162,19 @@ FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 				${FFOBJDIR}/core.mempool.o \
 				${FFOBJDIR}/core.replacements.o \
 				${FFOBJDIR}/core.snprintf.o
+
+################################################################################
+
+osx_install: osx
+	@echo "No install yet"
+
+linux_install: linux
+	sudo mkdir -p /opt/lib
+	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" /opt/lib/
+	sudo ln -f "/opt/lib/lib${PROJNAME}-${CC}.so.0.1" "/opt/lib/lib${PROJNAME}-${CC}.so.0"
+	sudo ln -f "/opt/lib/lib${PROJNAME}-${CC}.so.0" "/opt/lib/lib${PROJNAME}-${CC}.so"
+	sudo mkdir -p /opt/include/jadebase
+	for i in ${HEADERS_ETC}; do sudo cp "$$i" /opt/include/jadebase/; done
 
 ################################################################################
 
