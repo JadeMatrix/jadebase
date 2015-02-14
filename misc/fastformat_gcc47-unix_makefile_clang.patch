@@ -1,0 +1,37 @@
+--- makefile.bak	2012-08-17 10:52:12.000000000 -0400
++++ makefile	2015-02-14 14:53:29.727401170 -0500
+@@ -79,10 +79,13 @@
+ ########################################
+ # tools
+ 
+-CC                      =   gcc
+-CPPC                    =   g++
++# CC                      =   gcc
++CC                      =   clang
++# CPPC                    =   g++
++CPPC                    =   clang++
+ AR                      =   ar
+-LD                      =   g++
++# LD                      =   g++
++LD                      =   clang++
+ RM                      =   rm -f
+ CP                      =   cp
+ RC                      =   
+@@ -141,7 +144,8 @@
+ CPPC_F_NOLOGO			=	
+ CPPC_F_COMPILE_ONLY 	=	-c
+ CPPC_F_WARNING_MAX		=	-Wall -pedantic -Wno-long-long -Wno-unused-value -Wno-non-virtual-dtor -Wno-array-bounds
+-CPPC_F_WARNING_ERR		=	-Werror
++# CPPC_F_WARNING_ERR		=	-Werror
++CPPC_F_WARNING_ERR		=	
+ CPPC_F_EXCEPTIONS_ON	=	
+ CPPC_F_EXCEPTIONS_OFF	=	
+ CPPC_F_EXCEPTIONS		=	$(CPPC_F_EXCEPTIONS_ON)
+@@ -152,6 +156,7 @@
+ CPPC_F_MAXIMUM_SPEED	=	-O3
+ 
+ CPPC_FLAGS_BASE =\
++ -fPIC\
+  $(CPPC_F_NOLOGO)\
+  $(CPPC_F_COMPILE_ONLY)\
+  $(CPPC_F_WARNING_MAX)\
