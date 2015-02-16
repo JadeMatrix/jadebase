@@ -15,9 +15,9 @@
 #define M_PI 3.14159265358979323846f
 #endif
 
-#include "jb_named_resources.hpp"
 #include "jb_resource.hpp"
-#include "../utility/jb_settings.hpp"
+#include "../jb_settings.hpp"
+#include "jb_named_resources.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

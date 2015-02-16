@@ -13,8 +13,8 @@
 #include <utility>
 
 #include "../threading/jb_mutex.hpp"
-#include "../windowsys/jb_window.hpp"
-#include "../windowsys/jb_windowevent.hpp"
+#include "../jb_window.hpp"
+#include "../jb_windowevent.hpp"
 
 /******************************************************************************//******************************************************************************/
 

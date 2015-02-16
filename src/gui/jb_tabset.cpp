@@ -11,11 +11,11 @@
 
 #include <cmath>
 
-#include "jb_named_resources.hpp"
 #include "jb_resource.hpp"
-#include "../utility/jb_exception.hpp"
-#include "../utility/jb_gl.hpp"
-#include "../utility/jb_log.hpp"
+#include "../jb_exception.hpp"
+#include "../jb_log.hpp"
+#include "jb_named_resources.hpp"
+#include "../jb_gl.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

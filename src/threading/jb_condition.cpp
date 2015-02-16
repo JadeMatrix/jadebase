@@ -9,7 +9,7 @@
 
 #include "jb_condition.hpp"
 
-#include "../utility/jb_exception.hpp"
+#include "../jb_exception.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

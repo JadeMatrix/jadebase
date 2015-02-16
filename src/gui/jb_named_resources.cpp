@@ -10,17 +10,17 @@
 
 #include "jb_named_resources.hpp"
 
-#include "jb_image_rsrc.hpp"
-#include "jb_texture.hpp"
-#include "../filetypes/jb_png.hpp"
-#include "../tasking/jb_task.hpp"
-#include "../tasking/jb_taskexec.hpp"
 #include "../threading/jb_mutex.hpp"
-#include "../utility/jb_exception.hpp"
-#include "../utility/jb_gl.hpp"
-#include "../utility/jb_launchargs.hpp"
-#include "../utility/jb_log.hpp"
-#include "../windowsys/jb_windowmanagement.hpp"
+#include "../jb_task.hpp"
+#include "../jb_taskexec.hpp"
+#include "jb_texture.hpp"
+#include "../jb_png.hpp"
+#include "jb_image_rsrc.hpp"
+#include "../jb_exception.hpp"
+#include "../jb_gl.hpp"
+#include "../jb_windowmanagement.hpp"
+#include "../jb_launchargs.hpp"
+#include "../jb_log.hpp"
 
 /******************************************************************************//******************************************************************************/
 

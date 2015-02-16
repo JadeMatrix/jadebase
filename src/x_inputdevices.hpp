@@ -1,26 +1,36 @@
+#ifndef X_INPUTDEVICES_HPP
+#define X_INPUTDEVICES_HPP
+
 /* 
- * AppDelegate.h
+ * x_inputdevices.hpp
  * 
- * About
+ * Utilities for recognizing & interpreting X input devices & associated events
  * 
  */
 
+#ifndef PLATFORM_XWS_GNUPOSIX
+#error PLATFORM_XWS_GNUPOSIX not defined
+#endif
+
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#import <Cocoa/Cocoa.h>
+#include <string>
+
+#include "bqt_platform.h"
 
 /******************************************************************************//******************************************************************************/
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+namespace bqt
 {
+    void openInputDevices();
+    void closeInputDevices();
+    void refreshInputDevices();
+    
+    void handleStrokeEvent( XEvent& x_event );
 }
 
-- ( void )applicationDidFinishLaunching:( NSNotification* )aNotification;
-
-// - ( BOOL )applicationShouldTerminateAfterLastWindowClosed:( NSApplication* )theApplication;
-
-@end
-
 /******************************************************************************//******************************************************************************/
+
+#endif
 
 

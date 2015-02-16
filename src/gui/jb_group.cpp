@@ -9,8 +9,8 @@
 
 #include "jb_group.hpp"
 
-#include "../utility/jb_exception.hpp"
-#include "../utility/jb_gl.hpp"
+#include "../jb_exception.hpp"
+#include "../jb_gl.hpp"
 
 /******************************************************************************//******************************************************************************/
 

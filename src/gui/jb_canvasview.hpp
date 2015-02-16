@@ -16,7 +16,7 @@
 #include <set>
 
 #include "jb_scrollable.hpp"
-#include "../windowsys/jb_windowevent.hpp"
+#include "../jb_windowevent.hpp"
 
 /******************************************************************************//******************************************************************************/
 
