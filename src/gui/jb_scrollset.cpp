@@ -39,11 +39,11 @@
 
 #include "jb_scrollset.hpp"
 
-#include "jb_resource.hpp"
-#include "jb_group.hpp"
 #include "jb_named_resources.hpp"
-#include "../jb_exception.hpp"
-#include "../jb_settings.hpp"
+#include "jb_group.hpp"
+#include "jb_resource.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_settings.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

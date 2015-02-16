@@ -16,15 +16,15 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
 
-#include "jb_platform.h"
-#include "jb_task.hpp"
-#include "threading/jb_mutex.hpp"
-#include "jb_version.hpp"
 #include "jb_windowevent.hpp"
+#include "../tasking/jb_task.hpp"
+#include "../threading/jb_mutex.hpp"
+#include "../utility/jb_platform.h"
+#include "../utility/jb_version.hpp"
 
 /******************************************************************************//******************************************************************************/
 

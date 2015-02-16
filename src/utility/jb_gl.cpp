@@ -11,11 +11,10 @@
 
 #include <string>
 
-#include "jb_task.hpp"
-#include "jb_taskexec.hpp"
-#include "jb_log.hpp"
-
 #include "jb_exception.hpp"
+#include "jb_log.hpp"
+#include "../tasking/jb_task.hpp"
+#include "../tasking/jb_taskexec.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

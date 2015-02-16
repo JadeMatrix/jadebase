@@ -13,8 +13,8 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include <string>
 #include <cstdio>                                                               // libpng uses C-style file loading
+#include <string>
 
 #include <png.h>
 

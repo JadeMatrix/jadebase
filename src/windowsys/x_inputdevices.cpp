@@ -23,13 +23,13 @@
 #include <set>
 #include <cmath>
 
-#include "jb_log.hpp"
-#include "jb_exception.hpp"
-#include "jb_launchargs.hpp"
-#include "jb_settings.hpp"
-#include "jb_windowevent.hpp"
 #include "jb_windowmanagement.hpp"
-#include "threading/jb_mutex.hpp"
+#include "jb_windowevent.hpp"
+#include "../threading/jb_mutex.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
+#include "../utility/jb_settings.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

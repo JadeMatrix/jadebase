@@ -10,7 +10,7 @@
 
 #include "jb_taskexec.hpp"
 
-#include "jb_platform.h"
+#include "../utility/jb_platform.h"
 #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
 #include <time.h>
 #else
@@ -19,13 +19,13 @@
 #endif
 
 #include "jb_taskqueue.hpp"
-#include "jb_exception.hpp"
-#include "threading/jb_threadutil.hpp"
-#include "threading/jb_mutex.hpp"
-#include "threading/jb_thread.hpp"
-#include "jb_log.hpp"
-#include "jb_launchargs.hpp"
-#include "threading/jb_condition.hpp"
+#include "../threading/jb_condition.hpp"
+#include "../threading/jb_mutex.hpp"
+#include "../threading/jb_thread.hpp"
+#include "../threading/jb_threadutil.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

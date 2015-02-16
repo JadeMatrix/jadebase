@@ -16,22 +16,23 @@
 
 #include <cmath>
 
-#include "jb_exception.hpp"
-#include "jb_log.hpp"
 #include "jb_windowmanagement.hpp"
-#include "jb_taskexec.hpp"
-#include "jb_settings.hpp"
-#include "jb_launchargs.hpp"
-#include "jb_gl.hpp"
-#include "gui/jb_named_resources.hpp"
+#include "../gui/jb_named_resources.hpp"
+#include "../tasking/jb_taskexec.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_gl.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
+#include "../utility/jb_settings.hpp"
 
-#include "gui/jb_button.hpp"
-#include "gui/jb_dial.hpp"
-#include "gui/jb_tabset.hpp"
-#include "gui/jb_group.hpp"
-#include "gui/jb_scrollset.hpp"
-#include "gui/jb_image_rsrc.hpp"
-#include "gui/jb_canvasview.hpp"
+// testing
+#include "../gui/jb_button.hpp"
+#include "../gui/jb_dial.hpp"
+#include "../gui/jb_tabset.hpp"
+#include "../gui/jb_group.hpp"
+#include "../gui/jb_scrollset.hpp"
+#include "../gui/jb_image_rsrc.hpp"
+#include "../gui/jb_canvasview.hpp"
 
 /******************************************************************************//******************************************************************************/
 

@@ -15,23 +15,25 @@
 
 #include "jb_events.hpp"
 
+#include <cmath>
 #include <map>
 #include <vector>
-#include <cmath>
 
-#include "jb_taskexec.hpp"
-#include "jb_windowmanagement.hpp"
-#include "jb_window.hpp"
-#include "jb_windowevent.hpp"
-#include "jb_platform.h"
-#include "jb_exception.hpp"
-#include "jb_launchargs.hpp"
-#include "threading/jb_mutex.hpp"
 #include "jb_keycode.hpp"
-#include "gui/jb_named_resources.hpp"
-#include "jb_log.hpp"
+#include "jb_window.hpp"
+#include "jb_windowmanagement.hpp"
+#include "jb_windowevent.hpp"
+#include "../gui/jb_named_resources.hpp"
+#include "../tasking/jb_taskexec.hpp"
+#include "../threading/jb_mutex.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
+#include "../utility/jb_platform.h"
 
+#ifdef PLATFORM_XWS_GNUPOSIX
 #include "x_inputdevices.hpp"
+#endif
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

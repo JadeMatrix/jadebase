@@ -15,16 +15,16 @@
 #include <pango/pangocairo.h>
 #include <png.h>
 
-#include "jb_launchargs.hpp"
-#include "jb_exception.hpp"
-#include "threading/jb_threadutil.hpp"
-#include "jb_log.hpp"
-#include "jb_taskexec.hpp"
-#include "jb_version.hpp"
-#include "jb_events.hpp"
-#include "jb_gl.hpp"
-#include "gui/jb_named_resources.hpp"
-#include "jb_settings.hpp"
+#include "../gui/jb_named_resources.hpp"
+#include "../tasking/jb_taskexec.hpp"
+#include "../threading/jb_threadutil.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_gl.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
+#include "../utility/jb_settings.hpp"
+#include "../utility/jb_version.hpp"
+#include "../windowsys/jb_events.hpp"
 
 /******************************************************************************//******************************************************************************/
 

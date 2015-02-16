@@ -13,10 +13,10 @@
 
 #include <list>
 
-#include "jb_taskutil.hpp"
 #include "jb_task.hpp"
-#include "threading/jb_mutex.hpp"
-#include "threading/jb_condition.hpp"
+#include "jb_taskutil.hpp"
+#include "../threading/jb_condition.hpp"
+#include "../threading/jb_mutex.hpp"
 
 /******************************************************************************//******************************************************************************/
 

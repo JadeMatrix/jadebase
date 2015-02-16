@@ -9,9 +9,9 @@
 
 #include "jb_taskqueue.hpp"
 
-#include "jb_exception.hpp"
-#include "jb_log.hpp"
-#include "jb_launchargs.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
 
 /******************************************************************************//******************************************************************************/
 

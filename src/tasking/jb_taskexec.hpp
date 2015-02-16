@@ -14,7 +14,7 @@
 
 #include "jb_taskutil.hpp"
 #include "jb_task.hpp"
-#include "threading/jb_threadutil.hpp"
+#include "../threading/jb_threadutil.hpp"
 
 /******************************************************************************//******************************************************************************/
 

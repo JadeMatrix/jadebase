@@ -14,9 +14,9 @@
 #include <deque>
 #include <map>
 
-#include "threading/jb_mutex.hpp"
 #include "jb_exception.hpp"
 #include "jb_settings.hpp"
+#include "../threading/jb_mutex.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

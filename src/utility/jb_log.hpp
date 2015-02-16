@@ -20,13 +20,15 @@
 
 #include <iostream>
 
-#include <fastformat/sinks/ostream.hpp>
-#include <fastformat/shims/conversion/filter_type/reals.hpp>
-#include <fastformat/shims/conversion/filter_type/bool.hpp>
-#include <fastformat/shims/conversion/filter_type/void_pointers.hpp>
-#include <fastformat/inserters/to_x.hpp>
 #include <fastformat/inserters/ch.hpp>                                          // Because FastFormat can't handle basic chars for some reason
+#include <fastformat/inserters/to_x.hpp>
+#include <fastformat/shims/conversion/filter_type/bool.hpp>
+#include <fastformat/shims/conversion/filter_type/reals.hpp>
+#include <fastformat/shims/conversion/filter_type/void_pointers.hpp>
+#include <fastformat/sinks/ostream.hpp>
+
 #include <fastformat/ff.hpp>
+
 #ifdef FASTFORMAT_NO_FILTER_TYPE_CONVERSION_SHIM_SUPPORT
 #error "FastFormat: Cannot compile this file with a compiler that does not support the filter_type mechanism"
 #endif

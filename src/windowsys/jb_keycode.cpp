@@ -11,8 +11,8 @@
 
 #include "jb_keycode.hpp"
 
-#include "jb_exception.hpp"
 #include "jb_windowevent.hpp"
+#include "../utility/jb_exception.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

@@ -16,11 +16,11 @@
 
 #include <string>
 
-#include "bqt_platform.h"
+#include "../utility/jb_platform.h"
 
 /******************************************************************************//******************************************************************************/
 
-namespace bqt
+namespace jade
 {
     void openInputDevices();
     void closeInputDevices();

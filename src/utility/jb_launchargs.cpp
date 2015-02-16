@@ -15,23 +15,23 @@
 
 #include "jb_launchargs.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
 
 #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
-#include <unistd.h>
 #include <getopt.h>
+#include <unistd.h>
 #else
 // TODO: Implement arg parsing on other platforms
 #error "Launch argument parsing not implemented on non-POSIX platforms"
 #endif
 
-#include "jb_log.hpp"
 #include "jb_exception.hpp"
-#include "jb_version.hpp"
+#include "jb_log.hpp"
 #include "jb_settings.hpp"
+#include "jb_version.hpp"
 
 /* DEFAULTS *******************************************************************//******************************************************************************/
 

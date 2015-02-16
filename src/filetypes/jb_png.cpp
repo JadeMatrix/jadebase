@@ -9,8 +9,8 @@
 
 #include "jb_png.hpp"
 
-#include "jb_exception.hpp"
-#include "jb_log.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_log.hpp"
 
 /******************************************************************************//******************************************************************************/
 

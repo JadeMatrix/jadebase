@@ -9,14 +9,14 @@
 
 #include "jb_button.hpp"
 
-#include <map>
 #include <cmath>
+#include <map>
 
-#include "jb_resource.hpp"
-#include "../jb_log.hpp"
-#include "../jb_exception.hpp"
-#include "../threading/jb_mutex.hpp"
 #include "jb_named_resources.hpp"
+#include "jb_resource.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_log.hpp"
+#include "../threading/jb_mutex.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

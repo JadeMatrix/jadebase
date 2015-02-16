@@ -13,12 +13,11 @@
 
 #include <map>
 
-#include "threading/jb_mutex.hpp"
-#include "jb_exception.hpp"
-#include "jb_taskexec.hpp"
-#include "jb_launchargs.hpp"
-
-#include "jb_log.hpp"
+#include "../tasking/jb_taskexec.hpp"
+#include "../threading/jb_mutex.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

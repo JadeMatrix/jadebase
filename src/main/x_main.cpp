@@ -13,9 +13,9 @@
 
 #include "jb_main.h"
 
-#include "jb_platform.h"
-#include "jb_log.hpp"
-#include "jb_launchargs.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
+#include "../utility/jb_platform.h"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

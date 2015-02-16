@@ -51,6 +51,8 @@ extern "C"
     
     #if defined PLATFORM_XWS_GNUPOSIX
     
+    #include <string.h>                                                         // For strerror_r()
+    
     #define PLATFORM_FRAMEWORK_PTHREADS
     #define PLATFORM_FRAMEWORK_XLIB                                             // This platform uses GLEW, but Xlib requires a special version (GLXEW)
     
@@ -68,6 +70,8 @@ extern "C"
     
     #include <OpenGL/glew.h>
     
+    #include <string.h>                                                         // For strerror_r()
+    
     // TODO: consider using Core Text instead of Pango on OS X
     
     #error "Mac OS X not fully implemented as a platform yet"
@@ -79,8 +83,6 @@ extern "C"
 /* Pthreads *******************************************************************//******************************************************************************/
     
     #ifdef PLATFORM_FRAMEWORK_PTHREADS
-    
-    #include <string.h>                                                         // For strerror_r()
     
     #include <pthread.h>
     
