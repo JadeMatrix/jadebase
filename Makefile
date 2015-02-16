@@ -74,20 +74,7 @@ windows:
 ################################################################################
 
 # TODO: consider using macro(s)
-CORE_OBJECTS =	${OBJDIR}/jb_events.o \
-				${OBJDIR}/jb_exception.o \
-				${OBJDIR}/jb_gl.o \
-				${OBJDIR}/jb_keycode.o \
-				${OBJDIR}/jb_platform.c.o \
-				${OBJDIR}/jb_png.o \
-				${OBJDIR}/jb_settings.o \
-				${OBJDIR}/jb_taskexec.o \
-				${OBJDIR}/jb_taskqueue.o \
-				${OBJDIR}/jb_timestamp.o \
-				${OBJDIR}/jb_trackable.o \
-				${OBJDIR}/jb_window.o \
-				${OBJDIR}/jb_windowevent.o \
-				${OBJDIR}/jb_windowmanagement.o \
+CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_button.o \
 				${OBJDIR}/gui.jb_canvasview.o \
 				${OBJDIR}/gui.jb_dial.o \
@@ -99,57 +86,32 @@ CORE_OBJECTS =	${OBJDIR}/jb_events.o \
 				${OBJDIR}/gui.jb_tabset.o \
 				${OBJDIR}/gui.jb_text_rsrc.o \
 				${OBJDIR}/gui.jb_named_resources.o \
+				${OBJDIR}/tasking.jb_taskexec.o \
+				${OBJDIR}/tasking.jb_taskqueue.o \
 				${OBJDIR}/threading.jb_condition.o \
 				${OBJDIR}/threading.jb_mutex.o \
 				${OBJDIR}/threading.jb_semaphore.o \
 				${OBJDIR}/threading.jb_threadutil.o \
-				${OBJDIR}/threading.jb_thread.o
+				${OBJDIR}/threading.jb_thread.o \
+				${OBJDIR}/utility.jb_exception.o \
+				${OBJDIR}/utility.jb_gl.o \
+				${OBJDIR}/utility.jb_platform.c.o \
+				${OBJDIR}/utility.jb_settings.o \
+				${OBJDIR}/utility.jb_timestamp.o \
+				${OBJDIR}/utility.jb_trackable.o \
+				${OBJDIR}/windowsys.jb_events.o \
+				${OBJDIR}/windowsys.jb_keycode.o \
+				${OBJDIR}/windowsys.jb_window.o \
+				${OBJDIR}/windowsys.jb_windowevent.o \
+				${OBJDIR}/windowsys.jb_windowmanagement.o
 
-OSX_OBJECTS =	${OBJDIR}/cocoa_appdelegate.o \
-				${OBJDIR}/cocoa_main.o
+OSX_OBJECTS =	${OBJDIR}/main.cocoa_appdelegate.o \
+				${OBJDIR}/main.cocoa_main.o
 
-LINUX_OBJECTS = ${OBJDIR}/x_inputdevices.o \
-				${OBJDIR}/x_main.o
+LINUX_OBJECTS = ${OBJDIR}/main.x_main.o \
+				${OBJDIR}/windowsys.x_inputdevices.o
 
-HEADERS_ETC   = ${SOURCEDIR}/jb_exception.hpp \
-				${SOURCEDIR}/jb_gl.hpp \
-				${SOURCEDIR}/jb_keycode.hpp \
-				${SOURCEDIR}/jb_launchargs.hpp \
-				${SOURCEDIR}/jb_launchargs.cpp \
-				${SOURCEDIR}/jb_log.hpp \
-				${SOURCEDIR}/jb_main.h \
-				${SOURCEDIR}/jb_main.cpp \
-				${SOURCEDIR}/jb_platform.h \
-				${SOURCEDIR}/jb_png.hpp \
-				${SOURCEDIR}/jb_settings.hpp \
-				${SOURCEDIR}/jb_task.hpp \
-				${SOURCEDIR}/jb_taskexec.hpp \
-				${SOURCEDIR}/jb_taskutil.hpp \
-				${SOURCEDIR}/jb_timestamp.hpp \
-				${SOURCEDIR}/jb_trackable.hpp \
-				${SOURCEDIR}/jb_version.hpp \
-				${SOURCEDIR}/jb_window.hpp \
-				${SOURCEDIR}/jb_windowevent.hpp \
-				${SOURCEDIR}/jb_windowmanagement.hpp \
-				${SOURCEDIR}/gui/jb_button.hpp \
-				${SOURCEDIR}/gui/jb_dial.hpp \
-				${SOURCEDIR}/gui/jb_element.hpp \
-				${SOURCEDIR}/gui/jb_group.hpp \
-				${SOURCEDIR}/gui/jb_image_rsrc.hpp \
-				${SOURCEDIR}/gui/jb_named_resources.hpp \
-				${SOURCEDIR}/gui/jb_resource.hpp \
-				${SOURCEDIR}/gui/jb_resource_names.hpp \
-				${SOURCEDIR}/gui/jb_scrollable.hpp \
-				${SOURCEDIR}/gui/jb_scrollset.hpp \
-				${SOURCEDIR}/gui/jb_tabset.hpp \
-				${SOURCEDIR}/gui/jb_text_rsrc.hpp \
-				${SOURCEDIR}/gui/jb_texture.hpp \
-				${SOURCEDIR}/threading/jb_condition.hpp \
-				${SOURCEDIR}/threading/jb_mutex.hpp \
-				${SOURCEDIR}/threading/jb_scopedlock.hpp \
-				${SOURCEDIR}/threading/jb_semaphore.hpp \
-				${SOURCEDIR}/threading/jb_thread.hpp \
-				${SOURCEDIR}/threading/jb_threadutil.hpp
+HEADERS_ETC   = 
 
 # FastFormat is statically linked due to the non-standard build methods the
 # project uses.  Until there is an official dynamic installation it should
@@ -196,33 +158,63 @@ fastformat:
 
 ################################################################################
 
+# TODO: fix this utter mess
+
 ${OBJDIR}/unix_%.o: ${SOURCEDIR}/unix_%.cpp
 	mkdir -p ${OBJDIR}
 	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/unix_$*.o
 
-${OBJDIR}/cocoa_%.o: ${SOURCEDIR}/cocoa_%.m
+${OBJDIR}/main.cocoa_%.o: ${SOURCEDIR}/main/cocoa_%.m
 	mkdir -p ${OBJDIR}
-	${OBJCC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/cocoa_$*.o
+	${OBJCC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.cocoa_$*.o
 
-${OBJDIR}/jb_%.c.o: ${SOURCEDIR}/jb_%.c
+${OBJDIR}/windowsys.x_%.o: ${SOURCEDIR}/windowsys/x_%.cpp
 	mkdir -p ${OBJDIR}
-	${CC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.c.o
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.x_$*.o
+
+
+
+${OBJDIR}/main.x_%.o: ${SOURCEDIR}/main/x_%.cpp
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.x_$*.o
+
+
 
 ${OBJDIR}/jb_%.o: ${SOURCEDIR}/jb_%.cpp
 	mkdir -p ${OBJDIR}
 	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.o
 
+${OBJDIR}/filetypes.jb_%.o: ${SOURCEDIR}/filetypes/jb_%.cpp
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/filetypes.jb_$*.o
+
 ${OBJDIR}/gui.jb_%.o: ${SOURCEDIR}/gui/jb_%.cpp
 	mkdir -p ${OBJDIR}
 	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/gui.jb_$*.o
+
+${OBJDIR}/main.jb_%.o: ${SOURCEDIR}/main/jb_%.cpp
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.jb_$*.o
+
+${OBJDIR}/tasking.jb_%.o: ${SOURCEDIR}/tasking/jb_%.cpp
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/tasking.jb_$*.o
 
 ${OBJDIR}/threading.jb_%.o: ${SOURCEDIR}/threading/jb_%.cpp
 	mkdir -p ${OBJDIR}
 	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/threading.jb_$*.o
 
-${OBJDIR}/x_%.o: ${SOURCEDIR}/x_%.cpp
+${OBJDIR}/utility.jb_%.o: ${SOURCEDIR}/utility/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/x_$*.o
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.o
+
+${OBJDIR}/utility.jb_%.c.o: ${SOURCEDIR}/utility/jb_%.c
+	mkdir -p ${OBJDIR}
+	${CC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.c.o
+
+${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.jb_$*.o
 
 ################################################################################
 

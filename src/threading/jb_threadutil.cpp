@@ -10,12 +10,12 @@
 #include "jb_threadutil.hpp"
 
 #if defined PLATFORM_XWS_GNUPOSIX
-#include <unistd.h>
 #include <stdint.h>
+#include <unistd.h>
 #endif
 
-#include "../jb_exception.hpp"
-#include "../jb_log.hpp"
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_log.hpp"
 
 /******************************************************************************//******************************************************************************/
 

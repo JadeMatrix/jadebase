@@ -5,16 +5,16 @@
  * jb_semaphore.hpp
  * 
  * Contains jade::semaphore, a class definition for manipulating & managing
- * semaphores as objects.
+ * semaphores as objects.  Also overrides jade::scoped_lock<> for semaphores.
  * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include "jb_threadutil.hpp"
 #include "jb_condition.hpp"
 #include "jb_mutex.hpp"
 #include "jb_scopedlock.hpp"
+#include "jb_threadutil.hpp"
 
 /******************************************************************************//******************************************************************************/
 

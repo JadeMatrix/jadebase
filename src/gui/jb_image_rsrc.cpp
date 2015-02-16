@@ -9,8 +9,8 @@
 
 #include "jb_image_rsrc.hpp"
 
-#include "../jb_launchargs.hpp"
 #include "jb_named_resources.hpp"
+#include "../utility/jb_launchargs.hpp"
 
 /******************************************************************************//******************************************************************************/
 
