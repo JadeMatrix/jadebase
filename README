@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
-jadebase copyright (C) 2014 Joseph Durel [ jadematrix.art@gmail.com ]
+jadebase copyright (C) 2015 Joseph Durel [ jadematrix.art@gmail.com ]
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -11,7 +11,7 @@ a GUI system, as well as various utilities.
 Threading
     Classes for creating & controlling object-oriented threads, muteces,
     conditions, and semaphores.  In addition, a scoped_lock template class is
-    provided for superior lock control.
+    provided for simple & safe lock control.
 
 Tasking
     jadebase is structured to be almost entirely task-based.  By inheriting from
