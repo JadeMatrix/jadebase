@@ -111,11 +111,9 @@ OSX_OBJECTS =	${OBJDIR}/main.cocoa_appdelegate.o \
 LINUX_OBJECTS = ${OBJDIR}/main.x_main.o \
 				${OBJDIR}/windowsys.x_inputdevices.o
 
-HEADERS_ETC   = 
-
 # FastFormat is statically linked due to the non-standard build methods the
 # project uses.  Until there is an official dynamic installation it should
-# reamain statically linked for ease of (precompiled binary) distribution.
+# remain statically linked for ease of (precompiled binary) distribution.
 # Not sure how many of these we need, so include all of them
 FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 				${FFOBJDIR}/core.fmt_cache.o \
@@ -136,7 +134,8 @@ linux_install: linux
 	sudo ln -f "/opt/lib/lib${PROJNAME}-${CC}.so.0.1" "/opt/lib/lib${PROJNAME}-${CC}.so.0"
 	sudo ln -f "/opt/lib/lib${PROJNAME}-${CC}.so.0" "/opt/lib/lib${PROJNAME}-${CC}.so"
 	sudo mkdir -p /opt/include/jadebase
-	for i in ${HEADERS_ETC}; do sudo cp "$$i" /opt/include/jadebase/; done
+	cd ${SOURCEDIR}; sudo find -type f -name "*.h*" -exec cp --parents {} /opt/include/jadebase/ \;
+	sudo cp ${SOURCEDIR}/main/jb_main.cpp /opt/include/jadebase/
 
 ################################################################################
 
