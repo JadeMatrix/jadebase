@@ -138,7 +138,6 @@ linux_install: linux_build
 	sudo ln -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0" "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so"
 	sudo mkdir -p ${INSTALL_LOC}/include/${PROJNAME}
 	cd ${SOURCEDIR}; sudo find -type f -name "*.h*" -exec cp --parents {} ${INSTALL_LOC}/include/${PROJNAME}/ \;
-	sudo cp ${SOURCEDIR}/main/jb_main.cpp ${INSTALL_LOC}/include/${PROJNAME}/
 
 linux_uninstall:
 	sudo rm -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0.1"
