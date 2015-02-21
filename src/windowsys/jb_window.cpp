@@ -332,7 +332,7 @@ namespace jade
 ////////// Devel  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
         {
-            setQuitFlag();
+            jb_setQuitFlag();
             return;
         }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -516,7 +516,7 @@ namespace jade
                 if( getDevMode() )
                     ff::write( jb_out, "All windows closed, quitting\n" );
                 
-                setQuitFlag();
+                jb_setQuitFlag();
             }
         }
         else

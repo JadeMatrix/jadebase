@@ -141,8 +141,8 @@ extern "C"
     
     // TODO: Move to a different header?
     
-    void setQuitFlag();
-    int getQuitFlag();                                                          // 'bool'
+    void jb_setQuitFlag();
+    int jb_getQuitFlag();                                                       // 'bool'
 
 #ifdef __cplusplus
 }

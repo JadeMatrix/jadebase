@@ -131,7 +131,7 @@ namespace
             {
                 ff::write( jb_out, "jadebase exception from task thread: ", e.what(), "\n" );
                 
-                setQuitFlag();
+                jb_setQuitFlag();
                 
                 code = jade::EXITCODE_JBERR;
             }
@@ -139,7 +139,7 @@ namespace
             {
                 ff::write( jb_out, "Exception from task thread: ", e.what(), "\n" );
                 
-                setQuitFlag();
+                jb_setQuitFlag();
                 
                 code = jade::EXITCODE_STDERR;
             }

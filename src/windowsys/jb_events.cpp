@@ -220,12 +220,12 @@ namespace
 
 #if defined PLATFORM_XWS_GNUPOSIX
 
-void setQuitFlag()
+void jb_setQuitFlag()
 {
     jade::scoped_lock< jade::mutex > slock( quit_mutex );
     quit_flag = true;
 }
-int getQuitFlag()
+int jb_getQuitFlag()
 {
     jade::scoped_lock< jade::mutex > slock( quit_mutex );
     return ( int )quit_flag;
@@ -235,7 +235,7 @@ namespace jade
 {
     bool HandleEvents_task::execute( task_mask* caller_mask )
     {
-        if( getQuitFlag() )
+        if( jb_getQuitFlag() )
         {
             ff::write( jb_out, "Quitting...\n" );
             
