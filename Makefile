@@ -53,7 +53,7 @@ clean:
 # TODO: Consider using a perl script for nicer output
 #| awk -F: '{ print $$1":"$$2":\n    "; for(i=3;i<NF;i++){printf " %s", $$i} printf "\n" }'
 todo:
-	grep -nr --include \* --exclude-dir=make "TODO:[ ]\+" .  # Using '[ ]' so the grep line is ignored by grep
+	@grep -nr --include \* --exclude-dir=make "\(TODO\|WARNING\|FIXME\):[ ]\+" .  # Using '[ ]' so the grep line is ignored by grep
 
 linecount:
 	wc -l `find ./src -type f`

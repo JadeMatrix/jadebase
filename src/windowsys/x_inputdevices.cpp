@@ -239,6 +239,7 @@ namespace jade
                                 throw exception( "openTabletDevices(): X class 'class' member hack does not work" );
                             // switch( x_any -> class )                         // Can't access XAny::class directly as 'class' is a keyword in C++
                             switch( *( ( long* )x_any  ) )                      // Luckily we know that class should be the first member of XAny
+                                                                                // WARNING: Accessing this way may be a potential vulnerability
                             {
                             case ButtonClass:
                                 {
