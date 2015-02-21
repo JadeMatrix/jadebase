@@ -32,6 +32,7 @@
 #include "../gui/jb_group.hpp"
 #include "../gui/jb_scrollset.hpp"
 #include "../gui/jb_image_rsrc.hpp"
+#include "../gui/jb_text_rsrc.hpp"
 #include "../gui/jb_canvasview.hpp"
 
 /******************************************************************************//******************************************************************************/
@@ -182,19 +183,23 @@ namespace jade
             
             group* test_group_a = new group( *this, 0, 0, 256, 256 );
             
-            // #define ICON_FILE "make/BQTDraw/Resources/gui_icons.png"
-            for( int i = 0; i < 11; ++i )
-            {
-                int pos[] = { 10 + ( i / 5 ) * 30,
-                              10 + ( i % 5 ) * 30 };
+            // // #define ICON_FILE "make/BQTDraw/Resources/gui_icons.png"
+            // for( int i = 0; i < 11; ++i )
+            // {
+            //     int pos[] = { 10 + ( i / 5 ) * 30,
+            //                   10 + ( i % 5 ) * 30 };
                 
-                button* b = new button( *this, pos[ 0 ], pos[ 1 ], 27, 27 );
+            //     button* b = new button( *this, pos[ 0 ], pos[ 1 ], 27, 27 );
                 
-                // b -> setContents( new image_rsrc( ICON_FILE, 0, i * 15, 15, 15 ),
-                //                   CENTER_CENTER );
+            //     // b -> setContents( new image_rsrc( ICON_FILE, 0, i * 15, 15, 15 ),
+            //     //                   CENTER_CENTER );
                 
-                test_group_a -> addElement( b );
-            }
+            //     test_group_a -> addElement( b );
+            // }
+            
+            button* b = new button( *this, 10, 10, 150, 27 );
+            b -> setContents( new text_rsrc( 12.0f, GUI_LABEL_FONT, "Hello World" ), CENTER_CENTER );
+            test_group_a -> addElement( b );
             
             // Group B
             

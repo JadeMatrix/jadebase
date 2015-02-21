@@ -211,7 +211,7 @@ namespace jade
         switch( e.type )
         {
         case STROKE:
-            // TODO: Consider using a series of if statements here, as in
+            // WARNING: Consider using a series of if statements here, as in
             // the very unlikely case that the event.stroke's position and
             // prev_pos are the same & both outside the button (window::
             // acceptEvent() should prevent this) as the button state will bug
@@ -346,7 +346,7 @@ namespace jade
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
-            glPushMatrix(); // Draw vertical centers
+            glPushMatrix();                                                     // Draw vertical centers
             {
                 glTranslatef( BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );
                 glScalef( dimensions[ 0 ] - BUTTON_MIN_WIDTH, 1.0f, 1.0f );
@@ -356,7 +356,7 @@ namespace jade
             }
             glPopMatrix();
             
-            glPushMatrix(); // Draw horizontal centers
+            glPushMatrix();                                                     // Draw horizontal centers
             {
                 glTranslatef( 0.0f, BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
                 glScalef( 1.0f, dimensions[ 1 ] - BUTTON_MIN_HEIGHT, 1.0f );
@@ -366,7 +366,7 @@ namespace jade
             }
             glPopMatrix();
             
-            glPushMatrix(); // Center
+            glPushMatrix();                                                     // Center
             {
                 glTranslatef( BUTTON_MIN_WIDTH / 2.0f, BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
                 glScalef( dimensions[ 0 ] - BUTTON_MIN_WIDTH, dimensions[ 1 ] - BUTTON_MIN_HEIGHT, 1.0f );
@@ -374,7 +374,7 @@ namespace jade
             }
             glPopMatrix();
             
-            glPushMatrix(); // Corners
+            glPushMatrix();                                                     // Corners
             {
                 top_set -> top_left -> draw();
                 glTranslatef( dimensions[ 0 ] - BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );

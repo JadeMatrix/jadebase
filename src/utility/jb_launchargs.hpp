@@ -21,11 +21,11 @@
 
 namespace jade
 {
-    typedef bool (* launcharg_func )( std::string arg );
-    void registerArgParser( launcharg_func func,
-                            char flag,
+    typedef bool (* launcharg_callback )( std::string arg );
+    void registerArgParser( launcharg_callback callback,
+                            char        flag,
                             std::string long_flag,
-                            bool require_arg,
+                            bool        require_arg,
                             std::string arg_desc,
                             std::string desc );                                 // Not thread-safe
     

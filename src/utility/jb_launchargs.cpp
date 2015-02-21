@@ -58,16 +58,16 @@ namespace
     // Storage for launch arguments ////////////////////////////////////////////
     struct launcharg_data
     {
-        jade::launcharg_func func;
-        std::string          long_flag;
-        bool                 require_arg;
-        std::string          arg_desc;
-        std::string          desc;
+        jade::launcharg_callback callback;
+        std::string long_flag;
+        bool        require_arg;
+        std::string arg_desc;
+        std::string desc;
     };
     std::map< char, launcharg_data > parse_data;
     bool launch_args_parsed = false;
     
-    std::string getFlagsString()
+    std::string getFlagsString()                                                // Prints in simple ASCII order by flag for now
     {
         // Figure out padding widths ///////////////////////////////////////////
         
@@ -197,17 +197,17 @@ namespace
 
 namespace jade
 {
-    void registerArgParser( launcharg_func func,
-                            char           flag,
-                            std::string    long_flag,
-                            bool           require_arg,
-                            std::string    arg_desc,
-                            std::string    desc )
+    void registerArgParser( launcharg_callback callback,
+                            char        flag,
+                            std::string long_flag,
+                            bool        require_arg,
+                            std::string arg_desc,
+                            std::string desc )
     {
         if( launch_args_parsed )
             throw exception( "registerArgParser(): Launch arguments already parsed" );
         
-        parse_data[ flag ].func        = func;
+        parse_data[ flag ].callback    = callback;
         parse_data[ flag ].long_flag   = long_flag;
         parse_data[ flag ].require_arg = require_arg;
         parse_data[ flag ].arg_desc    = arg_desc;
@@ -312,7 +312,7 @@ namespace jade
                     throw e;
                 }
                 else
-                    return_val = parse_data[ flag ].func( optarg ? optarg : "" );   // optarg will be NULL if not used
+                    return_val = parse_data[ flag ].callback( optarg ? optarg : "" );   // optarg will be NULL if not used
             }
             
             delete[] long_flags;
