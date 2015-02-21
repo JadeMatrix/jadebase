@@ -41,6 +41,10 @@ namespace jade
     
     void text_rsrc::updatePixels()
     {
+        // WARNING: While setString() will almost always be called from the main
+        // thread (element creation, changing due to events), there may be cases
+        // where it is not.  Fix this if it becomes a problem.
+        
         scoped_lock< mutex > slock( text_mutex );
         
         text_update_context context;
@@ -273,6 +277,8 @@ namespace jade
         max_dimensions[ 0 ] = -1;
         max_dimensions[ 1 ] = -1;
         
+        enable_baseline = true;
+        
         ellipsize = NONE;
         hinting_enabled = false;
         antialiasing_enabled = true;
@@ -304,10 +310,6 @@ namespace jade
         
         point_size = p;
         
-        // TODO: While setString() will almost always be called from the main
-        // thread (element creation, changing due to events), there may be cases
-        // where it is not.  Fix this if it becomes a problem.
-        
         update_tex = true;
         updatePixels();
     }
@@ -323,10 +325,6 @@ namespace jade
         scoped_lock< mutex > slock( text_mutex );
         
         string = s;
-        
-        // TODO: While setString() will almost always be called from the main
-        // thread (element creation, changing due to events), there may be cases
-        // where it is not.  Fix this if it becomes a problem.
         
         update_tex = true;
         updatePixels();
@@ -375,6 +373,19 @@ namespace jade
         updatePixels();
     }
     
+    bool text_rsrc::getEnableBaseline()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return enable_baseline;
+    }
+    void text_rsrc::setEnableBaseline( bool b )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        enable_baseline = b;
+    }
+    
     bool text_rsrc::getHinting()
     {
         scoped_lock< mutex > slock( text_mutex );
@@ -418,7 +429,8 @@ namespace jade
         {
             glBindTexture( GL_TEXTURE_2D, gl_tex );
             
-            glTranslatef( tex_offset[ 0 ], tex_offset[ 1 ], 0.0f );
+            if( enable_baseline )
+                glTranslatef( tex_offset[ 0 ], tex_offset[ 1 ], 0.0f );
             
             glBegin( GL_QUADS );
             {

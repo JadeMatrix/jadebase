@@ -55,6 +55,7 @@ namespace jade
         float point_size;
         float color[ 4 ];
         int max_dimensions[ 2 ];
+        bool enable_baseline;
         ellipsis_mode ellipsize;
         bool hinting_enabled;
         bool antialiasing_enabled;
@@ -93,6 +94,9 @@ namespace jade
         void                  setMaxDimensions( int w,
                                                 int h,
                                                 ellipsis_mode e = NONE );       // If w = -1 e is ignored
+        
+        bool getEnableBaseline();
+        void setEnableBaseline( bool b );                                       // Centered baseline obeys writing direction (horizontal/vertical)
         
         bool getHinting();
         void setHinting( bool h );

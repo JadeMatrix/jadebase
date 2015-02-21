@@ -198,7 +198,9 @@ namespace jade
             // }
             
             button* b = new button( *this, 10, 10, 150, 27 );
-            b -> setContents( new text_rsrc( 12.0f, GUI_LABEL_FONT, "Hello World" ), CENTER_CENTER );
+            text_rsrc* t = new text_rsrc( 12.0f, GUI_LABEL_FONT, "Hello World" );
+            t -> setEnableBaseline( false );
+            b -> setContents( t, CENTER_CENTER );
             test_group_a -> addElement( b );
             
             // Group B
