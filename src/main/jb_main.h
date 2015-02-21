@@ -19,6 +19,7 @@ extern "C"
 {
 #endif
 
+void jb_registerLaunchArgs();                                                   // Called by the platform main function to add arguments to parse
 bool jb_parseLaunchArgs( int argc, char* argv[] );                              // Returns true if execution should continue; a C wrapper for the C++ function,
                                                                                 // this handles any exceptions from jade::parseLaunchArgs()
 

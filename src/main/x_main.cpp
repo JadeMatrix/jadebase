@@ -46,6 +46,8 @@ int main( int argc, char* argv[] )
         ff::write( jb_out, "Could not connect to X server\n" );
     else
     {
+        jb_registerLaunchArgs();
+        
         if( jb_parseLaunchArgs( argc, argv ) )
             return_code = jb_main();
         

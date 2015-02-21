@@ -17,6 +17,8 @@
 
 int main( int argc, char* argv[] )
 {
+    jb_registerLaunchArgs();
+    
     if( jb_parseLaunchArgs( argc, argv ) )
     {
         NSAutoreleasePool*    pool = [ [ NSAutoreleasePool alloc ] init ];
