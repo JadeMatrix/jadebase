@@ -71,6 +71,12 @@ linux: build_linux
 windows:
 	# Not supported yet
 
+test: linux_install
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
+	mkdir -p ${BUILDDIR}
+	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
+
 ################################################################################
 
 # TODO: consider using macro(s)
@@ -86,6 +92,7 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_tabset.o \
 				${OBJDIR}/gui.jb_text_rsrc.o \
 				${OBJDIR}/gui.jb_named_resources.o \
+				${OBJDIR}/main.jb_main.o \
 				${OBJDIR}/tasking.jb_taskexec.o \
 				${OBJDIR}/tasking.jb_taskqueue.o \
 				${OBJDIR}/threading.jb_condition.o \
@@ -95,6 +102,7 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/threading.jb_thread.o \
 				${OBJDIR}/utility.jb_exception.o \
 				${OBJDIR}/utility.jb_gl.o \
+				${OBJDIR}/utility.jb_launchargs.o \
 				${OBJDIR}/utility.jb_platform.c.o \
 				${OBJDIR}/utility.jb_settings.o \
 				${OBJDIR}/utility.jb_timestamp.o \
@@ -129,13 +137,13 @@ osx_install: osx
 	@echo "No install yet"
 
 linux_install: linux
-	sudo mkdir -p /opt/lib
-	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" /opt/lib/
-	sudo ln -f "/opt/lib/lib${PROJNAME}-${CC}.so.0.1" "/opt/lib/lib${PROJNAME}-${CC}.so.0"
-	sudo ln -f "/opt/lib/lib${PROJNAME}-${CC}.so.0" "/opt/lib/lib${PROJNAME}-${CC}.so"
-	sudo mkdir -p /opt/include/jadebase
-	cd ${SOURCEDIR}; sudo find -type f -name "*.h*" -exec cp --parents {} /opt/include/jadebase/ \;
-	sudo cp ${SOURCEDIR}/main/jb_main.cpp /opt/include/jadebase/
+	sudo mkdir -p /usr/local/lib
+	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" /usr/local/lib/
+	sudo ln -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0.1" "/usr/local/lib/lib${PROJNAME}-${CC}.so.0"
+	sudo ln -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0" "/usr/local/lib/lib${PROJNAME}-${CC}.so"
+	sudo mkdir -p /usr/local/include/${PROJNAME}
+	cd ${SOURCEDIR}; sudo find -type f -name "*.h*" -exec cp --parents {} /usr/local/include/${PROJNAME}/ \;
+	sudo cp ${SOURCEDIR}/main/jb_main.cpp /usr/local/include/${PROJNAME}/
 
 ################################################################################
 
@@ -149,7 +157,7 @@ build_osx: ${CORE_OBJECTS} ${OSX_OBJECTS}
 build_linux: ${CORE_OBJECTS} ${LINUX_OBJECTS}
 	make fastformat
 	mkdir -p ${BUILDDIR}
-	${CPPC} -shared -Wl,-soname,libjadebase-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lpthread -lX11 -lXext -lXi $? ${FF_OBJECTS}
+	${CPPC} -shared -Wl,-soname,lib${PROJNAME}-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lpthread -lX11 -lXext -lXi $? ${FF_OBJECTS}
 
 fastformat:
 	@echo Trying to automatically build FastFormat\; makefile may need manual editing to compile on some platforms
@@ -217,6 +225,6 @@ ${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
 
 ################################################################################
 
-.PHONY: fastformat build_linux build_osx osx linux windows clean todo linecount
+.PHONY: fastformat build_linux build_osx osx linux windows clean todo linecount linux_install
 
 
