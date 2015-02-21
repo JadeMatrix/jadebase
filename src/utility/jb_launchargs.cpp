@@ -17,8 +17,10 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
 #include <getopt.h>
@@ -44,48 +46,173 @@
 
 namespace
 {
-    #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
-    struct option long_flags[] = { {         "help",       no_argument, NULL, 'h' },
-                                   {      "version",       no_argument, NULL, 'v' },
-                                   {    "open-file", required_argument, NULL, 'f' },
-                                   {     "log-file", required_argument, NULL, 'l' },
-                                   {     "dev-mode",       no_argument, NULL, 'd' },
-                                   { "task-threads", required_argument, NULL, 't' },
-                                   {  "user-config", required_argument, NULL, 'g' },
-                                   {  "prog-config", required_argument, NULL, 'G' },
-                                   {              0,                 0,    0,   0 } };
-    #else
-    #error "Launch argument parsing not implemented on non-POSIX platforms"
-    #endif
-    
-    std::string flags_list = "[ -h | --help         ]            Prints this guide & exits\n"
-                             "[ -v | --version      ]            Prints the software version & exits\n"
-                             "[ -f | --open-file    ] FILE       Opens file on startup\n"
-                             "[ -l | --log-file     ] FILE       Sets a log file, none by default\n"
-                             "[ -d | --dev-mode     ]            Enables developer mode options\n"
-                             "[ -t | --task-threads ] UINT       Limits the max number of task threads; 0 = no limit\n"
-                             "[ -g | --user-config  ] FILE       Load a user config file (saves changes to last file specified)\n"
-                             "[ -G | --prog-config  ] FILE       Load a program config file (does not save changes)\n"
-                             "Options are applied in order, so it is recommended to change the log file first to log any init errors\n";
-    
-    // Engine options are immutable after parseLaunchArgs is called.
+    // Options are immutable after parseLaunchArgs is called
     bool          dev_mode;
     std::string   log_file_name;
     long          task_thread_limit;
-    std::vector< std::string > startup_files;
     std::string   user_settings_file;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
+    
+    // Storage for launch arguments ////////////////////////////////////////////
+    struct launcharg_data
+    {
+        jade::launcharg_func func;
+        std::string          long_flag;
+        bool                 require_arg;
+        std::string          arg_desc;
+        std::string          desc;
+    };
+    std::map< char, launcharg_data > parse_data;
+    bool launch_args_parsed = false;
+    
+    std::string getFlagsString()
+    {
+        return "test string";
+    }
+    
+    // Launcharg parser functions //////////////////////////////////////////////
+    
+    bool parse_help( std::string arg )
+    {
+        ff::write( jb_out, getFlagsString(), "\n" );
+        
+        return false;
+    }
+    bool parse_version( std::string arg )
+    {
+        ff::write( jb_out, JADEBASE_VERSION_STRING, "\n" );
+        
+        return false;
+    }
+    bool parse_logFile( std::string arg )
+    {
+        log_fb.open( arg.c_str(), std::ios::out );
+        
+        if( !log_fb.is_open() )
+        {
+            jade::exception e;
+            ff::write( *e,
+                       "Could not open \"",
+                       arg,
+                       "\" to use as a log file" );
+            throw e;
+        }
+        
+        ff::write( jb_out, "Using file \"", arg, "\" for logging\n" );
+        
+        log_stream.rdbuf( &log_fb );
+        
+        return true;
+    }
+    bool parse_devMode( std::string arg )
+    {
+        ff::write( jb_out, "Developer mode enabled\n" );
+        dev_mode = true;
+        
+        return true;
+    }
+    bool parse_taskThreads( std::string arg )
+    {
+        long arg_l = strtol( arg.c_str(), NULL, 0 );
+        
+        if( arg_l < 0 )
+            throw jade::exception( "Task thread limit must be 0 or greater" );
+        else
+            task_thread_limit = arg_l;
+        
+        ff::write( jb_out, "Task threads limited to ", task_thread_limit, "\n" );
+        
+        return true;
+    }
+    bool parse_userConfig( std::string arg )
+    {
+        jade::loadSettingsFile( arg, true, true );
+        user_settings_file = arg;
+        
+        return true;
+    }
+    bool parse_progConfig( std::string arg )
+    {
+        jade::loadSettingsFile( arg, false, true );
+        
+        return true;
+    }
 }
 
-/* jb_launchargs.hpp *********************************************************//******************************************************************************/
+/* jb_launchargs.hpp **********************************************************//******************************************************************************/
 
 namespace jade
 {
+    void registerArgParser( launcharg_func func,
+                            char           flag,
+                            std::string    long_flag,
+                            bool           require_arg,
+                            std::string    arg_desc,
+                            std::string    desc )
+    {
+        if( launch_args_parsed )
+            throw exception( "registerArgParser(): Launch arguments already parsed" );
+        
+        parse_data[ flag ].func        = func;
+        parse_data[ flag ].long_flag   = long_flag;
+        parse_data[ flag ].require_arg = require_arg;
+        parse_data[ flag ].arg_desc    = arg_desc;
+        parse_data[ flag ].desc        = desc;
+    }
+    
     #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
     bool parseLaunchArgs( int argc, char* argv[] )
     {
+        if( launch_args_parsed )
+            throw exception( "parseLaunchArgs(): Launch arguments already parsed" );
+        
+        registerArgParser( parse_help,
+                           'h',
+                           "help",
+                           false,
+                           "",
+                           "Prints this guide & exits" );
+        registerArgParser( parse_version,
+                           'v',
+                           "version",
+                           false,
+                           "",
+                           "Prints the software version & exits" );
+        registerArgParser( parse_logFile,
+                           'l',
+                           "log-file",
+                           true,
+                           "FILE",
+                           "Sets a log file, none by default" );
+        registerArgParser( parse_devMode,
+                           'd',
+                           "dev-mode",
+                           false,
+                           "",
+                           "Enables developer mode options" );
+        registerArgParser( parse_taskThreads,
+                           't',
+                           "task-threads",
+                           true,
+                           "UINT",
+                           "Limits the max number of task threads; 0 = no limit" );
+        registerArgParser( parse_userConfig,
+                           'g',
+                           "user-config",
+                           true,
+                           "FILE",
+                           "Load a user config file (saves changes to last file specified)" );
+        registerArgParser( parse_progConfig,
+                           'G',
+                           "prog-config",
+                           true,
+                           "FILE",
+                           "Load a program config file (does not save changes)" );
+        
+        launch_args_parsed = true;
+        
         try
         {
             dev_mode           = LAUNCHVAL_DEVMODE;
@@ -93,74 +220,52 @@ namespace jade
             task_thread_limit  = LAUNCHVAL_TASKTHREADS;
             user_settings_file = LAUNCHVAL_USETFILE;
             
-            int flag;                                                           // <--
+            std::string val_str;
             
-            while( ( flag = getopt_long( argc, argv, "hvf:l:dt:g:G:", long_flags, NULL ) ) != -1 )
+            struct option* long_flags = new struct option[ parse_data.size() + 1 ];
+            int i = 0;
+            for( std::map< char, launcharg_data >::iterator iter = parse_data.begin();
+                 iter != parse_data.end();
+                 ++iter )
             {
-                switch( flag )
+                val_str += iter -> first;
+                if( iter -> second.require_arg )
+                    val_str += ':';
+                
+                long_flags[ i ].name    = iter -> second.long_flag.c_str();
+                long_flags[ i ].has_arg = iter -> second.require_arg ? required_argument : no_argument;
+                long_flags[ i ].flag    = NULL;
+                long_flags[ i ].val     = iter -> first;
+                
+                ++i;
+            }
+            long_flags[ i ].name    = NULL;
+            long_flags[ i ].has_arg = 0x00;
+            long_flags[ i ].flag    = NULL;
+            long_flags[ i ].val     = '\0';
+            
+            int flag;
+            bool return_val = true;
+            
+            while( return_val &&
+                   ( flag = getopt_long( argc, argv, val_str.c_str(), long_flags, NULL ) ) != -1 )
+            {
+                if( !parse_data.count( flag ) )
                 {
-                case 'h':
-                    ff::write( jb_out, flags_list );
-                    return false;
-                case 'v':
-                    ff::write( jb_out, JADEBASE_VERSION_STRING, "\n" );
-                    return false;
-                case 'f':
-                    {
-                        ff::write( jb_out, "File opening not implemented yet\n" ); // TODO: implement
-                    }
-                    break;
-                case 'l':
-                    {
-                        log_file_name = optarg;
-                        
-                        log_fb.open( log_file_name.c_str(), std::ios::out );
-                        
-                        if( !log_fb.is_open() )
-                        {
-                            throw exception( "Could not open \'"
-                                             + log_file_name
-                                             + "\' to use as a log file" );
-                        }
-                        
-                        ff::write( jb_out, "Using file '", log_file_name, "' for logging\n" );
-                        
-                        log_stream.rdbuf( &log_fb );
-                    }
-                    break;
-                case 'd':
-                    ff::write( jb_out, "Developer mode enabled\n" );
-                    dev_mode = true;
-                    break;
-                case 't':
-                    {
-                        long optarg_l = strtol( optarg, NULL, 0 );
-                        
-                        if( optarg_l < 0 )
-                            throw exception( "Task thread limit must be 0 or greater" );
-                        else
-                            task_thread_limit = optarg_l;
-                        
-                        ff::write( jb_out, "Task threads limited to ", task_thread_limit, "\n" );
-                    }
-                    break;
-                case 'g':
-                    {
-                        loadSettingsFile( optarg, true, true );
-                        user_settings_file = optarg;
-                    }
-                    break;
-                case 'G':
-                    {
-                        loadSettingsFile( optarg, false, true );
-                    }
-                    break;
-                default:
-                    throw exception( "Invalid flag specified; valid flags are:\n" + flags_list );
+                    exception e;
+                    ff::write( *e,
+                               "Invalid flag specified; valid flags are:\n",
+                               getFlagsString() );
+                    delete[] long_flags;
+                    throw e;
                 }
+                else
+                    return_val = parse_data[ flag ].func( optarg ? optarg : "" );   // optarg will be NULL if not used
             }
             
-            return true;
+            delete[] long_flags;
+            
+            return return_val;
         }
         catch( exception e )
         {
@@ -189,17 +294,13 @@ namespace jade
     {
         return task_thread_limit;
     }
-    const std::vector< std::string >& getStartupFiles()
-    {
-        return startup_files;
-    }
     std::string getUserSettingsFileName()
     {
         return user_settings_file;
     }
 }
 
-/* jb_log.hpp ****************************************************************//******************************************************************************/
+/* jb_log.hpp *****************************************************************//******************************************************************************/
 
 namespace jade
 {

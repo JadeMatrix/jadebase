@@ -58,16 +58,8 @@ todo:
 linecount:
 	wc -l `find ./src -type f`
 
-################################################################################
-
 # linux_profile: linux
 # 	valgrind --tool=callgrind "${MAKEDIR}/${PROJNAME}/Linux/${PROJNAME}" -d
-
-test:
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
-	mkdir -p ${BUILDDIR}
-	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
 
 ################################################################################
 
@@ -125,13 +117,21 @@ FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 
 ################################################################################
 
+test:
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
+	mkdir -p ${BUILDDIR}
+	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
+
+################################################################################
+
 osx_install:
 	@echo "No working OS X build yet"
 
 osx_uninstall:
 	@echo "No working OS X build yet"
 
-linux_install: ${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1
+linux_install: linux_build
 	sudo mkdir -p ${INSTALL_LOC}/lib
 	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${INSTALL_LOC}/lib/
 	sudo ln -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0.1" "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0"
@@ -150,12 +150,12 @@ linux_uninstall:
 
 # ${OBJDIR}/jb_.o
 
-# build_osx: ${CORE_OBJECTS} ${OSX_OBJECTS}
+# osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS}
 # 	make fastformat
 # 	# mkdir -p ${BUILDDIR}
 # 	# ${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${FRAMEWORKS} ${LINKS} -lobjc $? ${FF_OBJECTS}
 
-${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1: ${CORE_OBJECTS} ${LINUX_OBJECTS}
+linux_build: ${CORE_OBJECTS} ${LINUX_OBJECTS}
 	make fastformat
 	mkdir -p ${BUILDDIR}
 	${CPPC} -shared -Wl,-soname,lib${PROJNAME}-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lpthread -lX11 -lXext -lXi $? ${FF_OBJECTS}
@@ -229,8 +229,12 @@ ${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
 .PHONY:	clean \
 		fastformat \
 		linecount \
+		linux \
+		linux_build \
 		linux_install \
 		linux_uninstall \
+		osx \
+		osx_build \
 		osx_install \
 		osx_uninstall \
 		todo \

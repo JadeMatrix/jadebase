@@ -3,12 +3,13 @@
  * 
  * Simple jadebase test program
  * 
+ * make/build/jb_test -d -G "resources/cfg/defaults_general.cfg" -G "resources/cfg/defaults_linux.cfg"
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include <string>
-
 
 #include <jadebase/jadebase.hpp>
 #include <lua.hpp>
@@ -17,39 +18,51 @@
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
+namespace
+{
+    std::vector< std::string > startup_files;
+    
+    bool parse_StartupFiles( std::string arg )
+    {
+        startup_files.push_back( arg );
+        
+        return true;
+    }
+    
+    const std::vector< std::string >& getStartupFiles()                         // Get vector of file names to open on startup
+    {
+        return startup_files;
+    }
+}
+
 namespace jade
 {
-    // const std::vector< std::string >& getStartupFiles()                         // Get vector of file names to open on startup
-    // {
-        
-    // }
-    
     class StartJadebase_task : public task
     {
     public:
         bool execute( task_mask* caller_mask )
         {
             ff::write( jb_out,
-                       "Welcome to ",
-                       JADEBASE_VERSION_STRING,
+                       "Welcome to jb_test",
                        ( jade::getDevMode() ? " (Developer Mode)" : "" ),
                        "\n" );
             
             ff::write( jb_out,
                        "Using:\n",
+                       "  - ", JADEBASE_VERSION_STRING, " [ http://github.com/JadeMatrix/jadebase ]\n",
                        "  - Cairo ", cairo_version_string(), " [ http://cairographics.org ]\n",
                        "  - libpng ", PNG_LIBPNG_VER / 10000,
                                       ".",
                                       ( PNG_LIBPNG_VER / 100 ) % 100,
                                       ".",
-                                      PNG_LIBPNG_VER % 100, " [ http://libpng.org ] \n",
+                                      PNG_LIBPNG_VER % 100, " [ http://libpng.org ]\n",
                        "  - ", LUA_VERSION, " [ http://lua.org ]\n",
                        "  - Pango ", pango_version_string(), " [ http://pango.org ]\n" );
             
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
                 submitTask( new HandleEvents_task() );
                 
-                // const std::vector< std::string >& startup_files = getStartupFiles();
+                const std::vector< std::string >& startup_files = getStartupFiles();
                 
                 window* initial_window = new window();
                 window::manipulate* manip = new window::manipulate( initial_window );
@@ -73,12 +86,12 @@ namespace jade
 
 void jb_registerLaunchArgs()
 {
-    // registerArgParser( launcharg_func,
-    //                    'f',
-    //                    "open-file",
-    //                    true,
-    //                    "FILE",
-    //                    "Opens file on startup" );
+    jade::registerArgParser( parse_StartupFiles,
+                             'f',
+                             "open-file",
+                             true,
+                             "FILE",
+                             "Opens file on startup" );
 }
 
 int jb_main()
