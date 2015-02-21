@@ -71,7 +71,7 @@ linux: build_linux
 windows:
 	# Not supported yet
 
-test: linux_install
+test:
 	mkdir -p ${OBJDIR}
 	${CPPC} ${DEFINES} -Wall -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
 	mkdir -p ${BUILDDIR}
@@ -136,6 +136,9 @@ FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 osx_install: osx
 	@echo "No install yet"
 
+osx_uninstall:
+	@echo "No install yet"
+
 linux_install: linux
 	sudo mkdir -p /usr/local/lib
 	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" /usr/local/lib/
@@ -144,6 +147,12 @@ linux_install: linux
 	sudo mkdir -p /usr/local/include/${PROJNAME}
 	cd ${SOURCEDIR}; sudo find -type f -name "*.h*" -exec cp --parents {} /usr/local/include/${PROJNAME}/ \;
 	sudo cp ${SOURCEDIR}/main/jb_main.cpp /usr/local/include/${PROJNAME}/
+
+linux_uninstall:
+	sudo rm -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0.1"
+	sudo rm -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0"
+	sudo rm -f "/usr/local/lib/lib${PROJNAME}-${CC}.so"
+	sudo rm -rf "/usr/local/include/jadebase"
 
 ################################################################################
 
@@ -225,6 +234,18 @@ ${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
 
 ################################################################################
 
-.PHONY: fastformat build_linux build_osx osx linux windows clean todo linecount linux_install
+.PHONY:	build_linux \
+		build_osx \
+		clean \
+		fastformat \
+		linecount \
+		linux \
+		linux_install \
+		linux_uninstall \
+		osx \
+		osx_install \
+		osx_uninstall \
+		todo \
+		windows
 
 

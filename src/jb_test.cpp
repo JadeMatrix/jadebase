@@ -51,9 +51,13 @@ namespace jade
                 
                 // const std::vector< std::string >& startup_files = getStartupFiles();
                 
-                ff::write( jb_out, "Hello World\n" );
+                window* initial_window = new window();
+                window::manipulate* manip = new window::manipulate( initial_window );
+                submitTask( manip );
                 
-                jb_setQuitFlag();
+                // submitTask( new window::manipulate() );
+                
+                // jb_setQuitFlag();
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             return true;
@@ -85,15 +89,13 @@ int jb_main()
     {
         jade::initFromLaunchArgs();
         
-        if( jade::initTaskSystem( ( long )0 ) )
-        // if( jade::initTaskSystem( true ) )
+        // if( jade::initTaskSystem( ( long )0 ) )
+        if( jade::initTaskSystem( true ) )
         {
             jade::submitTask( new jade::StartJadebase_task() );
             
             jade::task_mask main_mask = jade::TASK_TASK | jade::TASK_SYSTEM;
             jade::becomeTaskThread( &main_mask );
-            
-            // ff::write( jb_out, "Hello World\n" );
             
             jade::deInitTaskSystem();
             
