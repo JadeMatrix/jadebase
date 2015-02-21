@@ -69,7 +69,59 @@ namespace
     
     std::string getFlagsString()
     {
-        return "test string";
+        // Figure out padding widths ///////////////////////////////////////////
+        
+        int long_flag_width = 0;
+        int  arg_desc_width = 0;
+        
+        for( std::map< char, launcharg_data >::iterator iter = parse_data.begin();
+             iter != parse_data.end();
+             ++iter )
+        {
+            if( long_flag_width < iter -> second.long_flag.length() )
+                long_flag_width = iter -> second.long_flag.length();
+            
+            if( arg_desc_width < iter -> second.arg_desc.length() )
+                arg_desc_width = iter -> second.arg_desc.length();
+        }
+        
+        // Create whitespace string ////////////////////////////////////////////
+        
+        int whitespace_width = long_flag_width > arg_desc_width ? long_flag_width : arg_desc_width;
+        char* whitespace = new char[ whitespace_width + 1 ];
+        
+        for( int i = 0; i < whitespace_width; ++i )
+            whitespace[ i ] = ' ';
+        whitespace[ whitespace_width ] = '\0';
+        
+        // Create formatted string /////////////////////////////////////////////
+        
+        std::string flags_string;
+        
+        for( std::map< char, launcharg_data >::iterator iter = parse_data.begin();
+             iter != parse_data.end();
+             ++iter )
+        {
+            ff::write( flags_string,
+                       "[ -",
+                       ff::ch( iter -> first ),
+                       " | --",
+                       iter -> second.long_flag,
+                       whitespace + iter -> second.long_flag.length() + ( whitespace_width - long_flag_width ),
+                       " ] ",
+                       iter -> second.arg_desc,
+                       whitespace + iter -> second.arg_desc.length() + ( whitespace_width - arg_desc_width ),
+                       "       ",
+                       iter -> second.desc,
+                       "\n" );
+        }
+        
+        ff::write( flags_string,
+                   "Options are applied in order, so it is recommended to change the log file first to log any init errors" );
+        
+        // Return //////////////////////////////////////////////////////////////
+        
+        return flags_string;
     }
     
     // Launcharg parser functions //////////////////////////////////////////////
