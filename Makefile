@@ -43,6 +43,8 @@ DEFINES = -g -DDEBUG -DPLATFORM_XWS_GNUPOSIX
 
 PROJNAME = jadebase
 
+INSTALL_LOC = /usr/local
+
 ################################################################################
 
 clean:
@@ -60,16 +62,6 @@ linecount:
 
 # linux_profile: linux
 # 	valgrind --tool=callgrind "${MAKEDIR}/${PROJNAME}/Linux/${PROJNAME}" -d
-
-################################################################################
-
-osx:
-	@echo "No working OS X build yet"
-
-linux: build_linux
-
-windows:
-	# Not supported yet
 
 test:
 	mkdir -p ${OBJDIR}
@@ -133,37 +125,37 @@ FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 
 ################################################################################
 
-osx_install: osx
-	@echo "No install yet"
+osx_install:
+	@echo "No working OS X build yet"
 
 osx_uninstall:
-	@echo "No install yet"
+	@echo "No working OS X build yet"
 
-linux_install: linux
-	sudo mkdir -p /usr/local/lib
-	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" /usr/local/lib/
-	sudo ln -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0.1" "/usr/local/lib/lib${PROJNAME}-${CC}.so.0"
-	sudo ln -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0" "/usr/local/lib/lib${PROJNAME}-${CC}.so"
-	sudo mkdir -p /usr/local/include/${PROJNAME}
-	cd ${SOURCEDIR}; sudo find -type f -name "*.h*" -exec cp --parents {} /usr/local/include/${PROJNAME}/ \;
-	sudo cp ${SOURCEDIR}/main/jb_main.cpp /usr/local/include/${PROJNAME}/
+linux_install: ${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1
+	sudo mkdir -p ${INSTALL_LOC}/lib
+	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${INSTALL_LOC}/lib/
+	sudo ln -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0.1" "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0"
+	sudo ln -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0" "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so"
+	sudo mkdir -p ${INSTALL_LOC}/include/${PROJNAME}
+	cd ${SOURCEDIR}; sudo find -type f -name "*.h*" -exec cp --parents {} ${INSTALL_LOC}/include/${PROJNAME}/ \;
+	sudo cp ${SOURCEDIR}/main/jb_main.cpp ${INSTALL_LOC}/include/${PROJNAME}/
 
 linux_uninstall:
-	sudo rm -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0.1"
-	sudo rm -f "/usr/local/lib/lib${PROJNAME}-${CC}.so.0"
-	sudo rm -f "/usr/local/lib/lib${PROJNAME}-${CC}.so"
-	sudo rm -rf "/usr/local/include/jadebase"
+	sudo rm -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0.1"
+	sudo rm -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0"
+	sudo rm -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so"
+	sudo rm -rf "${INSTALL_LOC}/include/jadebase"
 
 ################################################################################
 
 # ${OBJDIR}/jb_.o
 
-build_osx: ${CORE_OBJECTS} ${OSX_OBJECTS}
-	make fastformat
-	# mkdir -p ${BUILDDIR}
-	# ${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${FRAMEWORKS} ${LINKS} -lobjc $? ${FF_OBJECTS}
+# build_osx: ${CORE_OBJECTS} ${OSX_OBJECTS}
+# 	make fastformat
+# 	# mkdir -p ${BUILDDIR}
+# 	# ${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${FRAMEWORKS} ${LINKS} -lobjc $? ${FF_OBJECTS}
 
-build_linux: ${CORE_OBJECTS} ${LINUX_OBJECTS}
+${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1: ${CORE_OBJECTS} ${LINUX_OBJECTS}
 	make fastformat
 	mkdir -p ${BUILDDIR}
 	${CPPC} -shared -Wl,-soname,lib${PROJNAME}-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lpthread -lX11 -lXext -lXi $? ${FF_OBJECTS}
@@ -234,15 +226,11 @@ ${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
 
 ################################################################################
 
-.PHONY:	build_linux \
-		build_osx \
-		clean \
+.PHONY:	clean \
 		fastformat \
 		linecount \
-		linux \
 		linux_install \
 		linux_uninstall \
-		osx \
 		osx_install \
 		osx_uninstall \
 		todo \
