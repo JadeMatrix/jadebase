@@ -12,7 +12,7 @@
  * Note that text resources' origins are not at the top left (as are images'),
  * but at the baseline of the first line of text.  This means that for a single
  * line of standard horizontal left-to-right style text (like English) the
- * origin is roughly the lower left corner.
+ * origin is roughly the lower left corner (if baseline is enabled).
  * 
  */
 

@@ -237,9 +237,10 @@ namespace jade
             
             tabset* test_tabset = new tabset( *this, 0, 0, 256, 256 );
             
-            test_tabset -> addTab( test_group_a, "Open_file_A.bqt" );
-            test_tabset -> addTab( test_group_b, "難しい漢字の時.bqt" );
-            test_tabset -> addTab( test_group_c, "النص العربي.bqt" );
+            test_tabset -> addTab( test_group_a, "Roman Text testtesttesttest" );
+            test_tabset -> addTab( test_group_b, "日本語のテキスト" );
+            // test_tabset -> addTab( test_group_c, "متن فارسی" );
+            test_tabset -> addTab( test_group_c, "טקסט בעברית" );
             
             elements.push_back( test_tabset );
             

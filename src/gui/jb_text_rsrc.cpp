@@ -51,34 +51,35 @@ namespace jade
         
         // Set up Cairo then Pango with initial values /////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        if( max_dimensions[ 0 ] < 0 )
-            dimensions[ 0 ] = PANGOCAIRO_INITIAL_PX_WIDTH;
-        else
-            dimensions[ 0 ] = max_dimensions[ 0 ];
-        if( max_dimensions[ 1 ] < 0 )
-            dimensions[ 1 ] = PANGOCAIRO_INITIAL_PX_HEIGHT;
-        else
-            dimensions[ 1 ] = max_dimensions[ 1 ];
+        dimensions[ 0 ] = 0;
+        dimensions[ 1 ] = 0;
         
         updatePixels_setup( &context );
+        
+        // Get real dimensions /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        PangoRectangle p_layout_inkrect;
+        
+        pango_layout_get_extents( context.p_layout,
+                                  &p_layout_inkrect,
+                                  NULL );
+        
+        // Make sure we have enough room
+        dimensions[ 0 ] = ceil( ( double )( p_layout_inkrect.width + p_layout_inkrect.x ) / PANGO_SCALE );
+        dimensions[ 1 ] = ceil( ( double )( p_layout_inkrect.height + p_layout_inkrect.y ) / PANGO_SCALE );
+        
+        if( max_dimensions[ 0 ] > 0
+            && dimensions[ 0 ] > max_dimensions[ 0 ] )
+            dimensions[ 0 ] = max_dimensions[ 0 ];
+        if( max_dimensions[ 1 ] > 0
+            && dimensions[ 1 ] > max_dimensions[ 1 ] )
+            dimensions[ 1 ] = max_dimensions[ 1 ];
         
         // Redo everything if we need to resize ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         if( max_dimensions[ 0 ] < 0
             || max_dimensions[ 1 ] < 0 )
         {
-            // Get Pango pixel dimensions //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            
-            PangoRectangle p_layout_inkrect;
-            
-            pango_layout_get_extents( context.p_layout,
-                                      &p_layout_inkrect,
-                                      NULL );
-            
-            // Make sure we have enough room
-            dimensions[ 0 ] = ceil( ( double )( p_layout_inkrect.width + p_layout_inkrect.x ) / PANGO_SCALE );
-            dimensions[ 1 ] = ceil( ( double )( p_layout_inkrect.height + p_layout_inkrect.y ) / PANGO_SCALE );
-            
             // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             updatePixels_cleanup( &context );
@@ -93,8 +94,28 @@ namespace jade
         pango_cairo_show_layout( context.c_context,
                                  context.p_layout );                            // Render text
         
-        tex_offset[ 0 ] = 0;
-        tex_offset[ 1 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        // switch( pango_context_get_gravity( pango_layout_get_context( context.p_layout ) ) )
+        // {
+        // case PANGO_GRAVITY_EAST:
+        //     tex_offset[ 0 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 1 ] = 0;
+        //     break;
+        // case PANGO_GRAVITY_WEST:
+        //     tex_offset[ 0 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 1 ] = 0;
+        //     break;
+        // case PANGO_GRAVITY_NORTH:
+        //     tex_offset[ 0 ] = 0;
+        //     tex_offset[ 1 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        //     break;
+        // case PANGO_GRAVITY_SOUTH:
+            tex_offset[ 0 ] = 0;
+            tex_offset[ 1 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        //     break;
+        // case PANGO_GRAVITY_AUTO:
+        // default:
+        //     throw exception( "text_rsrc::updatePixels(): Pango gravity is non-cardinal direction" );
+        // }
         
         // Convert Cairo surface to RGBA for OpenGL ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -168,24 +189,24 @@ namespace jade
                        cairo_status_to_string( context -> c_status ) );
             throw e;
         }
-        cairo_surface_destroy( context -> c_surf );                                // Dereference surface
+        cairo_surface_destroy( context -> c_surf );                             // Dereference surface
          
         context -> p_layout = pango_cairo_create_layout( context -> c_context );
         
         // Customize Pango layout & font ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        if( max_dimensions[ 0 ] < 0 )
+        if( dimensions[ 0 ] == 0 )
             pango_layout_set_width( context -> p_layout,
                                     -1 );
         else
             pango_layout_set_width( context -> p_layout,
-                                    max_dimensions[ 0 ] * PANGO_SCALE );
-        if( max_dimensions[ 1 ] < 0 )
+                                    dimensions[ 0 ] * PANGO_SCALE );
+        if( dimensions[ 1 ] == 0 )
             pango_layout_set_height( context -> p_layout,
                                      -1 );
         else
             pango_layout_set_height( context -> p_layout,
-                                     max_dimensions[ 1 ] * PANGO_SCALE );
+                                     dimensions[ 1 ] * PANGO_SCALE );
         
         context -> c_fontops = cairo_font_options_create();
         
@@ -203,7 +224,7 @@ namespace jade
             cairo_font_options_set_antialias( context -> c_fontops,
                                               CAIRO_ANTIALIAS_NONE );
         
-        // TODO: Potentially set subpixel rendering
+        // TODO: Potentially set subpixel rendering (requires Pango to handle text color)
         
         pango_cairo_context_set_font_options( pango_layout_get_context( context -> p_layout ),
                                               context -> c_fontops );           // Many thanks to ui/gfc/pango_util.cc from the Chromium project, which appears
