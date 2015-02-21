@@ -72,7 +72,7 @@ namespace jade
         {
             exception e;
             ff::write( *e,
-                       "Lua error [lua_state::open()]: ",
+                       "Lua error [lua_state::run()]: ",
                        lua_tostring( state, -1 ) );
             lua_pop( state, 1 );
             throw e;

@@ -59,18 +59,12 @@ namespace jade
                        "  - ", LUA_VERSION, " [ http://lua.org ]\n",
                        "  - Pango ", pango_version_string(), " [ http://pango.org ]\n" );
             
+            submitTask( new HandleEvents_task() );
+            
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                submitTask( new HandleEvents_task() );
-                
-                const std::vector< std::string >& startup_files = getStartupFiles();
-                
-                window* initial_window = new window();
-                window::manipulate* manip = new window::manipulate( initial_window );
-                submitTask( manip );
-                
-                // submitTask( new window::manipulate() );
-                
-                // jb_setQuitFlag();
+                // window* initial_window = new window();
+                // window::manipulate* manip = new window::manipulate( initial_window );
+                // submitTask( manip );
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             std::string main_script_file= getMainScriptFileName();
