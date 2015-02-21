@@ -3,7 +3,7 @@
  * 
  * Simple jadebase test program
  * 
- * make/build/jb_test -d -G "resources/cfg/defaults_general.cfg" -G "resources/cfg/defaults_linux.cfg"
+ * make/build/jb_test -d -G "resources/cfg/defaults_general.cfg" -G "resources/cfg/defaults_linux.cfg" -s "src/jb_test.lua"
  * 
  */
 

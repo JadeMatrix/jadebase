@@ -13,14 +13,16 @@
 
 namespace
 {
-    int test_print( lua_State* state )
+    int jb_util_log( lua_State* state )
     {
         int argc = lua_gettop( state );
         
-        if( argc != 1 )
-            luaL_error( state, "Arguments != 1" );
-        else
-            ff::write( jb_out, lua_tostring( state, 1 ), "\n" );
+        std::string log_string = "Lua log message: ";
+        
+        for( int i = 0; i < argc; ++i )
+            ff::write( log_string, lua_tostring( state, i + 1 ) );
+        
+        ff::write( jb_out, log_string );
         
         return 0;
     }
@@ -32,7 +34,7 @@ namespace jade
 {
     void lua_state::initAPI()
     {
-        lua_register( state, "test_print", test_print );
+        lua_register( state, "jb_util_log", jb_util_log );
         
         // ...
     }
