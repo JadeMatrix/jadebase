@@ -94,6 +94,8 @@ namespace jade
         pango_cairo_show_layout( context.c_context,
                                  context.p_layout );                            // Render text
         
+        // TODO: Support vertical baseline
+        
         // switch( pango_context_get_gravity( pango_layout_get_context( context.p_layout ) ) )
         // {
         // case PANGO_GRAVITY_EAST:

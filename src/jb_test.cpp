@@ -73,6 +73,14 @@ namespace jade
                 // jb_setQuitFlag();
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
+            std::string main_script_file= getMainScriptFileName();
+            if( main_script_file.length() != 0 )
+            {
+                lua_state& global_lua_state( getGlobalLuaState() );
+                global_lua_state.open( main_script_file );
+                global_lua_state.run();
+            }
+            
             return true;
         }
         task_mask getMask()
@@ -107,6 +115,8 @@ int jb_main()
         {
             jade::submitTask( new jade::StartJadebase_task() );
             
+            jade::initGlobalLuaState();
+            
             jade::task_mask main_mask = jade::TASK_TASK | jade::TASK_SYSTEM;
             jade::becomeTaskThread( &main_mask );
             
@@ -138,6 +148,7 @@ int jb_main()
     
     ff::write( jb_out, "Goodbye\n" );
     
+    jade::deinitGlobalLuaState();
     jade::closeLog();
     
     return exit_code;

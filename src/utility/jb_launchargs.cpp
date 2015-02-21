@@ -37,20 +37,22 @@
 
 /* DEFAULTS *******************************************************************//******************************************************************************/
 
-#define LAUNCHVAL_DEVMODE       false
-#define LAUNCHVAL_LOGFILE       ""
-#define LAUNCHVAL_TASKTHREADS   0
-#define LAUNCHVAL_USETFILE      ""
+#define LAUNCHVAL_DEVMODE     false
+#define LAUNCHVAL_LOGFILE     ""
+#define LAUNCHVAL_TASKTHREADS 0
+#define LAUNCHVAL_USETFILE    ""
+#define LAUNCHVAL_SCRIPTFILE  ""
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
 {
     // Options are immutable after parseLaunchArgs is called
-    bool          dev_mode;
-    std::string   log_file_name;
-    long          task_thread_limit;
-    std::string   user_settings_file;
+    bool        dev_mode;
+    std::string log_file_name;
+    long        task_thread_limit;
+    std::string user_settings_file;
+    std::string main_script_file;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
@@ -191,6 +193,15 @@ namespace
         
         return true;
     }
+    bool parse_mainScript( std::string arg )
+    {
+        if( main_script_file.length() != 0 )
+            throw jade::exception( "Only one script file may be loaded on startup" );
+        
+        main_script_file = arg;
+        
+        return true;
+    }
 }
 
 /* jb_launchargs.hpp **********************************************************//******************************************************************************/
@@ -262,6 +273,12 @@ namespace jade
                            true,
                            "FILE",
                            "Load a program config file (does not save changes)" );
+        registerArgParser( parse_mainScript,
+                           's',
+                           "script",
+                           true,
+                           "FILE",
+                           "Load a Lua script" );
         
         launch_args_parsed = true;
         
@@ -271,6 +288,7 @@ namespace jade
             log_file_name      = LAUNCHVAL_LOGFILE;
             task_thread_limit  = LAUNCHVAL_TASKTHREADS;
             user_settings_file = LAUNCHVAL_USETFILE;
+            main_script_file   = LAUNCHVAL_SCRIPTFILE;
             
             std::string val_str;
             
@@ -349,6 +367,10 @@ namespace jade
     std::string getUserSettingsFileName()
     {
         return user_settings_file;
+    }
+    std::string getMainScriptFileName()
+    {
+        return main_script_file;
     }
 }
 

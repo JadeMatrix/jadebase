@@ -77,6 +77,8 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_text_rsrc.o \
 				${OBJDIR}/gui.jb_named_resources.o \
 				${OBJDIR}/main.jb_main.o \
+				${OBJDIR}/scripting.jb_lua.o \
+				${OBJDIR}/scripting.jb_luaapi.o \
 				${OBJDIR}/tasking.jb_taskexec.o \
 				${OBJDIR}/tasking.jb_taskqueue.o \
 				${OBJDIR}/threading.jb_condition.o \
@@ -202,6 +204,10 @@ ${OBJDIR}/gui.jb_%.o: ${SOURCEDIR}/gui/jb_%.cpp
 ${OBJDIR}/main.jb_%.o: ${SOURCEDIR}/main/jb_%.cpp
 	mkdir -p ${OBJDIR}
 	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.jb_$*.o
+
+${OBJDIR}/scripting.jb_%.o: ${SOURCEDIR}/scripting/jb_%.cpp
+	mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/scripting.jb_$*.o
 
 ${OBJDIR}/tasking.jb_%.o: ${SOURCEDIR}/tasking/jb_%.cpp
 	mkdir -p ${OBJDIR}

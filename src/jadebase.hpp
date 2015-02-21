@@ -29,6 +29,8 @@
 
 #include "main/jb_main.h"
 
+#include "scripting/jb_lua.hpp"
+
 #include "tasking/jb_task.hpp"
 #include "tasking/jb_taskexec.hpp"
 // #include "tasking/jb_taskqueue.hpp"
