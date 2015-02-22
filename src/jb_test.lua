@@ -1,2 +1,4 @@
-jb_util_log( "hello world ", 123, "\n" )
-jb_util_quit()
+-- dofile( "" )
+
+jade.utility.log( "hello world ", 123, "\n" )
+jade.utility.quit()

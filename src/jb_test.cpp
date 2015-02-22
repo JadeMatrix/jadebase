@@ -62,9 +62,9 @@ namespace jade
             submitTask( new HandleEvents_task() );
             
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // window* initial_window = new window();
-                // window::manipulate* manip = new window::manipulate( initial_window );
-                // submitTask( manip );
+                
+                
+                
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             std::string main_script_file= getMainScriptFileName();

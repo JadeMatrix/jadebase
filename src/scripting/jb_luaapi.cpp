@@ -13,7 +13,24 @@
 
 namespace
 {
-    int jb_util_log( lua_State* state )
+    // USERDATA TYPE ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    struct userdata_t
+    {
+        enum
+        {
+            
+        } type;
+        
+        union
+        {
+            
+        };
+    };
+    
+    // API FUNCTION DEFINITIONS ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    int jade_util_log( lua_State* state )
     {
         int argc = lua_gettop( state );
         
@@ -26,7 +43,7 @@ namespace
         
         return 0;
     }
-    int jb_util_quit( lua_State* state )
+    int jade_util_quit( lua_State* state )
     {
         int argc = lua_gettop( state );
         
@@ -49,10 +66,76 @@ namespace jade
 {
     void lua_state::initAPI()
     {
-        lua_register( state, "jb_util_log", jb_util_log );
-        lua_register( state, "jb_util_quit", jb_util_quit );
+        // "jade" //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        // ...
+        lua_newtable( state );
+        {
+            // "filetypes" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            lua_newtable( state );
+            {
+                
+            }
+            lua_setfield( state, -2, "filetypes" );
+            
+            // "gui" ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            lua_newtable( state );
+            {
+                
+            }
+            lua_setfield( state, -2, "gui" );
+            
+            // "main" //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            // lua_newtable( state );
+            // {
+            // }
+            // lua_setfield( state, -2, "main" );
+            
+            // "scripting" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            // lua_newtable( state );
+            // {
+            // }
+            // lua_setfield( state, -2, "scripting" );
+            
+            // "tasking" ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            lua_newtable( state );
+            {
+                
+            }
+            lua_setfield( state, -2, "tasking" );
+            
+            // "threading" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            // lua_newtable( state );
+            // {
+            // }
+            // lua_setfield( state, -2, "threading" );
+            
+            // "utility" ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            lua_newtable( state );
+            {
+                lua_pushcfunction( state, jade_util_log );
+                lua_setfield( state, -2, "log" );
+                
+                lua_pushcfunction( state, jade_util_quit );
+                lua_setfield( state, -2, "quit" );
+            }
+            lua_setfield( state, -2, "utility" );
+            
+            // "windowsys" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            lua_newtable( state );
+            {
+                
+            }
+            lua_setfield( state, -2, "windowsys" );
+        }
+        lua_setglobal( state, "jade" );
     }
 }
 
