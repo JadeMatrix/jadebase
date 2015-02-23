@@ -45,6 +45,8 @@
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_settings.hpp"
 
+#include "../utility/jb_log.hpp"
+
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
 namespace
