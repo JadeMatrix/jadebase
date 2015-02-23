@@ -44,16 +44,24 @@ namespace jade
         std::map< std::string, std::pair< std::string, bool > > temp_str;
         std::map< std::string, std::pair< bool       , bool > > temp_bln;
         
-        std::fstream settings_file( file.c_str(), std::fstream::in );
+        std::fstream settings_file;
+        
+        settings_file.open( file.c_str(), std::fstream::in );
         
         if( !settings_file.is_open() )
         {
-            exception e;
-            ff::write( *e,
-                       "loadSettingsFile(): Could not load file \"",
-                       file,
-                       "\"" );
-            throw e;
+            if( save )                                                          // Force open (create) if it's a saveable
+                // settings_file.open( file.c_str(), std::fstream::in | std::fstream::out | std::fstream::trunc );
+                settings_file.open( file.c_str(), std::fstream::in | std::fstream::out );
+            else
+            {
+                exception e;
+                ff::write( *e,
+                           "loadSettingsFile(): Could not load file \"",
+                           file,
+                           "\"" );
+                throw e;
+            }
         }
         
         ff::write( jb_out,
@@ -356,8 +364,8 @@ namespace jade
         {                                                                       // We ensure we never have duplicate keys across the three containers, so
                                                                                 // checking each key individually (instead of in a tree) should be safe.
             if( num_iter != settings_num.end()
-                && num_iter -> first < str_iter -> first
-                && num_iter -> first < bln_iter -> first )
+                && ( str_iter == settings_str.end() || num_iter -> first < str_iter -> first )
+                && ( bln_iter == settings_bln.end() || num_iter -> first < bln_iter -> first ) )
             {
                 if( num_iter -> second.second )
                 {
@@ -373,14 +381,15 @@ namespace jade
             }
             
             if( str_iter != settings_str.end()
-                && str_iter -> first < num_iter -> first
-                && str_iter -> first < bln_iter -> first )
+                && ( num_iter == settings_num.end() || str_iter -> first < num_iter -> first )
+                && ( bln_iter == settings_bln.end() || str_iter -> first < bln_iter -> first ) )
             {
                 if( str_iter -> second.second )
                 {
                     std::string& strval( str_iter -> second.first );
                     
-                    settings_file << " \"";
+                    settings_file << str_iter -> first
+                                  << " \"";
                     
                     for( int i = 0; i < strval.size(); ++i )
                     {
@@ -399,8 +408,8 @@ namespace jade
             }
             
             if( bln_iter != settings_bln.end()
-                && bln_iter -> first < str_iter -> first
-                && bln_iter -> first < num_iter -> first )
+                && ( num_iter == settings_num.end() || bln_iter -> first < num_iter -> first )
+                && ( str_iter == settings_str.end() || bln_iter -> first < str_iter -> first ) )
             {
                 if( bln_iter -> second.second )
                 {

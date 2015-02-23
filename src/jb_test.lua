@@ -7,4 +7,6 @@ jade.utility.log( "hello world ", 123, "\n" )
 
 jade.utility.log( "jb_BlockExponent: ", jade.utility.get_setting( "jb_BlockExponent" ), "\n" )
 
+jade.utility.set_setting( "test_setting", "stringval" )
+
 jade.utility.quit()

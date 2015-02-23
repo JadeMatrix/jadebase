@@ -204,8 +204,7 @@ namespace jade
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 int argc = lua_gettop( state );
                 
-                if( argc >= 2
-                    && argc <= 3 )
+                if( argc == 2 )
                 {
                     if( !lua_isstring( state, 1 ) )                             // Check 'key' (1) argument
                     {
@@ -213,30 +212,16 @@ namespace jade
                         return 0;
                     }
                     
-                    bool save;
-                    if( argc == 2 )
-                        save = SETSETTING_DEFAULT_SAVEVAL;
-                    else
-                    {
-                        if( lua_isboolean( state, 3 ) )                         // Check 'save' (3) argument
-                            save = lua_toboolean( state, 3 );
-                        else
-                        {
-                            luaL_error( state, "'save' (3) not a boolean for set_setting()" );
-                            return 0;
-                        }
-                    }
-                    
                     switch( lua_type( state, 2 ) )                              // Check 'value' 2) argument & execute
                     {
                     case LUA_TNUMBER:
-                        setSetting( lua_tostring( state, 1 ), lua_tonumber( state, 2 ), save );
+                        setSetting( lua_tostring( state, 1 ), lua_tonumber( state, 2 ), true );
                         break;
                     case LUA_TBOOLEAN:
-                        setSetting( lua_tostring( state, 1 ), ( bool )lua_toboolean( state, 2 ), save );
+                        setSetting( lua_tostring( state, 1 ), ( bool )lua_toboolean( state, 2 ), true );
                         break;
                     case LUA_TSTRING:
-                        setSetting( lua_tostring( state, 1 ), lua_tostring( state, 2 ), save );
+                        setSetting( lua_tostring( state, 1 ), std::string( lua_tostring( state, 2 ) ), true );
                         break;
                     default:
                         luaL_error( state, "'value' (2) not a number, string, or boolean for set_setting()" );
@@ -246,7 +231,7 @@ namespace jade
                     saveSettings( getUserSettingsFileName() );                  // Save every time a script changes a setting
                 }
                 else
-                    luaL_error( state, "set_setting() requires 2-3 arguments" );
+                    luaL_error( state, "set_setting() requires exactly 2 arguments" );
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

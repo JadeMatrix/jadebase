@@ -68,7 +68,7 @@ namespace jade
         
         int jade_util_loadSettingsFile( lua_State* );                           // Replicates jade::loadSettingsFile()
         int jade_util_reloadSettingsFiles( lua_State* );                        // Replicates jade::reloadSettingsFiles()
-        int jade_util_setSetting( lua_State* );                                 // Replicates the jade::setSetting() functions
+        int jade_util_setSetting( lua_State* );                                 // Replicates the jade::setSetting() functions with save = true
         int jade_util_getSetting( lua_State* );                                 // Replicates the jade::getSetting_*() functions
         
         // These are function rather than constants as program name/ver. can be
