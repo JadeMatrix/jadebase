@@ -276,16 +276,10 @@ namespace jade
                 
                 switch( argc )                                                  // Check arguments
                 {
-                case 3:
-                    if( !lua_isboolean( state, 3 ) )
-                    {
-                        luaL_error( state, "'override' (3) not a boolean for load_settings_file()" );
-                        return 0;
-                    }
                 case 2:
                     if( !lua_isboolean( state, 2 ) )
                     {
-                        luaL_error( state, "'save' (2) not a boolean for load_settings_file()" );
+                        luaL_error( state, "'override' (2) not a boolean for load_settings_file()" );
                         return 0;
                     }
                 case 1:
@@ -296,23 +290,20 @@ namespace jade
                     }
                     break;
                 default:
-                    luaL_error( state, "load_settings_file() requires 1-3 arguments" );
+                    luaL_error( state, "load_settings_file() requires 1-2 arguments" );
                     return 0;
                 }
                 
                 switch( argc )                                                  // Pass arguments
                 {
                 case 1:
-                    loadSettingsFile( lua_tostring( state, 1 ) );
+                    loadSettingsFile( lua_tostring( state, 1 ),
+                                      false );
                     break;
                 case 2:
                     loadSettingsFile( lua_tostring( state, 1 ),
+                                      false,
                                       lua_toboolean( state, 2 ) );
-                    break;
-                case 3:
-                    loadSettingsFile( lua_tostring( state, 1 ),
-                                      lua_toboolean( state, 2 ),
-                                      lua_toboolean( state, 3 ) );
                     break;
                 default:
                     // Won't get here because we check range above

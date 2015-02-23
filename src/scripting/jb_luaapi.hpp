@@ -80,7 +80,7 @@ namespace jade
         
         int jade_util_quit( lua_State* );                                       // Requests that jadebase quit
         
-        int jade_util_loadSettingsFile( lua_State* );                           // Replicates jade::loadSettingsFile()
+        int jade_util_loadSettingsFile( lua_State* );                           // Replicates jade::loadSettingsFile() with save = false
         int jade_util_reloadSettingsFiles( lua_State* );                        // Replicates jade::reloadSettingsFiles()
         int jade_util_setSetting( lua_State* );                                 // Replicates the jade::setSetting() functions with save = true
         int jade_util_getSetting( lua_State* );                                 // Replicates the jade::getSetting_*() functions
