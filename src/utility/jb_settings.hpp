@@ -12,7 +12,7 @@
  * without quotes, followed by whitespace, followed by the value.  Numerical
  * values can be any decimal format (recognizable by strtod()), string values
  * must be enclosed by double quotes (\", \\ permissable), boolean values are
- * either "true" or "false" (without quotes).  For example:
+ * those recognizable by std::boolalpha.  For example:
  *     setting_1 -3.47e1
  *     setting_2 "this is a \"string\""
  *     setting_3 false
@@ -52,11 +52,17 @@ namespace jade
     void saveSettings( std::string file );                                      // Save all loaded settings to a file (overwrites contents).  Settings are saved
                                                                                 // in alphabetical order (Unicode-order) for ease of use.
     
-    // For the setSetting() functions, if save is true then a call to
-    // saveSettings() will write that setting to a file
-    void setSetting( std::string key,      double numval, bool save = true );   // Add a number setting
-    void setSetting( std::string key, std::string strval, bool save = true );   // Add a string setting
-    void setSetting( std::string key,        bool blnval, bool save = true );   // Add a boolean setting
+    #define SETSETTING_DEFAULT_SAVEVAL true                                     // For the setSetting() functions, if save is true then a call to
+                                                                                // saveSettings() will write that setting to a file
+    void setSetting( std::string key,
+                          double numval,
+                            bool save = SETSETTING_DEFAULT_SAVEVAL );           // Add a number setting
+    void setSetting( std::string key,
+                     std::string strval,
+                            bool save = SETSETTING_DEFAULT_SAVEVAL );           // Add a string setting
+    void setSetting( std::string key,
+                            bool blnval,
+                            bool save = SETSETTING_DEFAULT_SAVEVAL );           // Add a boolean setting
     
     // The following getSetting_* functions throw exceptions if (and only if)
     // an associated value of the requested type does not exist (may be

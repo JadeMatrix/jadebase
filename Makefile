@@ -78,6 +78,7 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_named_resources.o \
 				${OBJDIR}/main.jb_main.o \
 				${OBJDIR}/scripting.jb_lua.o \
+				${OBJDIR}/scripting.jb_luaapi.o \
 				${OBJDIR}/tasking.jb_taskexec.o \
 				${OBJDIR}/tasking.jb_taskqueue.o \
 				${OBJDIR}/threading.jb_condition.o \

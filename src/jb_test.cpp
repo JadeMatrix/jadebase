@@ -42,14 +42,18 @@ namespace jade
     public:
         bool execute( task_mask* caller_mask )
         {
+            jade::setProgramName( "jb_test" );
+            jade::setProgramVersion( 1, 0, 0 );
+            
             ff::write( jb_out,
-                       "Welcome to jb_test",
+                       "Welcome to ",
+                       jade::getProgramVersionString(),
                        ( jade::getDevMode() ? " (Developer Mode)" : "" ),
                        "\n" );
             
             ff::write( jb_out,
                        "Using:\n",
-                       "  - ", JADEBASE_VERSION_STRING, " [ http://github.com/JadeMatrix/jadebase ]\n",
+                       "  - ", jade::getJadebaseVersionString(), " [ http://github.com/JadeMatrix/jadebase ]\n",
                        "  - Cairo ", cairo_version_string(), " [ http://cairographics.org ]\n",
                        "  - libpng ", PNG_LIBPNG_VER / 10000,
                                       ".",

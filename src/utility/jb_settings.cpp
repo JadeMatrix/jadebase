@@ -32,7 +32,7 @@ namespace
     std::map< std::string, std::pair< bool       , bool > > settings_bln;
 }
 
-/******************************************************************************//******************************************************************************/
+/* jb_settings.hpp ************************************************************//******************************************************************************/
 
 namespace jade
 {
@@ -501,6 +501,65 @@ namespace jade
                        key,
                        "\"" );
             throw e;
+        }
+    }
+}
+
+/* jb_luaapi.hpp **************************************************************//******************************************************************************/
+
+#include "../scripting/jb_luaapi.hpp"
+
+namespace jade
+{
+    namespace lua
+    {
+        int jade_util_getSetting( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
+                
+                if( argc != 1 )
+                {
+                    luaL_error( state, "get_setting() requires exactly 1 argument" );
+                    return 0;
+                }
+                
+                if( !lua_isstring( state, 1 ) )
+                {
+                    luaL_error( state, "'key' (1) not a string for get_setting()" );
+                    return 0;
+                }
+                
+                const char* key_str = lua_tostring( state, 1 );
+                
+                scoped_lock< mutex > slock( settings_mutex );
+                
+                if( settings_num.count( key_str ) )                             // Return number value
+                {
+                    lua_pushnumber( state, settings_num[ key_str ].first );
+                    return 1;
+                }
+                if( settings_str.count( key_str ) )                             // Return string value
+                {
+                    lua_pushstring( state, settings_str[ key_str ].first.c_str() );
+                    return 1;
+                }
+                if( settings_bln.count( key_str ) )                             // Return boolean value
+                {
+                    lua_pushboolean( state, settings_bln[ key_str ].first );
+                    return 1;
+                }
+                
+                std::string noreturn_err;
+                ff::write( noreturn_err,
+                           "No value associated with setting key '",
+                           key_str,
+                           "'" );
+                luaL_error( state, noreturn_err.c_str() );
+                return 0;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
         }
     }
 }

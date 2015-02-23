@@ -30,6 +30,7 @@
 #include "main/jb_main.h"
 
 #include "scripting/jb_lua.hpp"
+#include "scripting/jb_luaapi.hpp"
 
 #include "tasking/jb_task.hpp"
 #include "tasking/jb_taskexec.hpp"
