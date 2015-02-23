@@ -136,7 +136,7 @@ namespace
     }
     bool parse_version( std::string arg )
     {
-        ff::write( jb_out, JADEBASE_VERSION_STRING, "\n" );
+        ff::write( jb_out, jade::getProgramVersionString(), "\n" );
         
         return false;
     }

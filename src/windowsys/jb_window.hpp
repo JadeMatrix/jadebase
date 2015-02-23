@@ -28,7 +28,7 @@
 
 /******************************************************************************//******************************************************************************/
 
-#define JADEBASE_WINDOW_DEFAULT_NAME     JADEBASE_VERSION_STRING
+#define JADEBASE_WINDOW_DEFAULT_NAME     jade::getProgramVersionString()
 #define JADEBASE_WINDOW_MIN_WIDTH        256
 #define JADEBASE_WINDOW_MIN_HEIGHT       256
 

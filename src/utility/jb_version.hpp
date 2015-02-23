@@ -10,20 +10,29 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include "jb_log.hpp"
+#include <string>
 
 /******************************************************************************//******************************************************************************/
 
-#define JADEBASE_VERSION_MAJOR   0
-#define JADEBASE_VERSION_MINOR   1
-#define JADEBASE_VERSION_PATCH   0
-
-#define JADEBASE_VERSION_STRING_M( maj, min, rev )   "jadebase alpha " MACROTOSTR( min )  // Version to use until we're out of alpha/beta
-// #define JADEBASE_VERSION_STRING_M( maj, min, rev )   "jadebase v" MACROTOSTR( JADEBASE_VERSION_MAJOR ) \
-//                                                      "." MACROTOSTR( JADEBASE_VERSION_MINOR ) \
-//                                                      "." MACROTOSTR( JADEBASE_VERSION_PATCH )
-
-#define JADEBASE_VERSION_STRING JADEBASE_VERSION_STRING_M( JADEBASE_VERSION_MAJOR, JADEBASE_VERSION_MINOR, JADEBASE_VERSION_PATCH )
+namespace jade
+{
+    struct version
+    {
+        int major;
+        int minor;
+        int patch;
+    };
+    
+    version&    getJadebaseVersion();
+    std::string getJadebaseVersionString();
+    
+    void        setProgramName( std::string n );
+    std::string getProgramName();
+    void        setProgramVersion( version& v );
+    void        setProgramVersion( int major, int minor, int patch );
+    version     getProgramVersion();
+    std::string getProgramVersionString();
+}
 
 /******************************************************************************//******************************************************************************/
 

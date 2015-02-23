@@ -78,7 +78,6 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_named_resources.o \
 				${OBJDIR}/main.jb_main.o \
 				${OBJDIR}/scripting.jb_lua.o \
-				${OBJDIR}/scripting.jb_luaapi.o \
 				${OBJDIR}/tasking.jb_taskexec.o \
 				${OBJDIR}/tasking.jb_taskqueue.o \
 				${OBJDIR}/threading.jb_condition.o \
@@ -93,6 +92,7 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/utility.jb_settings.o \
 				${OBJDIR}/utility.jb_timestamp.o \
 				${OBJDIR}/utility.jb_trackable.o \
+				${OBJDIR}/utility.jb_version.o \
 				${OBJDIR}/windowsys.jb_events.o \
 				${OBJDIR}/windowsys.jb_keycode.o \
 				${OBJDIR}/windowsys.jb_window.o \
