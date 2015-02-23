@@ -37,7 +37,18 @@ namespace jade
     {
         // FILETYPES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        
+        int jade_filetypes_png_new( lua_State* );                               // Opens a PNG file from a filename and creates a userdata with the methods:
+        int jade_filetypes_png_getDimensions( lua_State* );                     //      Multreturns width, height
+        int jade_filetypes_png_getBitDepth( lua_State* );                       //      Returns a number
+        int jade_filetypes_png_getColorType( lua_State* );                      //      Returns one of the following API constants:
+                                                                                //          jade.filetypes.png.GRAY
+                                                                                //          jade.filetypes.png.PALETTE
+                                                                                //          jade.filetypes.png.RGB
+                                                                                //          jade.filetypes.png.RGB_ALPHA
+                                                                                //          jade.filetypes.png.GRAY_ALPHA
+        int jade_filetypes_png_gc( lua_State* );                                // Garbage collection function for jade.filetypes.png
+        int jade_filetypes_png_toString( lua_State* );                          // ToString function for jade.filetypes.png; returns "jade::png_file at 0x****"
+        // TODO: Function to convert from type of libpng Lua bindings
         
         // GUI /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -45,11 +56,12 @@ namespace jade
         
         // MAIN ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        
+        // No API functions
         
         // SCRIPTING ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        
+        // No API functions for now, potentially inter-script if support for
+        // more scripting lanugages is added
         
         // TASKING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -57,7 +69,9 @@ namespace jade
         
         // THREADING ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        
+        // No API functions, as jadebase Lua scripts are event-based and should
+        // use the tasking facilities of the framework rather than Lua's
+        // threading.
         
         // UTILITY /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
