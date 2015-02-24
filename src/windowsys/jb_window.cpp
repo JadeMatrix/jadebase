@@ -175,8 +175,11 @@ namespace jade
         
         registerWindow( *this );
         
-        jade::initNamedResources();                                              // These will be deinitialized when quitting
+        jade::initNamedResources();                                             // These will be deinitialized when quitting
         
+        top_group = new group( *this, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ); // Top-level group that holds all GUI elements
+        
+        /*
 ////////// Devel ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         {
             // Group A
@@ -247,6 +250,7 @@ namespace jade
             requestRedraw();
         }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+         */
     }
     
     void window::makeContextCurrent()
@@ -292,8 +296,6 @@ namespace jade
         platform_window.glx_attr[ 2 ] = 24;
         platform_window.glx_attr[ 3 ] = GLX_DOUBLEBUFFER;
         platform_window.glx_attr[ 4 ] = None;
-        
-        // platform_window.sdl_window = NULL;
         
         pending_redraws = 0;
         
@@ -347,14 +349,12 @@ namespace jade
         
         bool no_position = false;
         
-        std::pair< int, int > element_position;
-        std::pair< unsigned int, unsigned int > element_dimensions;
         int e_position[ 2 ];
         
         e.offset[ 0 ] = 0;
         e.offset[ 1 ] = 0;
         
-        switch( e.type )
+        switch( e.type )                                                        // Normalize event position to window position (if necessary)
         {
         case STROKE:
             e.stroke.position[ 0 ] -= position[ 0 ];
@@ -393,7 +393,7 @@ namespace jade
         }
         
         if( e.type == STROKE
-            && input_assoc.count( e.stroke.dev_id ) )
+            && input_assoc.count( e.stroke.dev_id ) )                           // Check elements in device association list first
         {
             idev_assoc& assoc( input_assoc[ e.stroke.dev_id ] );
             
@@ -405,37 +405,7 @@ namespace jade
             return;
         }
         
-        for( int i = elements.size() - 1; i >= 0; -- i )                        // Iterate newest (topmost) first
-        {
-            if( no_position )
-            {
-                if( elements[ i ] -> acceptEvent( e ) )
-                    break;
-            }
-            else
-            {
-                element_position   = elements[ i ] -> getVisualPosition();
-                element_dimensions = elements[ i ] -> getVisualDimensions();
-                
-                if( ( e.type == STROKE
-                      && pointInsideRect( e.stroke.prev_pos[ 0 ],
-                                          e.stroke.prev_pos[ 1 ],
-                                          element_position.first,
-                                          element_position.second,
-                                          element_dimensions.first,
-                                          element_dimensions.second ) )
-                    || pointInsideRect( e_position[ 0 ],
-                                        e_position[ 1 ],
-                                        element_position.first,
-                                        element_position.second,
-                                        element_dimensions.first,
-                                        element_dimensions.second ) )
-                {
-                    if( elements[ i ] -> acceptEvent( e ) )
-                        break;
-                }
-            }
-        }
+        top_group -> acceptEvent( e );                                          // Send event to top-level group (at 0,0; dimensions match window)
     }
     
     jb_platform_window_t& window::getPlatformWindow()
@@ -470,6 +440,20 @@ namespace jade
         
         if( !input_assoc.erase( dev_id ) && getDevMode() )
             ff::write( jb_out, "Warning: Attempt to deassociate a non-associated device\n" );
+    }
+    
+    std::string window::getTitle()
+    {
+        scoped_lock< mutex > scoped_lock( window_mutex );
+        
+        return title;
+    }
+    
+    group* window::getTopGroup()
+    {
+        scoped_lock< mutex > scoped_lock( window_mutex );
+        
+        return top_group;
     }
     
     void window::requestRedraw()
@@ -508,10 +492,9 @@ namespace jade
         {
             /* GUI CLEANUP ****************************************************//******************************************************************************/
             
-            for( int i = 0; i < target -> elements.size(); ++i )                // Deletes all gui elements
-                delete target -> elements[ i ];
-            
-            target -> elements.clear();
+            target -> top_group -> close();
+            delete target -> top_group;
+            target -> top_group = NULL;
             
             /* WINDOW CLEANUP *************************************************//******************************************************************************/
             
@@ -561,8 +544,11 @@ namespace jade
                         
                         redraw_window = false;
                     }
-                    else
+                    else                                                        // Window size change OK, so update top_group
                     {
+                        target -> top_group -> setRealDimensions( target -> dimensions[ 0 ],
+                                                                  target -> dimensions[ 1 ] );
+                        
                         redraw_window = true;
                     }
                     
@@ -802,8 +788,7 @@ namespace jade
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
             
-            for( int i = 0; i < target.elements.size(); ++i )
-                target.elements[ i ] -> draw();
+            target.top_group -> draw();
             
             #if defined PLATFORM_XWS_GNUPOSIX
             

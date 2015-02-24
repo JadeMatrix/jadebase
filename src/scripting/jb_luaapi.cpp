@@ -160,6 +160,12 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) > 1 )                                   // First argument in png_file, so no others
+                {
+                    luaL_error( state, "png:get_dimensions() requires exactly 0 arguments" );
+                    return 0;
+                }
+                
                 if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
                     luaL_error( state, "Call of png:get_dimensions() on a non-png_file type" );
@@ -178,6 +184,12 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) > 1 )
+                {
+                    luaL_error( state, "png:get_bit_depth() requires exactly 0 arguments" );
+                    return 0;
+                }
+                
                 if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
                     luaL_error( state, "Call of png:get_bit_depth() on a non-png_file type" );
@@ -194,6 +206,12 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) > 1 )
+                {
+                    luaL_error( state, "png:get_color_type() requires exactly 0 arguments" );
+                    return 0;
+                }
+                
                 if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
                     luaL_error( state, "Call of png:get_color_type() on a non-png_file type" );
@@ -210,6 +228,12 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) > 1 )
+                {
+                    luaL_error( state, "png:__gc() requires exactly 0 arguments" );
+                    return 0;
+                }
+                
                 if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
                     luaL_error( state, "Call of png:__gc() on a non-png_file type" );
@@ -226,6 +250,12 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) > 1 )
+                {
+                    luaL_error( state, "png:__tostring() requires exactly 0 arguments" );
+                    return 0;
+                }
+                
                 if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
                     luaL_error( state, "Call of png:__tostring() on a non-png_file type" );
@@ -319,11 +349,11 @@ namespace jade
                 switch( argc )                                                  // Pass arguments
                 {
                 case 1:
-                    loadSettingsFile( lua_tostring( state, 1 ),
+                    loadSettingsFile( luaL_tolstring( state, 1, NULL ),
                                       false );
                     break;
                 case 2:
-                    loadSettingsFile( lua_tostring( state, 1 ),
+                    loadSettingsFile( luaL_tolstring( state, 1, NULL ),
                                       false,
                                       lua_toboolean( state, 2 ) );
                     break;
@@ -376,13 +406,13 @@ namespace jade
                     switch( lua_type( state, 2 ) )                              // Check 'value' 2) argument & execute
                     {
                     case LUA_TNUMBER:
-                        setSetting( lua_tostring( state, 1 ), lua_tonumber( state, 2 ), true );
+                        setSetting( luaL_tolstring( state, 1, NULL ), lua_tonumber( state, 2 ), true );
                         break;
                     case LUA_TBOOLEAN:
-                        setSetting( lua_tostring( state, 1 ), ( bool )lua_toboolean( state, 2 ), true );
+                        setSetting( luaL_tolstring( state, 1, NULL ), ( bool )lua_toboolean( state, 2 ), true );
                         break;
                     case LUA_TSTRING:
-                        setSetting( lua_tostring( state, 1 ), std::string( lua_tostring( state, 2 ) ), true );
+                        setSetting( luaL_tolstring( state, 1, NULL ), std::string( luaL_tolstring( state, 2, NULL ) ), true );
                         break;
                     default:
                         luaL_error( state, "'value' (2) not a number, string, or boolean for set_setting()" );
@@ -449,7 +479,179 @@ namespace jade
         
         // WINDOWSYS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        
+        int jade_windowsys_newWindow( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) != 0 )
+                {
+                    luaL_error( state, "new_window() requires exactly 0 arguments" );
+                    return 0;
+                }
+                
+                window** file_p = ( window** )lua_newuserdata( state, sizeof( window* ) );
+                
+                ( *file_p ) = new window();                                     // Create window
+                submitTask( new window::manipulate( *file_p ) );                // Submit a manipulate
+                
+                lua_newtable( state );                                          // Create metatable
+                {
+                    lua_pushcfunction( state, jade_windowsys_window_getTopGroup );
+                    lua_setfield( state, -2, "get_top_group" );
+                    lua_pushcfunction( state, jade_windowsys_window_setTitle );
+                    lua_setfield( state, -2, "set_title" );
+                    lua_pushcfunction( state, jade_windowsys_window_gc );
+                    lua_setfield( state, -2, "__gc" );
+                    lua_pushcfunction( state, jade_windowsys_window_toString );
+                    lua_setfield( state, -2, "__tostring" );
+                    
+                    lua_pushnumber( state, JADE_WINDOW );
+                    lua_setfield( state, -2, "__type_key" );
+                    
+                    lua_pushstring( state, "Edit jb_luaapi.cpp to change window's metatable" );
+                    lua_setfield( state, -2, "__metatable" );                   // Protect metatable
+                    
+                    lua_pushstring( state, "__index" );                         // Create object index
+                    lua_pushvalue( state, -2 );
+                    lua_settable( state, -3 );
+                }
+                lua_setmetatable( state, -2 );
+                
+                return 1;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_getTopGroup( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // if( lua_gettop( state ) > 1 )
+                // {
+                //     luaL_error( state, "window:set_title() takes exactly 0 arguments" );
+                //     return 0;
+                // }
+                
+                // if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                // {
+                //     luaL_error( state, "Call of window:get_top_group() on a non-window type" );
+                //     return 0;
+                // }
+                
+                // group* g = ( *( window** )lua_touserdata( state, 1 ) ) -> getTopGroup();
+                
+                luaL_error( state, "window:get_top_group() not yet implemented" );
+                return 0;
+                
+                // return 1;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_setTitle( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) != 2 )                                  // Object + string, so 2 = 1
+                {
+                    luaL_error( state, "window:set_title() takes exactly 1 argument" );
+                    return 0;
+                }
+                
+                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                {
+                    luaL_error( state, "Call of window:set_title() on a non-window type" );
+                    return 0;
+                }
+                
+                window** w = ( window** )lua_touserdata( state, 1 );
+                if( *w == NULL )
+                {
+                    luaL_error( state, "window:set_title(): Userdata window is NULL" );
+                    return 0;
+                }
+                
+                window::manipulate* wm = new window::manipulate( *w );
+                
+                wm -> setTitle( luaL_tolstring( state, 1, NULL ) );
+                
+                submitTask( wm );
+                
+                return 0;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_gc( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) > 1 )
+                {
+                    luaL_error( state, "png:__gc() requires exactly 0 arguments" );
+                    return 0;
+                }
+                
+                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                {
+                    luaL_error( state, "Call of window:__gc() on a non-window type" );
+                    return 0;
+                }
+                
+                window** w = ( window** )lua_touserdata( state, 1 );
+                if( *w == NULL )
+                {
+                    luaL_error( state, "window:__gc(): Userdata window is NULL" );
+                    return 0;
+                }
+                
+                window::manipulate* wm = new window::manipulate( *w );
+                
+                wm -> close();
+                
+                submitTask( wm );
+                
+                ( *w ) = NULL;                                                  // NULL-out userdata
+                
+                return 0;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_toString( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) != 1 )
+                {
+                    luaL_error( state, "window:__tostring() takes exactly 1 argument" );
+                    return 0;
+                }
+                
+                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                {
+                    luaL_error( state, "Call of window:__tostring() on a non-window type" );
+                    return 0;
+                }
+                
+                window** w = ( window** )lua_touserdata( state, 1 );
+                if( *w == NULL )
+                {
+                    luaL_error( state, "window:__tostring(): Userdata window is NULL" );
+                    return 0;
+                }
+                
+                std::string window_string;
+                
+                ff::write( window_string,
+                           "jade::window '",
+                           ( *w ) -> getTitle(),
+                           "'" );                                               // Don't try to get the platform window for an ID for now, as if new_window()
+                                                                                // and window:__tostring() on that window are called in a script executed on the
+                                                                                // main thread, the platform window probably will not have been created yet.
+                
+                lua_pushstring( state, window_string.c_str() );
+                
+                return 1;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
     }
 }
 
@@ -547,7 +749,8 @@ namespace jade
             
             lua_newtable( state );
             {
-                
+                lua_pushcfunction( state, lua::jade_windowsys_newWindow );
+                lua_setfield( state, -2, "new_window" );
             }
             lua_setfield( state, -2, "windowsys" );
         }

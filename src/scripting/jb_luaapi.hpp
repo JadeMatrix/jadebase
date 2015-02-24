@@ -125,7 +125,12 @@ namespace jade
         
         // WINDOWSYS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        
+        int jade_windowsys_newWindow( lua_State* );
+        int jade_windowsys_window_getTopGroup( lua_State* );
+        // int jade_windowsys_window_setFullscreen( lua_State* );
+        int jade_windowsys_window_setTitle( lua_State* );
+        int jade_windowsys_window_gc( lua_State* );
+        int jade_windowsys_window_toString( lua_State* );
     }
 }
 

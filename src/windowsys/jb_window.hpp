@@ -36,6 +36,7 @@ namespace jade
 {
     class gui_element;
     class gui_resource;
+    class group;
     
     class window
     {
@@ -82,7 +83,7 @@ namespace jade
         
         std::map< jb_platform_idevid_t,
                   idev_assoc > input_assoc;
-        std::vector< gui_element* > elements;
+        group* top_group;
         
         /**********************************************************************//******************************************************************************/
         
@@ -123,7 +124,12 @@ namespace jade
                               float off_x,
                               float off_y );                                    // Begins sending input events from the device directly to the element without
                                                                                 // passing through the element tree.
-        void deassociateDevice( jb_platform_idevid_t dev_id );
+        void deassociateDevice( jb_platform_idevid_t dev_id );                  // Called when an association is no longer necessary; elements must deassociate
+                                                                                // all associated devices before destruction.
+        
+        std::string getTitle();
+        
+        group* getTopGroup();                                                   // Get top-level GUI group element
         
         void requestRedraw();
         
