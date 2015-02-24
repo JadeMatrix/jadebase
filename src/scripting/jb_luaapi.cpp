@@ -571,7 +571,7 @@ namespace jade
                 
                 window::manipulate* wm = new window::manipulate( *w );
                 
-                wm -> setTitle( luaL_tolstring( state, 1, NULL ) );
+                wm -> setTitle( luaL_tolstring( state, 2, NULL ) );
                 
                 submitTask( wm );
                 
