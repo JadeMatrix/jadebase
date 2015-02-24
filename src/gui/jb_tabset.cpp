@@ -16,6 +16,7 @@
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_gl.hpp"
 #include "../utility/jb_log.hpp"
+#include "../utility/jb_settings.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -141,11 +142,19 @@ namespace jade
     }
     tabset::~tabset()
     {
+        bool close_contents = getSetting_bln( "jb_ChainGUICleanup" );
+        bool delete_contents = getSetting_bln( "jb_DeleteTabContentsAfterClose" );
+        
         for( int i = 0; i < tabs.size(); ++i )
         {
-            tabs[ i ].contents -> close();
+            if( close_contents )
+            {
+                tabs[ i ].contents -> closed();
+                
+                if( delete_contents )                                           // Only delete if closed
+                    delete tabs[ i ].contents;
+            }
             
-            delete tabs[ i ].contents;
             delete tabs[ i ].title;
         }
     }
@@ -221,7 +230,7 @@ namespace jade
                 
                 delete iter -> title;
                 
-                // We do not delete the contents or call its close()
+                // g -> hidden();                                                  // We do not delete the contents or call its closed()
                 
                 tabs.erase( iter );
                 
@@ -404,8 +413,11 @@ namespace jade
                                         {
                                             if( tabs[ i ].button_state == tab_data::DOWN )
                                             {                                   // Close tab
-                                                tabs[ i ].contents -> close();
+                                                tabs[ i ].contents -> closed();
                                                 removeTab( tabs[ i ].contents );// Calls other utilities for cleanup
+                                                
+                                                if( getSetting_bln( "jb_DeleteTabContentsAfterClose" ) )
+                                                    delete tabs[ i ].contents;
                                             }
                                             else                                // Just a mouseover
                                             {

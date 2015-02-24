@@ -493,7 +493,7 @@ namespace jade
         {
             /* GUI CLEANUP ****************************************************//******************************************************************************/
             
-            target -> top_group -> close();
+            target -> top_group -> closed();
             delete target -> top_group;
             target -> top_group = NULL;
             

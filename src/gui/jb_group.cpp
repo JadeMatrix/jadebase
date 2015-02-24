@@ -11,6 +11,7 @@
 
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_gl.hpp"
+#include "../utility/jb_settings.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -126,8 +127,7 @@ namespace jade
                   int x,
                   int y,
                   unsigned int w,
-                  unsigned int h,
-                  std::string f ) : scrollable( parent, x, y, w, h )
+                  unsigned int h ) : scrollable( parent, x, y, w, h )
     {
         draw_background = true;
         
@@ -142,15 +142,22 @@ namespace jade
         scroll_offset[ 0 ] = 0;
         scroll_offset[ 1 ] = 0;
         
-        if( f != "" )
-        {
-            // initialize lua_state
-        }
+        shown_callback = NULL;
+        hidden_callback = NULL;
+        closed_callback = NULL;
     }
     group::~group()
     {
-        // if lua_state is initialized
-        //     destroy lua_state
+        if( shown_callback != NULL )
+            delete shown_callback;
+        if( hidden_callback != NULL )
+            delete hidden_callback;
+        if( closed_callback != NULL )
+            delete closed_callback;
+        
+        if( getSetting_bln( "jb_ChainGUICleanup" ) )
+            for( int i = 0; i < elements.size(); ++i )
+                delete elements[ i ];
     }
     
     void group::addElement( gui_element* e )
@@ -187,26 +194,6 @@ namespace jade
         draw_background = d;
     }
     
-    void group::shown()
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        // inform lua_state
-    }
-    void group::hidden()
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        // inform lua_state
-    }
-    
-    void group::close()
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        // inform lua_state
-    }
-    
     bool group::getEventFallthrough()
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -218,6 +205,55 @@ namespace jade
         scoped_lock< mutex > slock( element_mutex );
         
         event_fallthrough = t;
+    }
+    
+    // CALLBACKS & EVENTS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    gui_callback* group::setShownCallback( gui_callback* cb )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        gui_callback* previous = shown_callback;
+        shown_callback = cb;
+        return previous;
+    }
+    gui_callback* group::setHiddenCallback( gui_callback* cb )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        gui_callback* previous = hidden_callback;
+        hidden_callback = cb;
+        return previous;
+    }
+    gui_callback* group::setClosedCallback( gui_callback* cb )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        gui_callback* previous = closed_callback;
+        closed_callback = cb;
+        return previous;
+    }
+    
+    void group::shown()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        if( shown_callback != NULL )
+            shown_callback -> call();
+    }
+    void group::hidden()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        if( hidden_callback != NULL )
+            hidden_callback -> call();
+    }
+    void group::closed()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        if( closed_callback != NULL )
+            closed_callback -> call();
     }
     
     // GUI_ELEMENT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

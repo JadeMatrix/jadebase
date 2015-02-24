@@ -317,14 +317,7 @@ namespace jade
         
         if( c == NULL )
         {
-            group* g = new group( parent,
-                                  position[ 0 ],
-                                  position[ 1 ],
-                                  dimensions[ 0 ] - SCROLLBAR_HEIGHT,
-                                  dimensions[ 1 ] - SCROLLBAR_HEIGHT );
-            g -> setEventFallthrough( true );
-            
-            contents = g;
+            throw exception( "scrollset::scrollset(): Contents NULL" );
         }
         else
         {
@@ -365,7 +358,8 @@ namespace jade
     }
     scrollset::~scrollset()
     {
-        delete contents;
+        if( getSetting_bln( "jb_ChainGUICleanup" ) )
+            delete contents;
     }
     
     void scrollset::setRealPosition( int x, int y )

@@ -66,7 +66,7 @@ namespace jade
                    int y,
                    unsigned int w,
                    unsigned int h,
-                   scrollable* c = NULL );
+                   scrollable* c );
         ~scrollset();
         
         void setRealPosition( int x, int y );

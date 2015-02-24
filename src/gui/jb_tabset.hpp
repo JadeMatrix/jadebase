@@ -4,7 +4,8 @@
 /* 
  * jb_tabset.hpp
  * 
- * About
+ * Tab contents are deleted on tab close if setting
+ * "jb_DeleteTabContentsAfterClose" is true
  * 
  */
 
@@ -70,10 +71,11 @@ namespace jade
                int y,
                unsigned int w,
                unsigned int h );                                                // w, h of area below bar
-        ~tabset();
+        ~tabset();                                                              // "Closes" all tabs if setting "jb_ChainGUICleanup" is true
+                                                                                // ("jb_DeleteTabContentsAfterClose" still applies)
         
-        void addTab( group* g, std::string t );
-        void removeTab( group* g );
+        void addTab( group* g, std::string t );                                 // tabset does NOT take control of the group pointer
+        void removeTab( group* g );                                             // Does not delete or closed() the group
         
         void setTabTitle( group* g, std::string t );
         void setTabSafe( group* g, bool safe );

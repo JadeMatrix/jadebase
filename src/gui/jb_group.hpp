@@ -35,11 +35,13 @@ namespace jade
         std::vector< gui_element* > elements;
         unsigned int internal_dims[ 2 ];                                        // Dimensions of the internal layout of the group
         
-        // lua_State* lua_state;
-        
         bool draw_background;
         
         bool event_fallthrough;
+        
+        gui_callback* shown_callback;
+        gui_callback* hidden_callback;
+        gui_callback* closed_callback;
         
         int scroll_limits[ 2 ];                                                 // X min, X max, Y min, Y max
         int scroll_offset[ 2 ];
@@ -52,8 +54,7 @@ namespace jade
                int x,
                int y,
                unsigned int w,
-               unsigned int h,
-               std::string f = "" );
+               unsigned int h );
         ~group();
         
         void addElement( gui_element* e );
@@ -61,13 +62,18 @@ namespace jade
         
         void drawBackground( bool );
         
-        void shown();
-        void hidden();
-        
-        void close();
-        
         bool getEventFallthrough();
         void setEventFallthrough( bool t );
+        
+        // CALLBACKS & EVENTS //////////////////////////////////////////////////
+        
+        gui_callback* setShownCallback( gui_callback* );                        // All callback pointers belong to the group after setting them, unless changed
+        gui_callback* setHiddenCallback( gui_callback* );                       // or set to NULL.  They return the previous callback pointer.
+        gui_callback* setClosedCallback( gui_callback* );
+        
+        void shown();
+        void hidden();
+        void closed();
         
         // GUI_ELEMENT /////////////////////////////////////////////////////////
         
