@@ -500,6 +500,8 @@ namespace jade
                     lua_setfield( state, -2, "get_top_group" );
                     lua_pushcfunction( state, jade_windowsys_window_setTitle );
                     lua_setfield( state, -2, "set_title" );
+                    lua_pushcfunction( state, jade_windowsys_window_requestRedraw );
+                    lua_setfield( state, -2, "request_redraw" );
                     lua_pushcfunction( state, jade_windowsys_window_gc );
                     lua_setfield( state, -2, "__gc" );
                     lua_pushcfunction( state, jade_windowsys_window_toString );
@@ -574,6 +576,35 @@ namespace jade
                 wm -> setTitle( luaL_tolstring( state, 2, NULL ) );
                 
                 submitTask( wm );
+                
+                return 0;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_requestRedraw( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) != 1 )
+                {
+                    luaL_error( state, "window:request_redraw() takes exactly 1 argument" );
+                    return 0;
+                }
+                
+                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                {
+                    luaL_error( state, "Call of window:request_redraw() on a non-window type" );
+                    return 0;
+                }
+                
+                window** w = ( window** )lua_touserdata( state, 1 );
+                if( *w == NULL )
+                {
+                    luaL_error( state, "window:request_redraw(): Userdata window is NULL" );
+                    return 0;
+                }
+                
+                ( *w ) -> requestRedraw();
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
