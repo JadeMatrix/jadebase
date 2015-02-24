@@ -16,6 +16,9 @@
 
 #include <lua.hpp>
 
+#include "jb_lua.hpp"
+#include "../gui/jb_element.hpp"
+
 /******************************************************************************//******************************************************************************/
 
 // Lua API exception safety
@@ -33,6 +36,19 @@
 
 namespace jade
 {
+    class lua_callback : public gui_callback
+    {
+    public:
+        lua_callback( lua_state&,                                               // Constructor takes a jade::lua_state& instead of lua_State* for thread safety
+                      lua_reference );                                          // Reference to the Lua object to call (function with no arguments & no return)
+        ~lua_callback();
+        
+        void call();
+    protected:
+        lua_state& parent_state;
+        lua_reference lua_func;
+    };
+    
     namespace lua                                                               // To prevent potential pollution of namespace "jade"
     {
         // FILETYPES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,7 +64,7 @@ namespace jade
                                                                                 //          jade.filetypes.png.GRAY_ALPHA
         int jade_filetypes_png_gc( lua_State* );                                // Garbage collection function for jade.filetypes.png
         int jade_filetypes_png_toString( lua_State* );                          // ToString function for jade.filetypes.png; returns "jade::png_file at 0x****"
-        // TODO: Function to convert from type of libpng Lua bindings
+        // TODO: Functions to convert to & from type of libpng Lua bindings
         
         // GUI /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -65,7 +81,24 @@ namespace jade
         
         // TASKING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
+        // TODO: Figure out a way given a lua_State* to get its associated jade::lua_state
         
+        // class CallLuaFunction_task : public task
+        // {
+        // public:
+        //     CallLuaFunction_task( lua_State* );                                 // Expects the lua_State to be passed directly from jade_tasking_submitTask()
+        //     bool execute( task_mask* );
+        //     task_mask getMask()
+        //     {
+        //         return TASK_ANY;
+        //     }
+        //     // Medium priority
+        // protected:
+        //     lua_State
+        // };
+        
+        // int jade_tasking_submitTask( lua_State* );                              // Takes a Lua function and any number of arguments, creating & submitting a
+        //                                                                         // CallLuaFunction_task from them
         
         // THREADING ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         

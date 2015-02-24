@@ -20,6 +20,13 @@
 
 namespace jade
 {
+    class gui_callback
+    {
+    public:
+        virtual ~gui_callback() {};
+        virtual void call() = 0;
+    };
+    
     class gui_element
     {
     protected:

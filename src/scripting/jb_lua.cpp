@@ -55,13 +55,12 @@ namespace jade
         {
             exception e;
             ff::write( *e,
-                       "Lua error [lua_state::open()]: ",
+                       "Lua error in lua_state::open(): ",
                        lua_tostring( state, -1 ) );
             lua_pop( state, 1 );
             throw e;
         }
     }
-    
     void lua_state::run()
     {
         scoped_lock< mutex > slock( state_mutex );
@@ -72,12 +71,31 @@ namespace jade
         {
             exception e;
             ff::write( *e,
-                       "Lua error [lua_state::run()]: ",
+                       "Lua error in lua_state::run(): ",
                        lua_tostring( state, -1 ) );
             lua_pop( state, 1 );
             throw e;
         }
     }
+    
+    // void lua_state::call( lua_reference ref )
+    // {
+    //     scoped_lock< mutex > slock( state_mutex );
+        
+    //     lua_rawgeti( state, LUA_REGISTRYINDEX, ref );
+        
+    //     int status = lua_pcall( state, 0, 0, 0 );
+        
+    //     if( status )
+    //     {
+    //         exception e;
+    //         ff::write( *e,
+    //                    "Lua error in lua_state::call(): ",
+    //                    lua_tostring( state, -1 ) );
+    //         lua_pop( state, 1 );
+    //         throw e;
+    //     }
+    // }
     
     // GLOBAL STATE ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
