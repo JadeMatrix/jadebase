@@ -2,31 +2,47 @@
 
 name, major, minor, patch = jade.utility.get_program_version()
 
--- jade.utility.log( name, " ", major, ".", minor, ".", patch, "\n" )
--- jade.utility.log( "hello world ", 123, "\n" )
-
--- jade.utility.log( "jb_BlockExponent: ", jade.utility.get_setting( "jb_BlockExponent" ), "\n" )
-
--- jade.utility.set_setting( "test_setting", "stringval" )
-
--- testfile = jade.filetypes.png.new( "resources/gui_resources.png" )
--- w, h = testfile:dimensions()
--- ct = testfile:color_type()
--- if ct == jade.filetypes.png.GRAY then ct = "GRAY"
---     elseif ct == jade.filetypes.png.PALETTE then ct = "PALETTE"
---         elseif ct == jade.filetypes.png.RGB then ct = "RGB"
---             elseif ct == jade.filetypes.png.RGB_ALPHA then ct = "RGB_ALPHA"
---                 elseif ct == jade.filetypes.png.GRAY_ALPHA then ct = "GRAY_ALPHA"
---                     else ct = "????"
---                     end
--- jade.utility.log( "Opened ", testfile, ":\n",
---                   "    - dimensions: ", w, "x", h, "\n",
---                   "    - bit depth: ", testfile:bit_depth(), "\n",
---                   "    - color type: ", ct, "\n" )
-
--- jade.utility.log( "exiting now\n" )
-
--- jade.utility.quit()
-
 test_window = jade.windowsys.new_window();
 test_window:set_title( name .. " " .. major .. "." .. minor .. "." .. patch )
+
+-- Replicates GUI test code that used to be in jb_window.cpp -------------------
+
+-- Group A
+
+test_group_a = jade.gui.new_group( test_window, 0, 0, 256, 256 )
+
+b = jade.gui.new_button( test_window, 10, 10, 150, 27 )
+t = jade.gui.new_text_rsrc( 12, jade.gui.GUI_LABEL_FONT, "Hello World" );
+t:enable_baseline( false )
+b:set_contents( t, jade.gui.CENTER_CENTER )
+test_group_a:add_element( b )
+
+--[[
+-- Group B
+
+test_group_b = jade.gui.new_group( test_window, 0, 0, 256, 256 )
+
+test_group_b:add_element( jade.gui.new_dial( test_window, 10, 10 ) )
+test_group_b:add_element( jade.gui.new_dial( test_window, 62, 10, true ) )
+
+-- Group C
+
+test_group_c = jade.gui.new_group( test_window, 0, 0, 256, 256 )
+
+-- Tabset
+
+test_tabset = jade.gui.new_tabset( test_window, 0, 0, 256, 256 )
+]]
+
+test_tabset:add_tab( test_group_a, "Roman Text testtesttesttest" )
+--[[
+test_tabset:add_tab( test_group_b, "日本語のテキスト" )
+-- test_tabset:add_tab( test_group_b, "متن فارسی" )
+test_tabset:add_tab( test_group_c, "טקסט בעברית" )
+]]
+
+-- Add to window
+
+test_window:get_top_group():add_element( test_tabset, 0, 0 )
+
+test_window:request_redraw()
