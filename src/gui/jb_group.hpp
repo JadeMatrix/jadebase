@@ -35,7 +35,9 @@ namespace jade
         std::vector< gui_element* > elements;
         unsigned int internal_dims[ 2 ];                                        // Dimensions of the internal layout of the group
         
-        lua_State* lua_state;
+        // lua_State* lua_state;
+        
+        bool draw_background;
         
         bool event_fallthrough;
         
@@ -56,6 +58,8 @@ namespace jade
         
         void addElement( gui_element* e );
         void removeElement( gui_element* e );
+        
+        void drawBackground( bool );
         
         void shown();
         void hidden();

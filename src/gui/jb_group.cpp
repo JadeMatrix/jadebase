@@ -129,6 +129,8 @@ namespace jade
                   unsigned int h,
                   std::string f ) : scrollable( parent, x, y, w, h )
     {
+        draw_background = true;
+        
         event_fallthrough = false;
         
         internal_dims[ 0 ] = dimensions[ 0 ];
@@ -176,6 +178,13 @@ namespace jade
         }
         
         throw exception( "group::removeElement(): No such element" );
+    }
+    
+    void group::drawBackground( bool d )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        draw_background = d;
     }
     
     void group::shown()
@@ -293,18 +302,21 @@ namespace jade
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
-            glBegin( GL_QUADS );
+            if( draw_background )
             {
-                glColor4f( 0.3f, 0.3f, 0.3f, 1.0f );
-                
-                glVertex2f( 0.0f, 0.0f );
-                glVertex2f( 0.0f, dimensions[ 1 ] );
-                glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
-                glVertex2f( dimensions[ 0 ], 0.0f );
-                
-                glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
+                glBegin( GL_QUADS );
+                {
+                    glColor4f( 0.3f, 0.3f, 0.3f, 1.0f );
+                    
+                    glVertex2f( 0.0f, 0.0f );
+                    glVertex2f( 0.0f, dimensions[ 1 ] );
+                    glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
+                    glVertex2f( dimensions[ 0 ], 0.0f );
+                    
+                    glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
+                }
+                glEnd();
             }
-            glEnd();
             
             clearDrawMasks();
             

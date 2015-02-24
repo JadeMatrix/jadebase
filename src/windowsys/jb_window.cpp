@@ -178,6 +178,7 @@ namespace jade
         jade::initNamedResources();                                             // These will be deinitialized when quitting
         
         top_group = new group( *this, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ); // Top-level group that holds all GUI elements
+        top_group -> drawBackground( false );
         
         /*
 ////////// Devel ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
