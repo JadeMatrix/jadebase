@@ -33,7 +33,6 @@
 #include "../gui/jb_scrollset.hpp"
 #include "../gui/jb_image_rsrc.hpp"
 #include "../gui/jb_text_rsrc.hpp"
-#include "../gui/jb_canvasview.hpp"
 
 /******************************************************************************//******************************************************************************/
 

@@ -48,7 +48,7 @@ INSTALL_LOC = /usr/local
 ################################################################################
 
 clean:
-	rm -r ${MAKEDIR}
+	rm -rf ${MAKEDIR}
 
 # TODO: Consider using a perl script for nicer output
 #| awk -F: '{ print $$1":"$$2":\n    "; for(i=3;i<NF;i++){printf " %s", $$i} printf "\n" }'
@@ -66,7 +66,6 @@ linecount:
 # TODO: consider using macro(s)
 CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_button.o \
-				${OBJDIR}/gui.jb_canvasview.o \
 				${OBJDIR}/gui.jb_dial.o \
 				${OBJDIR}/gui.jb_element.o \
 				${OBJDIR}/gui.jb_group.o \
