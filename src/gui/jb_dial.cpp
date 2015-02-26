@@ -17,6 +17,7 @@
 
 #include "jb_named_resources.hpp"
 #include "jb_resource.hpp"
+#include "../utility/jb_exception.hpp"
 #include "../utility/jb_settings.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
@@ -43,7 +44,7 @@ namespace
 
 namespace jade
 {
-    dial::dial( window& parent,
+    dial::dial( window* parent,
                 int x,
                 int y,
                 bool s,
@@ -90,12 +91,16 @@ namespace jade
                 value = v;
         }
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
     bool dial::acceptEvent( window_event& e )
     {
         scoped_lock< mutex > slock( element_mutex );
+        
+        if( parent == NULL )
+            throw exception( "dial::acceptEvent(): NULL parent window" );
         
         float radius = dimensions[ 0 ] / 2.0f;
         
@@ -109,8 +114,8 @@ namespace jade
                 if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled
                 {
                     capturing = NONE;
-                    parent.deassociateDevice( e.stroke.dev_id );
-                    return true;                                                // Accept event because we used it
+                    parent -> deassociateDevice( e.stroke.dev_id );
+                    return false;                                               // Don't accept event because it wasn't meant for the dial
                 }
                 else
                 {
@@ -125,7 +130,7 @@ namespace jade
                                   + atan2(   e.stroke.position[ 0 ] - e.offset[ 0 ] - position[ 0 ] - radius,
                                            ( e.stroke.position[ 1 ] - e.offset[ 1 ] - position[ 1 ] - radius ) * -1.0f ) / M_PI );
                     
-                    parent.requestRedraw();
+                    parent -> requestRedraw();
                     
                     return true;
                 }
@@ -158,7 +163,7 @@ namespace jade
                     capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
                     capture_start[ 2 ] = value;
                     
-                    parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
                     
                     // Don't need a redraw request
@@ -177,7 +182,7 @@ namespace jade
                                       radius ) )
             {
                 setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR * getSetting_num( "jb_ScrollDistance" ) / 2.0f ) );
-                parent.requestRedraw();
+                parent -> requestRedraw();
                 return true;
             }
         }

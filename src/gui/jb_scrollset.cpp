@@ -200,7 +200,10 @@ namespace jade
         
         if( release_capture )
         {
-            parent.deassociateDevice( captured_dev );
+            if( parent == NULL )
+                throw exception( "scrollset::arrangeBars(): NULL parent for capture release" );
+            
+            parent -> deassociateDevice( captured_dev );
             capturing = NONE;
         }
         
@@ -230,7 +233,8 @@ namespace jade
                      * ( scroll_limit < 0 ? ( 1 - ( scroll_offset / scroll_limit ) ) : ( scroll_offset / scroll_limit ) );
         }
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
         
         // limit_percent contents_limits = contents -> getScrollLimitPercent();
         
@@ -295,7 +299,7 @@ namespace jade
         // parent.requestRedraw();
     }
     
-    scrollset::scrollset( window& parent,
+    scrollset::scrollset( window* parent,
                           int x,
                           int y,
                           unsigned int w,
@@ -362,6 +366,14 @@ namespace jade
             delete contents;
     }
     
+    void scrollset::setParentWindow( window* p )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        parent = p;
+        contents -> setParentWindow( p );
+    }
+    
     void scrollset::setRealPosition( int x, int y )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -373,7 +385,8 @@ namespace jade
         contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
                                        dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void scrollset::setRealDimensions( unsigned int w, unsigned int h )
     {
@@ -393,7 +406,7 @@ namespace jade
         contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
                                        dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
-        arrangeBars();                                                          // Calls parent.requestRedraw()
+        arrangeBars();                                                          // May call parent -> requestRedraw()
     }
     
     void scrollset::setBarsAlwaysVisible( bool v )
@@ -402,7 +415,7 @@ namespace jade
         
         bars_always_visible = v;
         
-        arrangeBars();                                                          // Calls parent.requestRedraw()
+        arrangeBars();                                                          // May call parent -> requestRedraw()
     }
     bool scrollset::getBarsAlwaysVisible()
     {
@@ -414,6 +427,9 @@ namespace jade
     bool scrollset::acceptEvent( window_event& e )
     {
         scoped_lock< mutex > slock( element_mutex );
+        
+        if( parent == NULL )
+            throw exception( "scrollset::acceptEvent(): NULL parent window" );
         
         if( capturing
             && e.type == STROKE
@@ -504,10 +520,11 @@ namespace jade
                 //     }
                 //     else
                 //     {
-                //         parent.deassociateDevice( e.stroke.dev_id );
+                //         parent -> deassociateDevice( e.stroke.dev_id );
                 //         capturing = NONE;
                 //     }
                 //     arrangeBars();
+                //     return false;        // didn't use
                 // }
                 // else if( capturing == VERTICAL_BAR )
                 // {
@@ -518,10 +535,11 @@ namespace jade
                 //     }
                 //     else
                 //     {
-                //         parent.deassociateDevice( e.stroke.dev_id );
+                //         parent -> deassociateDevice( e.stroke.dev_id );
                 //         capturing = NONE;
                 //     }
                 //     arrangeBars();
+                //     return false;        // didn't use
                 // }
                 // else
                 {
@@ -565,13 +583,13 @@ namespace jade
                             // else
                                 contents -> scrollPixels( scroll_amount[ 0 ], scroll_amount[ 1 ] );
                             
-                            parent.deassociateDevice( e.stroke.dev_id );
+                            parent -> deassociateDevice( e.stroke.dev_id );
                             capturing = NONE;
                         }
                     }
                     else                                                        // Click cancel
                     {
-                        parent.deassociateDevice( e.stroke.dev_id );
+                        parent -> deassociateDevice( e.stroke.dev_id );
                         capturing = NONE;
                     }
                     arrangeBars();
@@ -661,7 +679,7 @@ namespace jade
                 {
                     capture_start[ 0 ] = e.stroke.position[ 0 ] + e.offset[ 0 ];
                     capture_start[ 1 ] = e.stroke.position[ 1 ] + e.offset[ 1 ];
-                    parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
                     
                     arrangeBars();
@@ -680,7 +698,7 @@ namespace jade
             
             contents -> scrollPixels( e.scroll.amount[ 0 ], e.scroll.amount[ 1 ] );
             
-            arrangeBars();                                                      // Calls parent.requestRedraw()
+            arrangeBars();                                                      // May call parent -> requestRedraw()
             
             return true;
         }

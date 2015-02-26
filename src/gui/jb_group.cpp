@@ -102,7 +102,6 @@ namespace jade
                                          0,
                                          dimensions[ 0 ],
                                          dimensions[ 1 ] ) );
-            // return true;
     }
     
     void group::updateScrollParams()
@@ -123,7 +122,7 @@ namespace jade
             scroll_limits[ 1 ] = 0;
     }
     
-    group::group( window& parent,
+    group::group( window* parent,
                   int x,
                   int y,
                   unsigned int w,
@@ -164,6 +163,7 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
+        e -> setParentWindow( parent );
         elements.push_back( e );
     }
     void group::removeElement( gui_element* e )
@@ -178,7 +178,10 @@ namespace jade
             {
                 elements.erase( iter );
                 
-                parent.requestRedraw();
+                e -> setParentWindow( NULL );                                   // Deassociate the window from the element just in case
+                
+                if( parent != NULL )
+                    parent -> requestRedraw();
                 
                 return;
             }
@@ -258,6 +261,16 @@ namespace jade
     
     // GUI_ELEMENT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
+    void group::setParentWindow( window* p )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        parent = p;
+        
+        for( int i = 0; i < elements.size(); ++i )
+            elements[ i ] -> setParentWindow( p );
+    }
+    
     void group::setRealPosition( int x, int y )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -265,9 +278,8 @@ namespace jade
         position[ 0 ] = x;
         position[ 1 ] = y;
         
-        // inform lua_state
-        
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void group::setRealDimensions( unsigned int w, unsigned int h )
     {
@@ -276,9 +288,8 @@ namespace jade
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
         
-        // inform lua_state
-        
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
     std::pair< int, int > group::getVisualPosition()
@@ -393,7 +404,8 @@ namespace jade
             elements[ i ] -> setRealPosition( old_pos.first + x, old_pos.second + y );
         }
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void group::scrollPercent( float x, float y )
     {

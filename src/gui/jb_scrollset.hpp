@@ -61,13 +61,15 @@ namespace jade
         
         void arrangeBars();
     public:
-        scrollset( window& parent,
+        scrollset( window* parent,
                    int x,
                    int y,
                    unsigned int w,
                    unsigned int h,
                    scrollable* c );
         ~scrollset();
+        
+        void setParentWindow( window* );
         
         void setRealPosition( int x, int y );
         void setRealDimensions( unsigned int w, unsigned int h );

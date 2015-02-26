@@ -17,6 +17,7 @@
 #include <cmath>
 
 #include "jb_windowmanagement.hpp"
+#include "../gui/jb_group.hpp"
 #include "../gui/jb_named_resources.hpp"
 #include "../tasking/jb_taskexec.hpp"
 #include "../utility/jb_exception.hpp"
@@ -24,15 +25,6 @@
 #include "../utility/jb_launchargs.hpp"
 #include "../utility/jb_log.hpp"
 #include "../utility/jb_settings.hpp"
-
-// testing
-#include "../gui/jb_button.hpp"
-#include "../gui/jb_dial.hpp"
-#include "../gui/jb_tabset.hpp"
-#include "../gui/jb_group.hpp"
-#include "../gui/jb_scrollset.hpp"
-#include "../gui/jb_image_rsrc.hpp"
-#include "../gui/jb_text_rsrc.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -176,7 +168,7 @@ namespace jade
         
         jade::initNamedResources();                                             // These will be deinitialized when quitting
         
-        top_group = new group( *this, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ); // Top-level group that holds all GUI elements
+        top_group = new group( this, 0, 0, dimensions[ 0 ], dimensions[ 1 ] );  // Top-level group that holds all GUI elements
         top_group -> drawBackground( false );
     }
     

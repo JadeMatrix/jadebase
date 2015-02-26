@@ -57,7 +57,7 @@ namespace
 
 namespace jade
 {
-    button::button( window& parent,
+    button::button( window* parent,
                     int x,
                     int y,
                     unsigned int w,
@@ -176,7 +176,8 @@ namespace jade
         else
             dimensions[ 1 ] = h;
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
     void button::setContents( gui_resource* c,
@@ -201,12 +202,16 @@ namespace jade
             setRealDimensions( rsrc_dim.first, rsrc_dim.second );
         }
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
     bool button::acceptEvent( window_event& e )
     {
         scoped_lock< mutex > slock_b( element_mutex );
+        
+        if( parent == NULL )
+            throw exception( "button::acceptEvent(): NULL parent window" );
         
         switch( e.type )
         {
@@ -236,9 +241,9 @@ namespace jade
                                         dimensions[ 1 ] ) )
                 {
                     state = OFF_DOWN;
-                    parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
-                    parent.requestRedraw();
+                    parent -> requestRedraw();
                 }
                 break;
             case OFF_DOWN:
@@ -252,15 +257,16 @@ namespace jade
                     if( !( e.stroke.click & CLICK_PRIMARY ) )
                     {
                         state = ON_UP;
-                        parent.deassociateDevice( e.stroke.dev_id );
-                        parent.requestRedraw();
+                        parent -> deassociateDevice( e.stroke.dev_id );
+                        parent -> requestRedraw();
                     }
                 }
                 else                                                            // Works because we still get strokes that have just gone out of the mask
                 {
                     state = OFF_UP;                                             // Cancel the button press
-                    parent.deassociateDevice( e.stroke.dev_id );
-                    parent.requestRedraw();
+                    parent -> deassociateDevice( e.stroke.dev_id );
+                    parent -> requestRedraw();
+                    return false;                                               // Stroke went out of the button
                 }
                 break;
             case ON_UP:
@@ -273,9 +279,9 @@ namespace jade
                                         dimensions[ 1 ] ) )
                 {
                     state = ON_DOWN;
-                    parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
-                    parent.requestRedraw();
+                    parent -> requestRedraw();
                 }
                 break;
             case ON_DOWN:
@@ -289,15 +295,16 @@ namespace jade
                     if( !( e.stroke.click & CLICK_PRIMARY ) )
                     {
                         state = OFF_UP;
-                        parent.deassociateDevice( e.stroke.dev_id );
-                        parent.requestRedraw();
+                        parent -> deassociateDevice( e.stroke.dev_id );
+                        parent -> requestRedraw();
                     }
                 }
                 else
                 {
                     state = ON_UP;
-                    parent.deassociateDevice( e.stroke.dev_id );
-                    parent.requestRedraw();
+                    parent -> deassociateDevice( e.stroke.dev_id );
+                    parent -> requestRedraw();
+                    return false;                                               // Again, out of button
                 }
                 break;
             default:

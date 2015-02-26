@@ -96,10 +96,11 @@ namespace jade
             }
         }
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
-    tabset::tabset( window& parent,
+    tabset::tabset( window* parent,
                     int x,
                     int y,
                     unsigned int w,
@@ -172,6 +173,7 @@ namespace jade
         
         g -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
         g -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
+        g -> setParentWindow( parent );
         
         tab_data new_data;
         
@@ -194,7 +196,7 @@ namespace jade
             tabs[ current_tab ].contents -> shown();
         }
         
-        reorganizeTabs();                                                       // Calls parent.requestRedraw()
+        reorganizeTabs();                                                       // May call parent -> requestRedraw()
     }
     void tabset::removeTab( group* g )
     {
@@ -234,7 +236,9 @@ namespace jade
                 
                 tabs.erase( iter );
                 
-                reorganizeTabs();                                               // Calls parent.requestRedraw()
+                g -> setParentWindow( NULL );
+                
+                reorganizeTabs();                                               // May call parent -> requestRedraw()
                 
                 return;
             }
@@ -251,7 +255,8 @@ namespace jade
         
         tabs[ getTabIndex( g ) ].title -> setString( t );
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void tabset::setTabSafe( group* g, bool safe )
     {
@@ -262,7 +267,8 @@ namespace jade
         else
             tabs[ getTabIndex( g ) ].state = tab_data::CLOSE_UNSAFE;
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void tabset::makeTabCurrent( group* g )
     {
@@ -274,23 +280,38 @@ namespace jade
         current_tab = getTabIndex( g );
         g -> shown();
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void tabset::moveTabToLeft( group* g )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         #warning tabset::moveTabToLeft() not implemented
+        // TODO: implement
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void tabset::moveTabToRight( group* g )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         #warning tabset::moveTabToRight() not implemented
+        // TODO: implement
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
+    }
+    
+    void tabset::setParentWindow( window* p )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        parent = p;
+        
+        for( int i = 0; i < tabs.size(); ++i )
+            tabs[ i ].contents -> setParentWindow( p );
     }
     
     void tabset::setRealPosition( int x, int y )
@@ -306,7 +327,8 @@ namespace jade
             tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
         }
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void tabset::setRealDimensions( unsigned int w, unsigned int h )
     {
@@ -321,12 +343,15 @@ namespace jade
             tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
         }
         
-        reorganizeTabs();                                                       // Calls parent.requestRedraw()
+        reorganizeTabs();                                                       // May call parent -> requestRedraw()
     }
     
     bool tabset::acceptEvent( window_event& e )
     {
         scoped_lock< mutex > slock( element_mutex );
+        
+        if( parent == NULL )
+            throw exception( "tabset::acceptEvent(): NULL parent window" );
         
         switch( e.type )
         {
@@ -371,15 +396,18 @@ namespace jade
                                 }
                             }
                             
-                            reorganizeTabs();                                   // Calls parent.requestRedraw()
+                            reorganizeTabs();                                   // May call parent -> requestRedraw()
                             
                             return true;
                         }
                         else
                         {
                             capturing = false;
-                            parent.deassociateDevice( e.stroke.dev_id );
+                            parent -> deassociateDevice( e.stroke.dev_id );
                             reorganizeTabs();
+                            
+                            // TODO: If inside tabset, return true else return false
+                            
                             return true;
                         }
                     }
@@ -407,7 +435,7 @@ namespace jade
                                         if( e.stroke.click & CLICK_PRIMARY )
                                         {
                                             tabs[ i ].button_state = tab_data::DOWN;
-                                            parent.requestRedraw();
+                                            parent -> requestRedraw();
                                         }
                                         else
                                         {
@@ -422,7 +450,7 @@ namespace jade
                                             else                                // Just a mouseover
                                             {
                                                 tabs[ i ].button_state = tab_data::OVER;
-                                                parent.requestRedraw();
+                                                parent -> requestRedraw();
                                             }
                                         }
                                         
@@ -437,7 +465,7 @@ namespace jade
                                                                7 ) )            // Previous stroke in button
                                         {
                                             tabs[ i ].button_state = tab_data::UP;
-                                            parent.requestRedraw();
+                                            parent -> requestRedraw();
                                             return true;
                                         }
                                         
@@ -450,10 +478,10 @@ namespace jade
                                             capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
                                             capture_start[ 2 ] = tabs[ i ].position;
                                             
-                                            parent.associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                                            parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                                             captured_dev = e.stroke.dev_id;
                                             
-                                            parent.requestRedraw();
+                                            parent -> requestRedraw();
                                         }
                                         
                                         return true;                            // Either way we used the event
@@ -494,7 +522,7 @@ namespace jade
                             bar_scroll += e.scroll.amount[ 1 ];
                         }
                         
-                        reorganizeTabs();                                       // Clamps bar_scroll & calls parent.requestRedraw()
+                        reorganizeTabs();                                       // Clamps bar_scroll & May call parent -> requestRedraw()
                         
                         return true;
                     }

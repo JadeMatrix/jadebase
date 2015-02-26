@@ -7,6 +7,8 @@
  * Tab contents are deleted on tab close if setting
  * "jb_DeleteTabContentsAfterClose" is true
  * 
+ * Warning: tab contents can change size or be closed while hidden
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -66,7 +68,7 @@ namespace jade
         int getTabIndex( group* g );
         void reorganizeTabs();
     public:
-        tabset( window& parent,
+        tabset( window* parent,
                int x,
                int y,
                unsigned int w,
@@ -82,6 +84,8 @@ namespace jade
         void makeTabCurrent( group* g );
         void moveTabToLeft( group* g );
         void moveTabToRight( group* g );
+        
+        void setParentWindow( window* );
         
         void setRealPosition( int x, int y );
         void setRealDimensions( unsigned int w, unsigned int h );

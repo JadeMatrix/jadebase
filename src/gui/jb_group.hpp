@@ -50,7 +50,7 @@ namespace jade
         
         void updateScrollParams();                                              // Utility, not thread-safe
     public:
-        group( window& parent,
+        group( window* parent,
                int x,
                int y,
                unsigned int w,
@@ -76,6 +76,8 @@ namespace jade
         void closed();
         
         // GUI_ELEMENT /////////////////////////////////////////////////////////
+        
+        void setParentWindow( window* );
         
         void setRealPosition( int x, int y );
         void setRealDimensions( unsigned int w, unsigned int h );

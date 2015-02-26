@@ -30,7 +30,7 @@ namespace jade
     class scrollable : public gui_element
     {
     public:
-        scrollable( window& parent,
+        scrollable( window* parent,
                     int x,
                     int y,
                     unsigned int w, 

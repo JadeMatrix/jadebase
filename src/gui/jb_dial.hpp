@@ -39,9 +39,9 @@ namespace jade
         jb_platform_idevid_t captured_dev;
         float capture_start[ 3 ];
     public:
-        dial( window& parent,
-              int x = 0,
-              int y = 0,
+        dial( window* parent,
+              int x,
+              int y,
               bool s = false,
               float v = DIAL_DEFAULT_VALUE );
         

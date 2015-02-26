@@ -20,10 +20,11 @@ namespace jade
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
-    gui_element::gui_element( window& parent,
+    gui_element::gui_element( window* parent,
                  int x,
                  int y,
                  unsigned int w,
@@ -37,6 +38,22 @@ namespace jade
         /* Empty */
     }
     
+    window* gui_element::getParentWindow()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        return parent;
+    }
+    void gui_element::setParentWindow( window* p )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        parent = p;
+        
+        if( parent != NULL )
+            parent -> requestRedraw();                                          // Babby's first redraw request
+    }
+    
     void gui_element::setRealPosition( int x, int y )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -44,7 +61,8 @@ namespace jade
         position[ 0 ] = x;
         position[ 1 ] = y;
         
-        parent.requestRedraw();
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     std::pair< int, int > gui_element::getRealPosition()
     {

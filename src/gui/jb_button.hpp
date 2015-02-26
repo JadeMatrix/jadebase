@@ -45,7 +45,7 @@ namespace jade
         bool contents_owner;
         resource_align contents_align;
     public:
-        button( window& parent,
+        button( window* parent,
                 int x = 0,
                 int y = 0,
                 unsigned int w = BUTTON_MIN_WIDTH,
