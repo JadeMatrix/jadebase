@@ -1,5 +1,5 @@
-#ifndef JB_LUAAPI_HPP
-#define JB_LUAAPI_HPP
+#ifndef JADEBASE_LUAAPI_HPP
+#define JADEBASE_LUAAPI_HPP
 
 /* 
  * jb_luaapi.hpp
@@ -34,6 +34,14 @@
                                         return 0; \
                                     }
 
+/* Template (c&p) for safety blocks
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+*/
+
 namespace jade
 {
     class lua_callback : public gui_callback
@@ -48,6 +56,19 @@ namespace jade
         lua_state& parent_state;
         lua_reference lua_func;
     };
+    
+    enum luaapi_type
+    {
+        JADE_PNG_FILE,
+        JADE_WINDOW,
+        JADE_TEXT_RSRC,
+        JADE_IMAGE_RSRC,
+        JADE_GROUP,
+        JADE_BUTTON
+    };
+    
+    bool check_udata_type( lua_State*, int, luaapi_type );                      // Utility function for checking userdata
+    void group_to_udata( lua_State*, jade::group* );                            // Utility function for converting GUI groups into userdata
     
     namespace lua                                                               // To prevent potential pollution of namespace "jade"
     {
@@ -68,7 +89,42 @@ namespace jade
         
         // GUI /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
+        int jade_gui_element_position( lua_State* );                            // Getter/setter for element position (takes x,y returns x,y)
+        int jade_gui_element_dimensions( lua_State* );                          // Getter/setter for element dimensions (takes w,h returns w,h)
         
+        int jade_gui_resource_dimensions( lua_State* );                         // Getter for resource dimensions (takes w,h)
+        // int jade_gui_resource_gc( lua_State* );
+        
+        int jade_gui_newTextRsrc( lua_State* );
+        int jade_gui_textrsrc_pointSize( lua_State* );
+        int jade_gui_textrsrc_string( lua_State* );
+        int jade_gui_textrsrc_font( lua_State* );
+        int jade_gui_textrsrc_color( lua_State* );
+        int jade_gui_textrsrc_maxDimensions( lua_State* );
+        int jade_gui_textrsrc_baseline( lua_State* );
+        // int jade_gui_textrsrc_hinting( lua_State* );
+        // int jade_gui_textrsrc_antialiasing( lua_State* );
+        int jade_gui_textrsrc_tostring( lua_State* );
+        
+        int jade_gui_newImageRsrc( lua_State* );
+        // int jade_gui_textrsrc_tostring( lua_State* );
+        
+        int jade_gui_newGroup( lua_State* );                                    // New group with positition 0,0 and dimensions 1,1
+        int jade_gui_group_addElement( lua_State* );
+        int jade_gui_group_removeElement( lua_State* );
+        int jade_gui_group_drawBackground( lua_State* );
+        int jade_gui_group_setShownCallback( lua_State* );
+        int jade_gui_group_setHiddenCallback( lua_State* );
+        int jade_gui_group_setClosedCallback( lua_State* );
+        // int jade_gui_group_gc( lua_State* );
+        int jade_gui_group_tostring( lua_State* );
+        
+        int jade_gui_newButton( lua_State* );
+        int jade_gui_button_setContents( lua_State* );
+        int jade_gui_button_setToggleOnCallback( lua_State* );                  // Sets a Lua function or closure as the toggle-on callback
+        int jade_gui_button_setToggleOffCallback( lua_State* );                 // Sets a Lua function or closure as the toggle-off callback
+        // int jade_gui_button_gc( lua_State* );
+        int jade_gui_button_tostring( lua_State* );
         
         // MAIN ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         

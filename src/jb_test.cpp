@@ -42,18 +42,18 @@ namespace jade
     public:
         bool execute( task_mask* caller_mask )
         {
-            jade::setProgramName( "jb_test" );
-            jade::setProgramVersion( 1, 0, 0 );
+            setProgramName( "jb_test" );
+            setProgramVersion( 1, 0, 0 );
             
             ff::write( jb_out,
                        "Welcome to ",
-                       jade::getProgramVersionString(),
-                       ( jade::getDevMode() ? " (Developer Mode)" : "" ),
+                       getProgramVersionString(),
+                       ( getDevMode() ? " (Developer Mode)" : "" ),
                        "\n" );
             
             ff::write( jb_out,
                        "Using:\n",
-                       "  - ", jade::getJadebaseVersionString(), " [ http://github.com/JadeMatrix/jadebase ]\n",
+                       "  - ", getJadebaseVersionString(), " [ http://github.com/JadeMatrix/jadebase ]\n",
                        "  - Cairo ", cairo_version_string(), " [ http://cairographics.org ]\n",
                        "  - libpng ", PNG_LIBPNG_VER / 10000,
                                       ".",
@@ -67,7 +67,15 @@ namespace jade
             
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
                 
+                window* test_window = new window();
                 
+                test_window -> getTopGroup() -> addElement( new button( NULL, 10, 10, 150, 27 ) );
+                
+                window::manipulate* manip = new window::manipulate( test_window );
+                
+                manip -> setTitle( getProgramVersionString() + " (C++)" );
+                
+                submitTask( new window::manipulate( test_window ) );
                 
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
@@ -111,9 +119,10 @@ int jb_main()
         // if( jade::initTaskSystem( ( long )0 ) )
         if( jade::initTaskSystem( true ) )
         {
-            jade::submitTask( new jade::StartJadebase_task() );
-            
+            jade::initNamedResources();
             jade::initGlobalLuaState();
+            
+            jade::submitTask( new jade::StartJadebase_task() );
             
             jade::task_mask main_mask = jade::TASK_TASK | jade::TASK_SYSTEM;
             jade::becomeTaskThread( &main_mask );

@@ -1,5 +1,5 @@
-#ifndef JB_LUA_HPP
-#define JB_LUA_HPP
+#ifndef JADEBASE_LUA_HPP
+#define JADEBASE_LUA_HPP
 
 /* 
  * jb_lua.hpp
@@ -41,7 +41,7 @@ namespace jade
         lua_State* state;
         jade::mutex state_mutex;
         
-        void initAPI();                                                         // Implemented in jb_luaapi.cpp
+        void initAPI();                                                         // Implemented in jb_lua_initapi.cpp
     };
     
     void      initGlobalLuaState();

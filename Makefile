@@ -77,7 +77,13 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_named_resources.o \
 				${OBJDIR}/main.jb_main.o \
 				${OBJDIR}/scripting.jb_lua.o \
+				${OBJDIR}/scripting.jb_lua_initapi.o \
 				${OBJDIR}/scripting.jb_luaapi.o \
+				${OBJDIR}/scripting.jb_luaapi_filetypes.o \
+				${OBJDIR}/scripting.jb_luaapi_gui.o \
+				${OBJDIR}/scripting.jb_luaapi_tasking.o \
+				${OBJDIR}/scripting.jb_luaapi_utility.o \
+				${OBJDIR}/scripting.jb_luaapi_windowsys.o \
 				${OBJDIR}/tasking.jb_taskexec.o \
 				${OBJDIR}/tasking.jb_taskqueue.o \
 				${OBJDIR}/threading.jb_condition.o \

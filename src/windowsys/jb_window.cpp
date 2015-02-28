@@ -166,10 +166,11 @@ namespace jade
         
         registerWindow( *this );
         
-        jade::initNamedResources();                                             // These will be deinitialized when quitting
+        // jade::initNamedResources();                                             // These will be deinitialized when quitting
         
-        top_group = new group( this, 0, 0, dimensions[ 0 ], dimensions[ 1 ] );  // Top-level group that holds all GUI elements
-        top_group -> drawBackground( false );
+        // top_group = new group( this, 0, 0, dimensions[ 0 ], dimensions[ 1 ] );  // Top-level group that holds all GUI elements
+        // top_group -> drawBackground( false );
+        top_group -> setParentWindow( this );
     }
     
     void window::makeContextCurrent()
@@ -241,6 +242,9 @@ namespace jade
         updates.maximize   = false;
         updates.restore    = false;
         updates.redraw     = false;
+        
+        top_group = new group( NULL, 0, 0, dimensions[ 0 ], dimensions[ 1 ] );  // Top-level group that holds all GUI elements
+        top_group -> drawBackground( false );
     }
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
@@ -706,6 +710,8 @@ namespace jade
             
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+            
+            glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
             
             target.top_group -> draw();
             
