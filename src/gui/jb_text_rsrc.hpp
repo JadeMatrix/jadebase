@@ -88,6 +88,7 @@ namespace jade
         void setColor( float r, float g, float b, float a );
         
         #define TEXT_MAXWIDTH_NONE      -1
+                                                                                // FIXME: Figure out why Pango doesn't like one line:
         // #define TEXT_MAXHEIGHT_ONELINE   0                                      // Doesn't work like it should, maybe?
         
         std::pair< int, int > getMaxDimensions();

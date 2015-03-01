@@ -17,6 +17,7 @@
 #include "../utility/jb_gl.hpp"
 #include "../utility/jb_log.hpp"
 #include "../utility/jb_settings.hpp"
+#include "../windowsys/jb_window.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -55,56 +56,76 @@ namespace
 
 namespace jade
 {
-    int tabset::getTabIndex( group* g )
+    // TABSET::TAB /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    tabset::tab::tab( tabset* p,
+                      std::string t,
+                      container< group >& c ) : contents( c )
     {
-        for( int i = 0; i < tabs.size(); ++ i )
-        {
-            if( tabs[ i ].contents == g )
-                return i;
-        }
+        parent = p;
         
-        throw exception( "tabset::getTabIndex(): No such tab" );
+        title = new text_rsrc( 11.0f, GUI_LABEL_FONT, t );
+        title -> setMaxDimensions( TABSET_MAX_TITLE_WIDTH,
+                                   -1, // TEXT_MAXHEIGHT_ONELINE,
+                                   text_rsrc::END );
+        title -> setString( t );
+        
+        safe = true;
     }
-    void tabset::reorganizeTabs()                                               // May do more advanced stuff later
+    tabset::tab::~tab()
     {
-        if( tabs.size() )
-        {
-            total_tab_width = 0;
-            
-            for( int i = 0; i < tabs.size(); ++i )
-            {
-                if( !( capturing && i == current_tab ) )
-                    tabs[ i ].position = total_tab_width;                       // Don't set the position of the tab we're currently dragging
-                
-                tabs[ i ].width = tabs[ i ].title -> getDimensions().first + TABSET_MIN_TAB_WIDTH;
-                
-                if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
-                    tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
-                
-                total_tab_width += tabs[ i ].width;
-            }
-            
-            if( total_tab_width < dimensions[ 0 ]
-                || bar_scroll > 0 )
-            {
-                bar_scroll = 0;
-            }
-            else
-            {
-                if( total_tab_width + bar_scroll < dimensions[ 0 ] )
-                    bar_scroll = dimensions[ 0 ] - total_tab_width;
-            }
-        }
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
+        delete title;
     }
     
-    tabset::tabset( window* parent,
+    void tabset::tab::setTitle( std::string t )
+    {
+        scoped_lock< mutex > slock( tab_mutex );
+        
+        title -> setString( t );
+        
+        if( parent != NULL )
+            if( parent -> parent != NULL )
+                parent -> parent -> requestRedraw();
+    }
+    std::string tabset::tab::getTitle()
+    {
+        scoped_lock< mutex > slock( tab_mutex );
+        
+        return title -> getString();
+    }
+    
+    void tabset::tab::setTabSafe( bool s )
+    {
+        scoped_lock< mutex > slock( tab_mutex );
+        
+        safe = s;
+    }
+    bool tabset::tab::getTabSafe()
+    {
+        scoped_lock< mutex > slock( tab_mutex );
+        
+        return safe;
+    }
+    
+    void tabset::tab::setParentTabset( tabset* p )
+    {
+        scoped_lock< mutex > slock( tab_mutex );
+        
+        parent = p;
+        
+        if( parent == NULL )
+            contents -> setParentWindow( NULL );
+        else
+            contents -> setParentWindow( parent -> parent );
+    }
+    
+    // TABSET //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    tabset::tabset( window* p,
                     int x,
                     int y,
                     unsigned int w,
-                    unsigned int h ) : gui_element( parent, x, y, w, h )
+                    unsigned int h ) : gui_element( p, x, y, w, h )
     {
         current_tab = -1;
         total_tab_width = 0;
@@ -143,71 +164,46 @@ namespace jade
     }
     tabset::~tabset()
     {
-        bool close_contents = getSetting_bln( "jb_ChainGUICleanup" );
-        bool delete_contents = getSetting_bln( "jb_DeleteTabContentsAfterClose" );
-        
         for( int i = 0; i < tabs.size(); ++i )
-        {
-            if( close_contents )
-            {
-                tabs[ i ].contents -> closed();
-                
-                if( delete_contents )                                           // Only delete if closed
-                    delete tabs[ i ].contents;
-            }
-            
-            delete tabs[ i ].title;
-        }
+            tabs[ i ].data -> contents -> closed();
     }
     
-    void tabset::addTab( group* g, std::string t )
+    void tabset::addTab( container< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        ff::write( jb_out,
-                   "Adding tab, setting contents dimensions to ",
-                   dimensions[ 0 ],
-                   " x ",
-                   dimensions[ 1 ] - TABSET_BAR_HEIGHT,
-                   "\n" );
+        tab_state new_state( t );
         
-        g -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
-        g -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
-        g -> setParentWindow( parent );
+        new_state.button_state = tab_state::UP;
+        new_state.position = 0;
+        new_state.width = TABSET_MIN_TAB_WIDTH;
         
-        tab_data new_data;
+        new_state.data -> setParentTabset( this );
         
-        new_data.contents = g;
-        new_data.state = tab_data::CLOSE_SAFE;
-        new_data.button_state = tab_data::UP;
-        new_data.position = 0;
-        new_data.width = TABSET_MIN_TAB_WIDTH;
+        new_state.data -> contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
+        new_state.data -> contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
+        new_state.data -> contents -> setParentWindow( parent );
         
-        new_data.title = new text_rsrc( 11.0f, GUI_LABEL_FONT, t );
-        new_data.title -> setMaxDimensions( TABSET_MAX_TITLE_WIDTH,
-                                            -1, // TEXT_MAXHEIGHT_ONELINE,
-                                            text_rsrc::END );
-        
-        tabs.push_back( new_data );
+        tabs.push_back( new_state );
         
         if( current_tab < 0 )
         {
             current_tab = 0;
-            tabs[ current_tab ].contents -> shown();
+            tabs[ current_tab ].data -> contents -> shown();
         }
         
         reorganizeTabs();                                                       // May call parent -> requestRedraw()
     }
-    void tabset::removeTab( group* g )
+    void tabset::removeTab( container< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         int i = 0;
-        for( std::vector< tab_data >::iterator iter = tabs.begin();
+        for( std::vector< tab_state >::iterator iter = tabs.begin();
              iter != tabs.end();
              ++iter )
         {
-            if( iter -> contents == g )
+            if( iter -> data == t )
             {
                 if( i < current_tab )                                           // If removed tab is to the left of current
                 {
@@ -218,25 +214,23 @@ namespace jade
                     if( i == current_tab )                                      // If we are removing the current tab
                     {
                         if( current_tab < tabs.size() - 1 )                     // If current is not at the far right
-                            tabs[ current_tab + 1 ].contents -> shown();        // ... select the next to the right as the new current (index remains the same)
+                            tabs[ current_tab + 1 ].data -> contents -> shown();// ... select the next to the right as the new current (index remains the same)
                         else
                         {
                             --current_tab;                                      // ... otherwise select the one to the left
                             if( current_tab >= 0 )
-                                tabs[ current_tab ].contents -> shown();
+                                tabs[ current_tab ].data -> contents -> shown();
                             else
                                 current_tab = -1;                               // ... unless there are no more tabs, then we have no current
                         }
                     }                                                           // Removing a tab to the right of current does not affect current
                 }
                 
-                delete iter -> title;
-                
-                // g -> hidden();                                                  // We do not delete the contents or call its closed()
+                // We do not delete the tab or call its content's closed()
                 
                 tabs.erase( iter );
                 
-                g -> setParentWindow( NULL );
+                t -> setParentTabset( NULL );
                 
                 reorganizeTabs();                                               // May call parent -> requestRedraw()
                 
@@ -249,59 +243,66 @@ namespace jade
         throw exception( "tabset::removeTab(): No such tab" );
     }
     
-    void tabset::setTabTitle( group* g, std::string t )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        tabs[ getTabIndex( g ) ].title -> setString( t );
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
-    }
-    void tabset::setTabSafe( group* g, bool safe )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        if( safe )
-            tabs[ getTabIndex( g ) ].state = tab_data::CLOSE_SAFE;
-        else
-            tabs[ getTabIndex( g ) ].state = tab_data::CLOSE_UNSAFE;
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
-    }
-    void tabset::makeTabCurrent( group* g )
+    void tabset::makeTabCurrent( container< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         if( current_tab >= 0 )
-            tabs[ current_tab ].contents -> hidden();
+            tabs[ current_tab ].data -> contents -> hidden();
         
-        current_tab = getTabIndex( g );
-        g -> shown();
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
-    }
-    void tabset::moveTabToLeft( group* g )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        #warning tabset::moveTabToLeft() not implemented
-        // TODO: implement
+        current_tab = getTabIndex( t );
+        t -> contents -> shown();
         
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void tabset::moveTabToRight( group* g )
+    void tabset::moveTabToLeft( container< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        #warning tabset::moveTabToRight() not implemented
-        // TODO: implement
+        int index = getTabIndex( t );
         
-        if( parent != NULL )
-            parent -> requestRedraw();
+        if( index != 0                                                          // If it's 0 we can't move it to the left (no need to redraw either)
+            && !( capturing && index == current_tab ) )                         // Don't try shifting the current tab while it is being moved manually, either
+        {
+            for( int i = 0; i < tabs.size(); ++i )
+            {
+                if( i == index - 1                                              // Just to the left of the tab we're moving
+                    && !( capturing && i == current_tab ) )                     // ... but again not if it's the current tab and being moved manually
+                {
+                    int pos_temp = tabs[ i ].position;
+                    tabs[ i ].position = tabs[ index ].position;
+                    tabs[ index ].position = pos_temp;
+                    
+                    if( parent != NULL )
+                        parent -> requestRedraw();                              // No need to call reorganizeTabs(), but we do want to try to redraw
+                }
+            }
+        }
+    }
+    void tabset::moveTabToRight( container< tab > t )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        int index = getTabIndex( t );
+        
+        if( index != tabs.size() - 1                                            // If it's already all the way we can't move it to the right
+            && !( capturing && index == current_tab ) )                         // Don't try shifting the current tab while it is being moved manually, either
+        {
+            for( int i = 0; i < tabs.size(); ++i )
+            {
+                if( i == index + 1                                              // Just to the left of the tab we're moving
+                    && !( capturing && i == current_tab ) )                     // ... but again not if it's the current tab and being moved manually
+                {
+                    int pos_temp = tabs[ i ].position;
+                    tabs[ i ].position = tabs[ index ].position;
+                    tabs[ index ].position = pos_temp;
+                    
+                    if( parent != NULL )
+                        parent -> requestRedraw();                              // No need to call reorganizeTabs(), but we do want to try to redraw
+                }
+            }
+        }
     }
     
     void tabset::setParentWindow( window* p )
@@ -311,7 +312,7 @@ namespace jade
         parent = p;
         
         for( int i = 0; i < tabs.size(); ++i )
-            tabs[ i ].contents -> setParentWindow( p );
+            tabs[ i ].data -> contents -> setParentWindow( p );
     }
     
     void tabset::setRealPosition( int x, int y )
@@ -322,10 +323,7 @@ namespace jade
         position[ 1 ] = y;
         
         for( int i = 0; i < tabs.size(); ++i )
-        {
-            tabs[ i ].contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
-            tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
-        }
+            tabs[ i ].data -> contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
         
         if( parent != NULL )
             parent -> requestRedraw();
@@ -338,10 +336,7 @@ namespace jade
         dimensions[ 1 ] = h;
         
         for( int i = 0; i < tabs.size(); ++i )
-        {
-            tabs[ i ].contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
-            tabs[ i ].contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
-        }
+            tabs[ i ].data -> contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
         
         reorganizeTabs();                                                       // May call parent -> requestRedraw()
     }
@@ -376,7 +371,7 @@ namespace jade
                                 && tabs[ current_tab ].position
                                    <= tabs[ current_tab - 1 ].position + tabs[ current_tab - 1 ].width / 2 )
                             {
-                                tab_data temp = tabs[ current_tab - 1 ];
+                                tab_state temp = tabs[ current_tab - 1 ];
                                 tabs[ current_tab - 1 ] = tabs[ current_tab ];
                                 tabs[ current_tab ] = temp;
                                 
@@ -388,7 +383,7 @@ namespace jade
                                     && tabs[ current_tab ].position + tabs[ current_tab ].width
                                        >= tabs[ current_tab + 1 ].position + tabs[ current_tab + 1 ].width / 2 )
                                 {
-                                    tab_data temp = tabs[ current_tab + 1 ];
+                                    tab_state temp = tabs[ current_tab + 1 ];
                                     tabs[ current_tab + 1 ] = tabs[ current_tab ];
                                     tabs[ current_tab ] = temp;
                                     
@@ -406,9 +401,12 @@ namespace jade
                             parent -> deassociateDevice( e.stroke.dev_id );
                             reorganizeTabs();
                             
-                            // TODO: If inside tabset, return true else return false
-                            
-                            return true;
+                            return pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
+                                                    e.stroke.position[ 1 ] - e.offset[ 1 ],
+                                                    position[ 0 ],
+                                                    position[ 1 ],
+                                                    dimensions[ 0 ],
+                                                    dimensions[ 1 ] );          // If inside tabset, return true else return false
                         }
                     }
                     else
@@ -434,22 +432,19 @@ namespace jade
                                     {
                                         if( e.stroke.click & CLICK_PRIMARY )
                                         {
-                                            tabs[ i ].button_state = tab_data::DOWN;
+                                            tabs[ i ].button_state = tab_state::DOWN;
                                             parent -> requestRedraw();
                                         }
                                         else
                                         {
-                                            if( tabs[ i ].button_state == tab_data::DOWN )
+                                            if( tabs[ i ].button_state == tab_state::DOWN )
                                             {                                   // Close tab
-                                                tabs[ i ].contents -> closed();
-                                                removeTab( tabs[ i ].contents );// Calls other utilities for cleanup
-                                                
-                                                if( getSetting_bln( "jb_DeleteTabContentsAfterClose" ) )
-                                                    delete tabs[ i ].contents;
+                                                tabs[ i ].data -> contents -> closed();
+                                                removeTab( tabs[ i ].data );    // Calls other utilities for cleanup
                                             }
                                             else                                // Just a mouseover
                                             {
-                                                tabs[ i ].button_state = tab_data::OVER;
+                                                tabs[ i ].button_state = tab_state::OVER;
                                                 parent -> requestRedraw();
                                             }
                                         }
@@ -464,7 +459,7 @@ namespace jade
                                                                position[ 1 ] + 13,
                                                                7 ) )            // Previous stroke in button
                                         {
-                                            tabs[ i ].button_state = tab_data::UP;
+                                            tabs[ i ].button_state = tab_state::UP;
                                             parent -> requestRedraw();
                                             return true;
                                         }
@@ -533,15 +528,15 @@ namespace jade
         }
         
         if( current_tab >= 0 )                                                  // current_tab is a group so it will convert event position for us
-            return tabs[ current_tab ].contents -> acceptEvent( e );
+            return tabs[ current_tab ].data -> contents -> acceptEvent( e );
         else
             return false;                                                       // If there is no current tab, we just let the event fall through
     }
     
     void tabset::draw()
     {
-        scoped_lock< mutex > slock_e( element_mutex );
-        scoped_lock< mutex > slock_r( tabset_rsrc_mutex );
+        scoped_lock< mutex > slock( element_mutex );
+        tabset_rsrc_mutex.lock();                                               // We want to potentially unlock this early
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
@@ -582,18 +577,10 @@ namespace jade
                     else
                     {
                         t_set = &tabset_set.inactive;
-                        
-                        switch( tabs[ i ].state )
-                        {
-                        case tab_data::CLOSE_SAFE:
+                        if( tabs[ i ].data -> safe )
                             c_set = &( t_set -> safe );
-                            break;
-                        case tab_data::CLOSE_UNSAFE:
+                        else
                             c_set = &( t_set -> unsafe );
-                            break;
-                        default:
-                            throw exception( "tabset::draw(): Unknown state" );
-                        }
                         
                         t_set -> left -> draw();
                         
@@ -617,13 +604,13 @@ namespace jade
                             
                             switch( tabs[ i ].button_state )
                             {
-                            case tab_data::UP:
+                            case tab_state::UP:
                                 c_set -> up -> draw();
                                 break;
-                            case tab_data::OVER:
+                            case tab_state::OVER:
                                 c_set -> over -> draw();
                                 break;
-                            case tab_data::DOWN:
+                            case tab_state::DOWN:
                                 c_set -> down -> draw();
                                 break;
                             default:
@@ -636,8 +623,8 @@ namespace jade
                         {
                             glTranslatef( 9.0f - ( tabs[ i ].width - 6.0f ), 17.0f, 0.0f );
                             
-                            tabs[ i ].title -> setColor( 0.8f, 0.8f, 0.8f, 1.0f );
-                            tabs[ i ].title -> draw();
+                            tabs[ i ].data -> title -> setColor( 0.8f, 0.8f, 0.8f, 1.0f );
+                            tabs[ i ].data -> title -> draw();
                         }
                         glPopMatrix();
                         
@@ -647,21 +634,14 @@ namespace jade
             }
             glPopMatrix();
             
-            if( current_tab >= 0 )
+            if( current_tab >= 0 )                                              // Draw current tab
             {
                 t_set = &tabset_set.active;
                 
-                switch( tabs[ current_tab ].state )
-                {
-                case tab_data::CLOSE_SAFE:
+                if( tabs[ current_tab ].data -> safe )
                     c_set = &( t_set -> safe );
-                    break;
-                case tab_data::CLOSE_UNSAFE:
+                else
                     c_set = &( t_set -> unsafe );
-                    break;
-                default:
-                    throw exception( "tabset::draw(): Unknown state for current tab" );
-                }
                 
                 glPushMatrix();
                 {
@@ -689,13 +669,13 @@ namespace jade
                         
                         switch( tabs[ current_tab ].button_state )
                         {
-                        case tab_data::UP:
+                        case tab_state::UP:
                             c_set -> up -> draw();
                             break;
-                        case tab_data::OVER:
+                        case tab_state::OVER:
                             c_set -> over -> draw();
                             break;
-                        case tab_data::DOWN:
+                        case tab_state::DOWN:
                             c_set -> down -> draw();
                             break;
                         default:
@@ -708,8 +688,8 @@ namespace jade
                     {
                         glTranslatef( 9.0f - ( tabs[ current_tab ].width - 6.0f ), 17.0f, 0.0f );
                         
-                        tabs[ current_tab ].title -> setColor( 1.0f, 1.0f, 1.0f, 1.0f );
-                        tabs[ current_tab ].title -> draw();
+                        tabs[ current_tab ].data -> title -> setColor( 1.0f, 1.0f, 1.0f, 1.0f );
+                        tabs[ current_tab ].data -> title -> draw();
                     }
                     glPopMatrix();
                 }
@@ -717,12 +697,63 @@ namespace jade
                 
                 clearDrawMasks();                                               // Clear tab bar mask before drawing contents
                 
-                tabs[ current_tab ].contents -> draw();
+                tabset_rsrc_mutex.unlock();                                     // Unlock now as we don't know how long the contents' draw will take
+                
+                tabs[ current_tab ].data -> contents -> draw();
             }
             else
+            {
                 clearDrawMasks();                                               // Just clear tab bar mask
+                
+                tabset_rsrc_mutex.unlock();
+            }
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
+    }
+    
+    int tabset::getTabIndex( container< tab > t )
+    {
+        for( int i = 0; i < tabs.size(); ++ i )
+        {
+            if( tabs[ i ].data == t )
+                return i;
+        }
+        
+        throw exception( "tabset::getTabIndex(): No such tab" );
+    }
+    void tabset::reorganizeTabs()
+    {
+        if( tabs.size() )
+        {
+            total_tab_width = 0;
+            
+            for( int i = 0; i < tabs.size(); ++i )
+            {
+                if( !( capturing && i == current_tab ) )
+                    tabs[ i ].position = total_tab_width;                       // Don't set the position of the tab we're currently dragging
+                
+                tabs[ i ].width = tabs[ i ].data -> title -> getDimensions().first + TABSET_MIN_TAB_WIDTH;
+                
+                if( tabs[ i ].width < TABSET_MIN_TAB_WIDTH )
+                    tabs[ i ].width = TABSET_MIN_TAB_WIDTH;
+                
+                total_tab_width += tabs[ i ].width;
+            }
+            
+            if( total_tab_width < dimensions[ 0 ]
+                || bar_scroll > 0 )
+            {
+                bar_scroll = 0;
+            }
+            else
+            {
+                if( total_tab_width + bar_scroll < dimensions[ 0 ] )
+                    bar_scroll = dimensions[ 0 ] - total_tab_width;
+            }
+        }
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
 }
 

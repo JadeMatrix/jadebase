@@ -16,6 +16,7 @@
 
 #include "jb_element.hpp"
 #include "jb_scrollable.hpp"
+#include "../utility/jb_container.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -24,7 +25,7 @@ namespace jade
     class scrollset : public gui_element
     {
     protected:
-        scrollable* contents;
+        container< scrollable > contents;
         
         enum button_state
         {
@@ -66,7 +67,7 @@ namespace jade
                    int y,
                    unsigned int w,
                    unsigned int h,
-                   scrollable* c );
+                   container< scrollable >& c );                                // Using container<>& here is safe as it is copied on storage
         ~scrollset();
         
         void setParentWindow( window* );

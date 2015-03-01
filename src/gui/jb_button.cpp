@@ -17,6 +17,7 @@
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_log.hpp"
 #include "../threading/jb_mutex.hpp"
+#include "../windowsys/jb_window.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

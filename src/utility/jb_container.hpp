@@ -32,7 +32,8 @@ namespace jade
     {
     public:
         container( T* );                                                        // Constructor for new container; object must be unique; container owns pointer
-        container( container< T >& );                                           // Copy constructor
+        // container( container< T >& );                                           // Copy constructor
+        container( const container< T >& );                                     // Const copy constructor
         ~container();
         
         T& operator*() const;                                                   // Dereference operator
@@ -46,33 +47,37 @@ namespace jade
         T& operator[]( long ) const;
         
         // Boolean operators also check for object/ref_count inconsistencies
-        friend inline bool operator==( const container< T >&, const container< T >& );
-        friend inline bool operator!=( const container< T >&, const container< T >& );
-        friend inline bool operator>( const container< T >&, const container< T >& );
-        friend inline bool operator<( const container< T >&, const container< T >& );
-        friend inline bool operator>=( const container< T >&, const container< T >& );
-        friend inline bool operator<=( const container< T >&, const container< T >& );
+        friend bool operator==( const container< T >&, const container< T >& ); // TODO: Declare as inline?
+        friend bool operator!=( const container< T >&, const container< T >& );
+        friend bool operator>( const container< T >&, const container< T >& );
+        friend bool operator<( const container< T >&, const container< T >& );
+        friend bool operator>=( const container< T >&, const container< T >& );
+        friend bool operator<=( const container< T >&, const container< T >& );
     private:
         struct container_contents
         {
             T* object;
             int ref_count;
             mutex contents_mutex;                                               // Mutex is only locked for changes to ref_count
-        }* contents;
+        };
+        container_contents* contents;
     };
     
-    template< typename T > container< T >::container( T* pointer )
+    template< typename T > container< T >::container( T* original )
     {
+        if( original == NULL )
+            throw exception( "container<T>::container(T*): Pointer NULL" );
+        
         contents = new container_contents;
         
-        contents -> object = pointer;
+        contents -> object = original;
         contents -> ref_count = 1;
     }
-    template< typename T > container< T >::container( container< T >& original )
+    template< typename T > container< T >::container( const container< T >& original )
     {
-        scoped_lock< mutex > slock( original -> contents -> contents_mutex );
+        scoped_lock< mutex > slock( original.contents -> contents_mutex );
         
-        contents = original -> contents;
+        contents = original.contents;
         contents -> ref_count += 1;
     }
     template< typename T > container< T >::~container()
@@ -107,9 +112,9 @@ namespace jade
         
         container_contents* old_contents = contents;
         
-        scoped_lock< mutex > slock( original -> contents -> contents_mutex );
+        scoped_lock< mutex > slock( original.contents -> contents_mutex );
         
-        contents = original -> contents;
+        contents = original.contents;
         
         contents -> ref_count += 1;
         
@@ -136,6 +141,9 @@ namespace jade
     }
     template< typename T > container< T >& container< T >::operator=( T* original )
     {
+        if( original == NULL )
+            throw exception( "container<T>::operator=(T*): Pointer NULL" );
+        
         // Create new contents
         
         container_contents* old_contents = contents;

@@ -11,6 +11,8 @@
  * 
  */
 
+// TODO: Capturing for tab close buttons
+
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include <map>
@@ -18,6 +20,7 @@
 #include "jb_element.hpp"
 #include "jb_group.hpp"
 #include "jb_text_rsrc.hpp"
+#include "../utility/jb_container.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -35,17 +38,58 @@ namespace jade
 {
     class tabset : public gui_element
     {
-    protected:
-        struct tab_data
+    public:
+        class tab
         {
-            // tab* head;
-            group* contents;
+            friend class tabset;
+        protected:
+            mutex tab_mutex;
+            tabset* parent;
+            container< group > contents;
             text_rsrc* title;
-            enum
-            {
-                CLOSE_SAFE,
-                CLOSE_UNSAFE
-            } state;
+            bool safe;
+        public:
+            tab( tabset*,                                                       // Parent tabset (can be NULL)
+                 std::string,                                                   // Title
+                 container< group >& );                                         // Using container<>& here is safe as it is copied on storage
+            ~tab();
+            
+            void setTitle( std::string );
+            std::string getTitle();
+            
+            void setTabSafe( bool );                                            // Set whether the tab's close button is in safe-to-close mode
+            bool getTabSafe();                                                  // Get the above mode
+            
+            void setParentTabset( tabset* );
+        };
+        
+        tabset( window*,
+                int,                                                            // x position
+                int,                                                            // y position
+                unsigned int,                                                   // width of area below bar
+                unsigned int );                                                 // height of area below bar
+        ~tabset();                                                              // Calls closed() on all tabs' contents
+        
+        void addTab( container< tab > );
+        void removeTab( container< tab > );                                     // Does not call the content's closed()
+        
+        void makeTabCurrent( container< tab > );
+        void moveTabToLeft( container< tab > );
+        void moveTabToRight( container< tab > );
+        
+        void setParentWindow( window* );
+        
+        void setRealPosition( int, int );                                       // x, y
+        void setRealDimensions( unsigned int, unsigned int );                   // w, h
+        
+        bool acceptEvent( window_event& );
+        
+        void draw();
+    protected:
+        struct tab_state
+        {
+            container< tab > data;
+            
             enum
             {
                 UP,
@@ -54,8 +98,10 @@ namespace jade
             } button_state;
             int position;
             int width;
+            
+            tab_state( container< tab >& t ) : data( t ) {}                     // Using container<>& here is safe as it is copied on storage
         };
-        std::vector< tab_data > tabs;
+        std::vector< tab_state > tabs;
         int current_tab;
         int total_tab_width;
         
@@ -65,34 +111,8 @@ namespace jade
         jb_platform_idevid_t captured_dev;
         float capture_start[ 3 ];
         
-        int getTabIndex( group* g );
+        int getTabIndex( container< tab > );
         void reorganizeTabs();
-    public:
-        tabset( window* parent,
-               int x,
-               int y,
-               unsigned int w,
-               unsigned int h );                                                // w, h of area below bar
-        ~tabset();                                                              // "Closes" all tabs if setting "jb_ChainGUICleanup" is true
-                                                                                // ("jb_DeleteTabContentsAfterClose" still applies)
-        
-        void addTab( group* g, std::string t );                                 // tabset does NOT take control of the group pointer
-        void removeTab( group* g );                                             // Does not delete or closed() the group
-        
-        void setTabTitle( group* g, std::string t );
-        void setTabSafe( group* g, bool safe );
-        void makeTabCurrent( group* g );
-        void moveTabToLeft( group* g );
-        void moveTabToRight( group* g );
-        
-        void setParentWindow( window* );
-        
-        void setRealPosition( int x, int y );
-        void setRealDimensions( unsigned int w, unsigned int h );
-        
-        bool acceptEvent( window_event& e );
-        
-        void draw();
     };
 }
 

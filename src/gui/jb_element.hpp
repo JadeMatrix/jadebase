@@ -23,13 +23,14 @@
 #include <utility>
 
 #include "../threading/jb_mutex.hpp"
-#include "../windowsys/jb_window.hpp"
 #include "../windowsys/jb_windowevent.hpp"
 
 /******************************************************************************//******************************************************************************/
 
 namespace jade
 {
+    class window;                                                               // Predec because window needs container< group >
+    
     class gui_callback
     {
     public:

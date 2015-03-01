@@ -12,6 +12,7 @@
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_gl.hpp"
 #include "../utility/jb_settings.hpp"
+#include "../windowsys/jb_window.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -27,8 +28,8 @@ namespace jade
         std::pair< unsigned int, unsigned int > element_dimensions;
         int e_position[ 2 ];
         
-        e.offset[ 0 ] += position[ 0 ];
-        e.offset[ 1 ] += position[ 1 ];
+        e.offset[ 0 ] += position[ 0 ] - scroll_offset[ 0 ];
+        e.offset[ 1 ] += position[ 1 ] - scroll_offset[ 1 ];
         
         switch( e.type )
         {
@@ -154,29 +155,27 @@ namespace jade
         if( closed_callback != NULL )
             delete closed_callback;
         
-        if( getSetting_bln( "jb_ChainGUICleanup" ) )
-            for( int i = 0; i < elements.size(); ++i )
-                delete elements[ i ];
+        // No need to delete elements
     }
     
-    void group::addElement( gui_element* e )
+    void group::addElement( container< gui_element >& e )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         e -> setParentWindow( parent );
         elements.push_back( e );
     }
-    void group::removeElement( gui_element* e )
+    void group::removeElement( container< gui_element >& e )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        for( std::vector< gui_element* >::iterator iter = elements.begin();
+        for( std::vector< container< gui_element > >::iterator iter = elements.begin();
              iter != elements.end();
              ++iter )
         {
             if( *iter == e )
             {
-                elements.erase( iter );
+                elements.erase( iter );                                         // Dereferences by deleting container
                 
                 e -> setParentWindow( NULL );                                   // Deassociate the window from the element just in case
                 
@@ -370,7 +369,12 @@ namespace jade
             for( int i = 0; i < elements.size(); ++i )
             {
                 addDrawMask( 0, 0, dimensions[ 0 ], dimensions[ 1 ] );          // Do it for every element, as they might erase the mask
-                elements[ i ] -> draw();
+                
+                glTranslatef( -scroll_offset[ 0 ], -scroll_offset[ 1 ], 0 );
+                {
+                    elements[ i ] -> draw();
+                }
+                glTranslatef( scroll_offset[ 0 ], scroll_offset[ 1 ], 0 );
             }
             
             clearDrawMasks();
@@ -397,12 +401,6 @@ namespace jade
         
         scroll_offset[ 0 ] += x;
         scroll_offset[ 1 ] += y;
-        
-        for( int i = 0; i < elements.size(); ++i )
-        {
-            std::pair< int, int > old_pos = elements[ i ] -> getRealPosition();
-            elements[ i ] -> setRealPosition( old_pos.first + x, old_pos.second + y );
-        }
         
         if( parent != NULL )
             parent -> requestRedraw();

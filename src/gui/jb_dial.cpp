@@ -19,6 +19,7 @@
 #include "jb_resource.hpp"
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_settings.hpp"
+#include "../windowsys/jb_window.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

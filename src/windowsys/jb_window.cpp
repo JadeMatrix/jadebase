@@ -166,10 +166,6 @@ namespace jade
         
         registerWindow( *this );
         
-        // jade::initNamedResources();                                             // These will be deinitialized when quitting
-        
-        // top_group = new group( this, 0, 0, dimensions[ 0 ], dimensions[ 1 ] );  // Top-level group that holds all GUI elements
-        // top_group -> drawBackground( false );
         top_group -> setParentWindow( this );
     }
     
@@ -207,8 +203,10 @@ namespace jade
         #endif
     }
     
-    window::window()
+    window::window() : top_group( new group( NULL, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ) )
     {
+        top_group -> drawBackground( false );
+        
         platform_window.good = false;
         
         platform_window.glx_attr[ 0 ] = GLX_RGBA;
@@ -242,9 +240,6 @@ namespace jade
         updates.maximize   = false;
         updates.restore    = false;
         updates.redraw     = false;
-        
-        top_group = new group( NULL, 0, 0, dimensions[ 0 ], dimensions[ 1 ] );  // Top-level group that holds all GUI elements
-        top_group -> drawBackground( false );
     }
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
@@ -372,11 +367,13 @@ namespace jade
         return title;
     }
     
-    group* window::getTopGroup()
+    container< group > window::getTopGroup()
     {
-        scoped_lock< mutex > scoped_lock( window_mutex );
-        
-        return top_group;
+        return top_group;                                                       // No thread safety required: the top group has the same lifetime as the window
+    }
+    container< group >* window::getTopGroup_opt()
+    {
+        return new container< group >( top_group );
     }
     
     void window::requestRedraw()
@@ -415,9 +412,9 @@ namespace jade
         {
             /* GUI CLEANUP ****************************************************//******************************************************************************/
             
-            target -> top_group -> closed();
-            delete target -> top_group;
-            target -> top_group = NULL;
+            target -> top_group -> closed();                                    // Close first in case the closed callback wants parent window
+            target -> top_group -> setParentWindow( NULL );                     // Now safe to delete window
+            // Window will destroy container when deleted
             
             /* WINDOW CLEANUP *************************************************//******************************************************************************/
             

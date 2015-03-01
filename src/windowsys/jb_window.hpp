@@ -21,8 +21,10 @@
 #include <vector>
 
 #include "jb_windowevent.hpp"
+#include "../gui/jb_group.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
+#include "../utility/jb_container.hpp"
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
 
@@ -36,7 +38,6 @@ namespace jade
 {
     class gui_element;
     class gui_resource;
-    class group;
     
     class window
     {
@@ -83,7 +84,7 @@ namespace jade
         
         std::map< jb_platform_idevid_t,
                   idev_assoc > input_assoc;
-        group* top_group;
+        container< group > top_group;
         
         /**********************************************************************//******************************************************************************/
         
@@ -129,7 +130,8 @@ namespace jade
         
         std::string getTitle();
         
-        group* getTopGroup();                                                   // Get top-level GUI group element
+        container< group > getTopGroup();                                       // Get top-level GUI group element; not safe to return a reference
+        container< group >* getTopGroup_opt();                                  // Slightly more optimized, no unnecesasry copies (returns a new container)
         
         void requestRedraw();
         
