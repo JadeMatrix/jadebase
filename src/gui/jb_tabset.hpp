@@ -20,7 +20,7 @@
 #include "jb_element.hpp"
 #include "jb_group.hpp"
 #include "jb_text_rsrc.hpp"
-#include "../utility/jb_container.hpp"
+#include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -45,13 +45,13 @@ namespace jade
         protected:
             mutex tab_mutex;
             tabset* parent;
-            container< group > contents;
+            shared_ptr< group > contents;
             text_rsrc* title;
             bool safe;
         public:
             tab( tabset*,                                                       // Parent tabset (can be NULL)
                  std::string,                                                   // Title
-                 container< group >& );                                         // Using container<>& here is safe as it is copied on storage
+                 shared_ptr< group >& );                                        // Using shared_ptr<>& here is safe as it is copied on storage
             ~tab();
             
             void setTitle( std::string );
@@ -70,12 +70,12 @@ namespace jade
                 unsigned int );                                                 // height of area below bar
         ~tabset();                                                              // Calls closed() on all tabs' contents
         
-        void addTab( container< tab > );
-        void removeTab( container< tab > );                                     // Does not call the content's closed()
+        void addTab( shared_ptr< tab > );
+        void removeTab( shared_ptr< tab > );                                    // Does not call the content's closed()
         
-        void makeTabCurrent( container< tab > );
-        void moveTabToLeft( container< tab > );
-        void moveTabToRight( container< tab > );
+        void makeTabCurrent( shared_ptr< tab > );
+        void moveTabToLeft( shared_ptr< tab > );
+        void moveTabToRight( shared_ptr< tab > );
         
         void setParentWindow( window* );
         
@@ -88,7 +88,7 @@ namespace jade
     protected:
         struct tab_state
         {
-            container< tab > data;
+            shared_ptr< tab > data;
             
             enum
             {
@@ -99,7 +99,7 @@ namespace jade
             int position;
             int width;
             
-            tab_state( container< tab >& t ) : data( t ) {}                     // Using container<>& here is safe as it is copied on storage
+            tab_state( shared_ptr< tab >& t ) : data( t ) {}                    // Using shared_ptr<>& here is safe as it is copied on storage
         };
         std::vector< tab_state > tabs;
         int current_tab;
@@ -111,7 +111,7 @@ namespace jade
         jb_platform_idevid_t captured_dev;
         float capture_start[ 3 ];
         
-        int getTabIndex( container< tab > );
+        int getTabIndex( shared_ptr< tab > );
         void reorganizeTabs();
     };
 }

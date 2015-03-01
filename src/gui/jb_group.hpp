@@ -24,7 +24,7 @@
 
 #include "jb_element.hpp"
 #include "jb_scrollable.hpp"
-#include "../utility/jb_container.hpp"
+#include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -33,7 +33,7 @@ namespace jade
     class group : public scrollable
     {
     protected:
-        std::vector< container< gui_element > > elements;
+        std::vector< shared_ptr< gui_element > > elements;
         unsigned int internal_dims[ 2 ];                                        // Dimensions of the internal layout of the group
         
         bool draw_background;
@@ -58,8 +58,8 @@ namespace jade
                unsigned int h );
         ~group();
         
-        void addElement( container< gui_element >& e );                         // Safe to use container<>& here as it is copied during storage
-        void removeElement( container< gui_element >& e );                      // Safe to use container<>& here as it is only used locally to the function
+        void addElement( shared_ptr< gui_element >& e );                        // Safe to use shared_ptr<>& here as it is copied during storage
+        void removeElement( shared_ptr< gui_element >& e );                     // Safe to use shared_ptr<>& here as it is only used locally to the function
         
         void drawBackground( bool );
         

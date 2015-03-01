@@ -158,24 +158,24 @@ namespace jade
         // No need to delete elements
     }
     
-    void group::addElement( container< gui_element >& e )
+    void group::addElement( shared_ptr< gui_element >& e )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         e -> setParentWindow( parent );
         elements.push_back( e );
     }
-    void group::removeElement( container< gui_element >& e )
+    void group::removeElement( shared_ptr< gui_element >& e )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        for( std::vector< container< gui_element > >::iterator iter = elements.begin();
+        for( std::vector< shared_ptr< gui_element > >::iterator iter = elements.begin();
              iter != elements.end();
              ++iter )
         {
             if( *iter == e )
             {
-                elements.erase( iter );                                         // Dereferences by deleting container
+                elements.erase( iter );                                         // Dereferences by deleting shared_ptr
                 
                 e -> setParentWindow( NULL );                                   // Deassociate the window from the element just in case
                 

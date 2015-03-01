@@ -60,7 +60,7 @@ namespace jade
     
     tabset::tab::tab( tabset* p,
                       std::string t,
-                      container< group >& c ) : contents( c )
+                      shared_ptr< group >& c ) : contents( c )
     {
         parent = p;
         
@@ -168,7 +168,7 @@ namespace jade
             tabs[ i ].data -> contents -> closed();
     }
     
-    void tabset::addTab( container< tab > t )
+    void tabset::addTab( shared_ptr< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -194,7 +194,7 @@ namespace jade
         
         reorganizeTabs();                                                       // May call parent -> requestRedraw()
     }
-    void tabset::removeTab( container< tab > t )
+    void tabset::removeTab( shared_ptr< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -243,7 +243,7 @@ namespace jade
         throw exception( "tabset::removeTab(): No such tab" );
     }
     
-    void tabset::makeTabCurrent( container< tab > t )
+    void tabset::makeTabCurrent( shared_ptr< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -256,7 +256,7 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void tabset::moveTabToLeft( container< tab > t )
+    void tabset::moveTabToLeft( shared_ptr< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -280,7 +280,7 @@ namespace jade
             }
         }
     }
-    void tabset::moveTabToRight( container< tab > t )
+    void tabset::moveTabToRight( shared_ptr< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -711,7 +711,7 @@ namespace jade
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
     }
     
-    int tabset::getTabIndex( container< tab > t )
+    int tabset::getTabIndex( shared_ptr< tab > t )
     {
         for( int i = 0; i < tabs.size(); ++ i )
         {

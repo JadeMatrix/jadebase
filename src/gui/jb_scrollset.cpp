@@ -305,7 +305,7 @@ namespace jade
                           int y,
                           unsigned int w,
                           unsigned int h,
-                          container< scrollable >& c ) : gui_element( parent, x, y, w, h ),
+                          shared_ptr< scrollable >& c ) : gui_element( parent, x, y, w, h ),
                                                          contents( c )
     {
         horz_state[ 0 ] = DISABLED;

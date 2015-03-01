@@ -29,7 +29,7 @@
 
 namespace jade
 {
-    class window;                                                               // Predec because window needs container< group >
+    class window;                                                               // Predec because window needs shared_ptr< group >
     
     class gui_callback
     {

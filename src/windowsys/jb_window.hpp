@@ -24,7 +24,7 @@
 #include "../gui/jb_group.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
-#include "../utility/jb_container.hpp"
+#include "../utility/jb_sharedpointer.hpp"
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
 
@@ -84,7 +84,7 @@ namespace jade
         
         std::map< jb_platform_idevid_t,
                   idev_assoc > input_assoc;
-        container< group > top_group;
+        shared_ptr< group > top_group;
         
         /**********************************************************************//******************************************************************************/
         
@@ -130,8 +130,8 @@ namespace jade
         
         std::string getTitle();
         
-        container< group > getTopGroup();                                       // Get top-level GUI group element; not safe to return a reference
-        container< group >* getTopGroup_opt();                                  // Slightly more optimized, no unnecesasry copies (returns a new container)
+        shared_ptr< group > getTopGroup();                                      // Get top-level GUI group element; not safe to return a reference
+        shared_ptr< group >* getTopGroup_opt();                                 // Slightly more optimized, no unnecesasry copies (returns a new shared_ptr)
         
         void requestRedraw();
         

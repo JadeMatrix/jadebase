@@ -367,13 +367,13 @@ namespace jade
         return title;
     }
     
-    container< group > window::getTopGroup()
+    shared_ptr< group > window::getTopGroup()
     {
         return top_group;                                                       // No thread safety required: the top group has the same lifetime as the window
     }
-    container< group >* window::getTopGroup_opt()
+    shared_ptr< group >* window::getTopGroup_opt()
     {
-        return new container< group >( top_group );
+        return new shared_ptr< group >( top_group );
     }
     
     void window::requestRedraw()
@@ -414,7 +414,7 @@ namespace jade
             
             target -> top_group -> closed();                                    // Close first in case the closed callback wants parent window
             target -> top_group -> setParentWindow( NULL );                     // Now safe to delete window
-            // Window will destroy container when deleted
+            // Window will destroy shared_ptr when deleted
             
             /* WINDOW CLEANUP *************************************************//******************************************************************************/
             
