@@ -10,6 +10,12 @@
 // http://tronche.com/gui/x/xlib/pixmap-and-cursor/cursor.html
 // http://tronche.com/gui/x/xlib/window/XDefineCursor.html
 
+// TODO: Invesitigate how to group windows in e.g. the Ubuntu task bar, possibly XWMHINTS WindowGroupHint
+// http://tronche.com/gui/x/xlib/ICC/client-to-window-manager/wm-hints.html
+
+// Also a note about setting window icons on 32 vs. 54 bit
+// http://stackoverflow.com/questions/10699927/xlib-argb-window-icon
+
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "jb_window.hpp"

@@ -11,6 +11,8 @@
  *     http://tronche.com/gui/x/xlib/events/structures.html#XEvent
  */
 
+// FIXME: Prioritize looking for events that would activate windows so we can click on a window for focus AND have it get that click event
+
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "jb_events.hpp"
