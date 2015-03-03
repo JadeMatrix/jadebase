@@ -16,8 +16,12 @@
 
 #include <lua.hpp>
 
+#include <cstdarg>
+
 #include "jb_lua.hpp"
 #include "../gui/jb_element.hpp"
+#include "../gui/jb_group.hpp"
+#include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -34,7 +38,7 @@
                                         return 0; \
                                     }
 
-/* Template (c&p) for safety blocks
+/* Template for safety blocks (copy & paste)
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 
@@ -57,43 +61,63 @@ namespace jade
         lua_reference lua_func;
     };
     
-    enum luaapi_type
-    {
-        JADE_PNG_FILE,
-        JADE_WINDOW,
-        JADE_TEXT_RSRC,
-        JADE_IMAGE_RSRC,
-        JADE_GROUP,
-        JADE_BUTTON
-    };
-    
-    bool check_udata_type( lua_State*, int, luaapi_type );                      // Utility function for checking userdata
-    void group_to_udata( lua_State*, jade::group* );                            // Utility function for converting GUI groups into userdata
-    
     namespace lua                                                               // To prevent potential pollution of namespace "jade"
     {
+        enum udata_type
+        {
+            JADE_PNG_FILE,
+            JADE_WINDOW,
+            JADE_TEXT_RSRC,
+            JADE_IMAGE_RSRC,
+            JADE_BUTTON,
+            JADE_DIAL,
+            JADE_GROUP,
+            JADE_SCROLLSET,
+            JADE_TABSET
+        };
+        
+        bool check_udata_type( lua_State*, int, udata_type );                   // Utility function for checking userdata
+        
+        // Utility functions for standardizing error messages
+        std::string err_argcount( std::string,                                  // Lua function name
+                                  std::string,                                  // Object type (can be empty)
+                                  int,                                          // Number of following arguments
+                                  ... );                                        // x = "exactly x"; x,y = "x or y"; x,-y = "x-y"; x,y,z = "x, y or z"; etc.
+        std::string err_argtype( std::string,                                   // Lua function name
+                                 std::string,                                   // Argument name
+                                 std::string,                                   // Object type (can be empty)
+                                 int,                                           // Argument index
+                                 std::string );                                 // Expected argument type
+        std::string err_objtype( std::string,                                   // Lua function name
+                                 std::string );                                 // Expected object type
+        std::string warn_metatable( std::string,                                // File where metatable is constructed, e.g. __FILE__, __FUNCTION__, or __func__
+                                    std::string );                              // Object type
+        
+        void group_to_udata( lua_State*, shared_ptr< group > );                 // Utility function for converting GUI groups into userdata (implemented in
+                                                                                // jb_luaapi_gui.cpp)
+        
         // FILETYPES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         int jade_filetypes_png_new( lua_State* );                               // Opens a PNG file from a filename and creates a userdata with the methods:
-        int jade_filetypes_png_getDimensions( lua_State* );                     //      Multreturns width, height
-        int jade_filetypes_png_getBitDepth( lua_State* );                       //      Returns a number
-        int jade_filetypes_png_getColorType( lua_State* );                      //      Returns one of the following API constants:
-                                                                                //          jade.filetypes.png.GRAY
-                                                                                //          jade.filetypes.png.PALETTE
-                                                                                //          jade.filetypes.png.RGB
-                                                                                //          jade.filetypes.png.RGB_ALPHA
-                                                                                //          jade.filetypes.png.GRAY_ALPHA
+        int jade_filetypes_png_getDimensions( lua_State* );                     //     Multreturns width, height
+        int jade_filetypes_png_getBitDepth( lua_State* );                       //     Returns a number
+        int jade_filetypes_png_getColorType( lua_State* );                      //     Returns one of the following API constants:
+                                                                                //         jade.filetypes.png.GRAY
+                                                                                //         jade.filetypes.png.PALETTE
+                                                                                //         jade.filetypes.png.RGB
+                                                                                //         jade.filetypes.png.RGB_ALPHA
+                                                                                //         jade.filetypes.png.GRAY_ALPHA
         int jade_filetypes_png_gc( lua_State* );                                // Garbage collection function for jade.filetypes.png
         int jade_filetypes_png_toString( lua_State* );                          // ToString function for jade.filetypes.png; returns "jade::png_file at 0x****"
-        // TODO: Functions to convert to & from type of libpng Lua bindings
         
         // GUI /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         int jade_gui_element_position( lua_State* );                            // Getter/setter for element position (takes x,y returns x,y)
         int jade_gui_element_dimensions( lua_State* );                          // Getter/setter for element dimensions (takes w,h returns w,h)
+        int jade_gui_element_gc( lua_State* );
         
         int jade_gui_resource_dimensions( lua_State* );                         // Getter for resource dimensions (takes w,h)
-        // int jade_gui_resource_gc( lua_State* );
+        int jade_gui_resource_gc( lua_State* );
         
         int jade_gui_newTextRsrc( lua_State* );
         int jade_gui_textrsrc_pointSize( lua_State* );
@@ -107,7 +131,6 @@ namespace jade
         int jade_gui_textrsrc_tostring( lua_State* );
         
         int jade_gui_newImageRsrc( lua_State* );
-        // int jade_gui_textrsrc_tostring( lua_State* );
         
         int jade_gui_newGroup( lua_State* );                                    // New group with positition 0,0 and dimensions 1,1
         int jade_gui_group_addElement( lua_State* );
@@ -116,14 +139,12 @@ namespace jade
         int jade_gui_group_setShownCallback( lua_State* );
         int jade_gui_group_setHiddenCallback( lua_State* );
         int jade_gui_group_setClosedCallback( lua_State* );
-        // int jade_gui_group_gc( lua_State* );
         int jade_gui_group_tostring( lua_State* );
         
         int jade_gui_newButton( lua_State* );
         int jade_gui_button_setContents( lua_State* );
         int jade_gui_button_setToggleOnCallback( lua_State* );                  // Sets a Lua function or closure as the toggle-on callback
         int jade_gui_button_setToggleOffCallback( lua_State* );                 // Sets a Lua function or closure as the toggle-off callback
-        // int jade_gui_button_gc( lua_State* );
         int jade_gui_button_tostring( lua_State* );
         
         // MAIN ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,7 +202,7 @@ namespace jade
         
         // WINDOWSYS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        int jade_windowsys_newWindow( lua_State* );
+        int jade_windowsys_newWindow( lua_State* );                             // Creates a new window; note that windows do not use Lua's GC
         int jade_windowsys_window_getTopGroup( lua_State* );
         // int jade_windowsys_window_setFullscreen( lua_State* );
         int jade_windowsys_window_setTitle( lua_State* );
