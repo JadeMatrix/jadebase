@@ -246,6 +246,8 @@ namespace jade
         updates.maximize   = false;
         updates.restore    = false;
         updates.redraw     = false;
+        
+        can_add_containers = true;
     }
     
     std::pair< unsigned int, unsigned int > window::getDimensions()
@@ -392,6 +394,30 @@ namespace jade
         }
     }
     
+    void window::register_container( container< window >* c )
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        if( !can_add_containers )
+        {
+            #ifdef JADEBASE_WINDOW_CONTAINERREGISTERSILENTFAIL
+            // c -> clear();    // C++11
+            clear< window >( *c );
+            #else
+            throw exception( "window::register_container(): Cannot register containers now" );
+            #endif
+        }
+        else
+            containers.insert( c );
+    }
+    void window::deregister_container( container< window >* c )
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        if( !containers.erase( c ) )                                            // Might as well throw an exception as something's wrong in the calling code
+            throw exception( "window::deregister_container(): Container not a child" );
+    }
+    
     // WINDOW::MANIPULATE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     window::manipulate::manipulate( window* t )
@@ -416,6 +442,18 @@ namespace jade
         
         if( target -> updates.close )
         {
+            /* CONTAINER CLEANUP **********************************************//******************************************************************************/
+            
+            target -> can_add_containers = false;
+            
+            for( std::set< container< window >* >::iterator iter = target -> containers.begin();
+                 iter != target -> containers.end();
+                 ++iter )
+            {
+                // ( *iter ) -> clear();    // C++11
+                clear< window >( **iter );
+            }
+            
             /* GUI CLEANUP ****************************************************//******************************************************************************/
             
             target -> top_group -> closed();                                    // Close first in case the closed callback wants parent window

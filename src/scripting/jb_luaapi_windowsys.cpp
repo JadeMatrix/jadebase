@@ -23,14 +23,16 @@ namespace jade
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 if( lua_gettop( state ) != 0 )
                 {
-                    luaL_error( state, "new_window() requires exactly 0 arguments" );
+                    luaL_error( state, err_argcount( "new_window", "", 0 ).c_str() );
                     return 0;
                 }
                 
-                window** file_p = ( window** )lua_newuserdata( state, sizeof( window* ) );
+                // Create a new userdata space then placement new a window
+                // container from a new window
+                container< window >* cont_p = new( lua_newuserdata( state, sizeof( container< window > ) ) ) container< window >( new window() );
                 
-                ( *file_p ) = new window();                                     // Create window
-                submitTask( new window::manipulate( *file_p ) );                // Submit a manipulate
+                submitTask( new window::manipulate( cont_p -> acquire() ) );    // Submit a manipulate
+                cont_p -> release();
                 
                 lua_newtable( state );                                          // Create metatable
                 {
@@ -48,7 +50,7 @@ namespace jade
                     lua_pushnumber( state, JADE_WINDOW );
                     lua_setfield( state, -2, "__type_key" );
                     
-                    lua_pushstring( state, "Edit jb_luaapi.cpp to change window's metatable" );
+                    lua_pushstring( state, warn_metatable( __FILE__, "window" ).c_str() );
                     lua_setfield( state, -2, "__metatable" );                   // Protect metatable
                     
                     lua_pushstring( state, "__index" );                         // Create object index
@@ -65,23 +67,24 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) != 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_WINDOW ) )
                 {
-                    luaL_error( state, "window:top_group() takes exactly 0 arguments" );
+                    luaL_error( state, err_objtype( "top_group", "window" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of window:top_group() on a non-window type" );
+                    luaL_error( state, err_argcount( "top_group", "window", 0 ).c_str() );
                     return 0;
                 }
                 
-                group* g = ( *( window** )lua_touserdata( state, 1 ) ) -> getTopGroup();
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
                 
-                ff::write( jb_out, "got window top group 0x", ff::to_x( ( long )g ), "\n" );
-                
-                group_to_udata( state, g );
+                group_to_udata( state, ( *slock ) -> getTopGroup() );
                 
                 return 1;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,29 +94,25 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) != 2 )                                  // Object + string, so 2 = 1
-                {
-                    luaL_error( state, "window:set_title() takes exactly 1 argument" );
-                    return 0;
-                }
+                int argc = lua_gettop( state );
                 
-                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_WINDOW ) )
                 {
                     luaL_error( state, "Call of window:set_title() on a non-window type" );
                     return 0;
                 }
                 
-                window** w = ( window** )lua_touserdata( state, 1 );
-                if( *w == NULL )
+                if( argc != 2 )                                                 // Object + string, so 2 = 1
                 {
-                    luaL_error( state, "window:set_title(): Userdata window is NULL" );
+                    luaL_error( state, err_argcount( "set_title", "window", 1, 1 ).c_str() );
                     return 0;
                 }
                 
-                window::manipulate* wm = new window::manipulate( *w );
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
                 
+                window::manipulate* wm = new window::manipulate( *slock );
                 wm -> setTitle( luaL_tolstring( state, 2, NULL ) );
-                
                 submitTask( wm );
                 
                 return 0;
@@ -124,26 +123,24 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) != 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_WINDOW ) )
                 {
-                    luaL_error( state, "window:request_redraw() takes exactly 1 argument" );
+                    luaL_error( state, err_objtype( "request_redraw", "window" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of window:request_redraw() on a non-window type" );
+                    luaL_error( state, err_argcount( "request_redraw", "window", 0 ).c_str() );
                     return 0;
                 }
                 
-                window** w = ( window** )lua_touserdata( state, 1 );
-                if( *w == NULL )
-                {
-                    luaL_error( state, "window:request_redraw(): Userdata window is NULL" );
-                    return 0;
-                }
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
                 
-                ( *w ) -> requestRedraw();
+                ( *slock ) -> requestRedraw();
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,32 +150,26 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) > 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_WINDOW ) )
                 {
-                    luaL_error( state, "png:__gc() requires exactly 0 arguments" );
+                    luaL_error( state, err_objtype( "__gc", "window" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of window:__gc() on a non-window type" );
+                    luaL_error( state, err_argcount( "__gc", "window", 0 ).c_str() );
                     return 0;
                 }
                 
-                window** w = ( window** )lua_touserdata( state, 1 );
-                if( *w == NULL )
-                {
-                    luaL_error( state, "window:__gc(): Userdata window is NULL" );
-                    return 0;
-                }
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
                 
-                window::manipulate* wm = new window::manipulate( *w );
-                
+                window::manipulate* wm = new window::manipulate( *slock );
                 wm -> close();
-                
                 submitTask( wm );
-                
-                ( *w ) = NULL;                                                  // NULL-out userdata
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,30 +179,28 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) != 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_WINDOW ) )
                 {
-                    luaL_error( state, "window:__tostring() takes exactly 1 argument" );
+                    luaL_error( state, err_objtype( "__tostring", "window" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_WINDOW ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of window:__tostring() on a non-window type" );
+                    luaL_error( state, err_argcount( "__tostring", "window", 1, 1 ).c_str() );
                     return 0;
                 }
                 
-                window** w = ( window** )lua_touserdata( state, 1 );
-                if( *w == NULL )
-                {
-                    luaL_error( state, "window:__tostring(): Userdata window is NULL" );
-                    return 0;
-                }
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
                 
                 std::string window_string;
                 
                 ff::write( window_string,
                            "jade::window '",
-                           ( *w ) -> getTitle(),
+                           ( *slock ) -> getTitle(),
                            "'" );                                               // Don't try to get the platform window for an ID for now, as if new_window()
                                                                                 // and window:__tostring() on that window are called in a script executed on the
                                                                                 // main thread, the platform window probably will not have been created yet.

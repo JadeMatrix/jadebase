@@ -24,6 +24,7 @@
 #include "../gui/jb_group.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
+#include "../utility/jb_container.hpp"
 #include "../utility/jb_sharedpointer.hpp"
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
@@ -34,6 +35,8 @@
 #define JADEBASE_WINDOW_MIN_WIDTH        256
 #define JADEBASE_WINDOW_MIN_HEIGHT       256
 
+#define JADEBASE_WINDOW_CONTAINERREGISTERSILENTFAIL                             // That's kind of long
+
 namespace jade
 {
     class gui_element;
@@ -41,6 +44,7 @@ namespace jade
     
     class window
     {
+        friend class container< window >;
     protected:
         mutex window_mutex;
         
@@ -85,6 +89,11 @@ namespace jade
         std::map< jb_platform_idevid_t,
                   idev_assoc > input_assoc;
         shared_ptr< group > top_group;
+        
+        /* Container infrastructure *******************************************//******************************************************************************/
+        
+        bool can_add_containers;
+        std::set< container< window >* > containers;
         
         /**********************************************************************//******************************************************************************/
         
@@ -132,6 +141,9 @@ namespace jade
         
         shared_ptr< group > getTopGroup();                                      // Get top-level GUI group element; not safe to return a reference
         shared_ptr< group >* getTopGroup_opt();                                 // Slightly more optimized, no unnecesasry copies (returns a new shared_ptr)
+        
+        void register_container( container< window >* );
+        void deregister_container( container< window >* );
         
         void requestRedraw();
         
