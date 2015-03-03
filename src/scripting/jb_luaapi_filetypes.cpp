@@ -23,12 +23,13 @@ namespace jade
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 if( lua_gettop( state ) != 1 )
                 {
-                    luaL_error( state, "png.new() requires exactly 1 argument" );
+                    luaL_error( state, err_argcount( "png.new()", "", 1, 1 ).c_str() );
                     return 0;
                 }
+                
                 if( !lua_isstring( state, 1 ) )
                 {
-                    luaL_error( state, "'filename' not a string for png.new()" );
+                    luaL_error( state, err_argtype( "png.new()", "", "filename", 1, "string" ).c_str() );
                     return 0;
                 }
                 
@@ -52,7 +53,7 @@ namespace jade
                     lua_pushnumber( state, JADE_PNG_FILE );
                     lua_setfield( state, -2, "__type_key" );
                     
-                    lua_pushstring( state, "Edit jb_luaapi.cpp to change png_file's metatable" );
+                    lua_pushstring( state, warn_metatable( __FILE__, "png_file" ).c_str() );
                     lua_setfield( state, -2, "__metatable" );                   // Protect metatable
                     
                     lua_pushstring( state, "__index" );                         // Create object index
@@ -69,15 +70,18 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) > 1 )                                   // First argument in png_file, so no others
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
-                    luaL_error( state, "png:get_dimensions() requires exactly 0 arguments" );
+                    luaL_error( state, err_objtype( "get_dimensions", "png_file" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                if( argc > 1 )                                                  // First argument in png_file, so no others
                 {
-                    luaL_error( state, "Call of png:get_dimensions() on a non-png_file type" );
+                    luaL_error( state, err_argcount( "get_dimensions", "png_file", 0 ).c_str() );
                     return 0;
                 }
                 
@@ -93,15 +97,18 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) > 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
-                    luaL_error( state, "png:get_bit_depth() requires exactly 0 arguments" );
+                    luaL_error( state, err_objtype( "get_bit_depth", "png_file" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of png:get_bit_depth() on a non-png_file type" );
+                    luaL_error( state, err_argcount( "get_bit_depth", "png_file", 0 ).c_str() );
                     return 0;
                 }
                 
@@ -115,15 +122,18 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) > 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
-                    luaL_error( state, "png:get_color_type() requires exactly 0 arguments" );
+                    luaL_error( state, err_objtype( "get_color_type", "png_file" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of png:get_color_type() on a non-png_file type" );
+                    luaL_error( state, err_argcount( "get_color_type", "png_file", 0 ).c_str() );
                     return 0;
                 }
                 
@@ -137,15 +147,18 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) > 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
-                    luaL_error( state, "png:__gc() requires exactly 0 arguments" );
+                    luaL_error( state, err_objtype( "__gc", "png_file" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of png:__gc() on a non-png_file type" );
+                    luaL_error( state, err_argcount( "__gc", "png_file", 0 ).c_str() );
                     return 0;
                 }
                 
@@ -159,15 +172,18 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if( lua_gettop( state ) > 1 )
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
                 {
-                    luaL_error( state, "png:__tostring() requires exactly 0 arguments" );
+                    luaL_error( state, err_objtype( "__tostring", "png_file" ).c_str() );
                     return 0;
                 }
                 
-                if( !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                if( argc > 1 )
                 {
-                    luaL_error( state, "Call of png:__tostring() on a non-png_file type" );
+                    luaL_error( state, err_argcount( "__tostring", "png_file", 0 ).c_str() );
                     return 0;
                 }
                 
