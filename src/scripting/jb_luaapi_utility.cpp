@@ -63,7 +63,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc != 0 )
-                    luaL_error( state, "quit() requires exactly 0 arguments" );
+                    luaL_error( state, err_argcount( "quit", "", 0 ).c_str() );
                 else
                 {
                     if( getDevMode() )
@@ -87,18 +87,18 @@ namespace jade
                 case 2:
                     if( !lua_isboolean( state, 2 ) )
                     {
-                        luaL_error( state, "'override' (2) not a boolean for load_settings_file()" );
+                        luaL_error( state, err_argtype( "load_settings_file", "", "override", 2, "boolean" ).c_str() );
                         return 0;
                     }
                 case 1:
                     if( !lua_isstring( state, 1 ) )
                     {
-                        luaL_error( state, "'file' (1) not a string for load_settings_file()" );
+                        luaL_error( state, err_argtype( "load_settings_file", "", "file", 1, "string" ).c_str() );
                         return 0;
                     }
                     break;
                 default:
-                    luaL_error( state, "load_settings_file() requires 1-2 arguments" );
+                    luaL_error( state, err_argcount( "load_settings_file", "", 2, 1, -2 ).c_str() );
                     return 0;
                 }
                 
@@ -136,10 +136,10 @@ namespace jade
                         if( lua_isboolean( state, 1 ) )
                             reloadSettingsFiles( lua_toboolean( state, 1 ) );
                         else
-                            luaL_error( state, "'flush' (1) not a boolean for reload_settings_files()" );
+                            luaL_error( state, err_argtype( "reload_settings_files", "", "flush", 1, "boolean" ).c_str() );
                     }
                     else
-                        luaL_error( state, "reload_settings_files() requires 0-1 arguments" );
+                        luaL_error( state, err_argcount( "reload_settings_files", "", 2, 0, -1 ).c_str() );
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +155,7 @@ namespace jade
                 {
                     if( !lua_isstring( state, 1 ) )                             // Check 'key' (1) argument
                     {
-                        luaL_error( state, "'key' (1) not a string for set_setting()" );
+                        luaL_error( state, err_argtype( "set_setting", "", "key", 1, "string" ).c_str() );
                         return 0;
                     }
                     
@@ -171,14 +171,14 @@ namespace jade
                         setSetting( luaL_tolstring( state, 1, NULL ), std::string( luaL_tolstring( state, 2, NULL ) ), true );
                         break;
                     default:
-                        luaL_error( state, "'value' (2) not a number, string, or boolean for set_setting()" );
+                        luaL_error( state, err_argtype( "set_setting", "", "value", 2, "number, string or boolean" ).c_str() );
                         return 0;
                     }
                     
                     saveSettings( getUserSettingsFileName() );                  // Save every time a script changes a setting
                 }
                 else
-                    luaL_error( state, "set_setting() requires exactly 2 arguments" );
+                    luaL_error( state, err_argcount( "set_setting", "", 1, 2 ).c_str() );
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,10 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc != 0 )
-                    luaL_error( state, "get_jadebase_version() requires exactly 0 arguments" );
+                {
+                    luaL_error( state, err_argcount( "get_jadebase_version", "", 0 ).c_str() );
+                    return 0;
+                }
                 else
                 {
                     lua_pushstring( state, "jadebase" );
@@ -216,7 +219,10 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc != 0 )
-                    luaL_error( state, "get_program_version() requires exactly 0 arguments" );
+                {
+                    luaL_error( state, err_argcount( "get_program_version", "", 0 ).c_str() );
+                    return 0;
+                }
                 else
                 {
                     lua_pushstring( state, getProgramName().c_str() );

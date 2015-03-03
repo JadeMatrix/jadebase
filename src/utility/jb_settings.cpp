@@ -530,13 +530,13 @@ namespace jade
                 
                 if( argc != 1 )
                 {
-                    luaL_error( state, "get_setting() requires exactly 1 argument" );
+                    luaL_error( state, err_argcount( "get_setting", "", 1, 1 ).c_str() );
                     return 0;
                 }
                 
                 if( !lua_isstring( state, 1 ) )
                 {
-                    luaL_error( state, "'key' (1) not a string for get_setting()" );
+                    luaL_error( state, err_argtype( "get_setting", "", "key", 1, "string" ).c_str() );
                     return 0;
                 }
                 
