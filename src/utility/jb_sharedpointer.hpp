@@ -36,6 +36,7 @@ namespace jade
         shared_ptr( T* );                                                       // Constructor for new shared_ptr; object must be unique; shared_ptr owns ptr
         // shared_ptr( shared_ptr< T >& );                                         // Copy constructor
         shared_ptr( const shared_ptr< T >& );                                   // Const copy constructor
+        template< typename U > shared_ptr( const shared_ptr< U >& );            // Cast constructor
         ~shared_ptr();
         
         T& operator*() const;                                                   // Dereference operator
@@ -65,6 +66,8 @@ namespace jade
         sptr_contents* contents;
     };
     
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     template< typename T > shared_ptr< T >::shared_ptr( T* original )
     {
         if( original == NULL )
@@ -80,6 +83,13 @@ namespace jade
         scoped_lock< mutex > slock( original.contents -> contents_mutex );
         
         contents = original.contents;
+        contents -> ref_count += 1;
+    }
+    template< typename T > template< typename U > shared_ptr< T >::shared_ptr( const shared_ptr< U >& original )
+    {
+        scoped_lock< mutex > slock( ( ( shared_ptr< T >& )original ).contents -> contents_mutex );
+        
+        contents = ( ( shared_ptr< T >& )original ).contents;
         contents -> ref_count += 1;
     }
     template< typename T > shared_ptr< T >::~shared_ptr()
