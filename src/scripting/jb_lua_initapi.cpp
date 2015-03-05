@@ -17,25 +17,23 @@ namespace jade
 {
     void lua_state::initAPI()
     {
+        bool use_sub_names = getSetting_bln( "jb_LuaAPISubNames" );
+        
         // "jade" //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         lua_newtable( state );
         {
             // "filetypes" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            lua_newtable( state );
+            if( use_sub_names ) lua_newtable( state );
             {
                 // "png" ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 
-                lua_newtable( state );
+                lua_pushcfunction( state, lua::jade_filetypes_newPNG );
+                lua_setfield( state, -2, "new_png" );
+                
+                lua_newtable( state );                                          // Constants
                 {
-                    // Functions
-                    
-                    lua_pushcfunction( state, lua::jade_filetypes_png_new );
-                    lua_setfield( state, -2, "new" );
-                    
-                    // Constants
-                    
                     lua_pushnumber( state, png_file::GRAY );
                     lua_setfield( state, -2, "GRAY" );
                     lua_pushnumber( state, png_file::PALETTE );
@@ -49,11 +47,11 @@ namespace jade
                 }
                 lua_setfield( state, -2, "png" );
             }
-            lua_setfield( state, -2, "filetypes" );
+            if( use_sub_names ) lua_setfield( state, -2, "filetypes" );
             
             // "gui" ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            lua_newtable( state );
+            if( use_sub_names ) lua_newtable( state );
             {
                 // Constructors
                 
@@ -103,7 +101,7 @@ namespace jade
                 lua_pushnumber( state, text_rsrc::END );
                 lua_setfield( state, -2, "ELLIPSIS_END" );
             }
-            lua_setfield( state, -2, "gui" );
+            if( use_sub_names ) lua_setfield( state, -2, "gui" );
             
             // "main" //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
@@ -111,17 +109,17 @@ namespace jade
             
             // "tasking" ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            lua_newtable( state );
+            if( use_sub_names ) lua_newtable( state );
             {
                 
             }
-            lua_setfield( state, -2, "tasking" );
+            if( use_sub_names ) lua_setfield( state, -2, "tasking" );
             
             // "threading" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             // "utility" ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            lua_newtable( state );
+            if( use_sub_names ) lua_newtable( state );
             {
                 lua_pushcfunction( state, lua::jade_util_log );
                 lua_setfield( state, -2, "log" );
@@ -145,16 +143,16 @@ namespace jade
                 lua_pushcfunction( state, lua::jade_util_getProgramVersion );
                 lua_setfield( state, -2, "get_program_version" );
             }
-            lua_setfield( state, -2, "utility" );
+            if( use_sub_names ) lua_setfield( state, -2, "utility" );
             
             // "windowsys" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            lua_newtable( state );
+            if( use_sub_names ) lua_newtable( state );
             {
                 lua_pushcfunction( state, lua::jade_windowsys_newWindow );
                 lua_setfield( state, -2, "new_window" );
             }
-            lua_setfield( state, -2, "windowsys" );
+            if( use_sub_names ) lua_setfield( state, -2, "windowsys" );
         }
         lua_setglobal( state, "jade" );
     }
