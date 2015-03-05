@@ -1,7 +1,7 @@
 /* 
- * jb_luaapi_gui.cpp
+ * jb_luaapi_gui_group.cpp
  * 
- * Implements GUI API fron jb_luaapi.hpp
+ * Implements GUI group API fron jb_luaapi.hpp
  * 
  */
 
@@ -58,11 +58,6 @@ namespace jade
             }
             lua_setmetatable( state, -2 );
         }
-        
-    // ------- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
-        
-        
     }
 }
 

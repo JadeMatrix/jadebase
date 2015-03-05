@@ -80,7 +80,13 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/scripting.jb_lua_initapi.o \
 				${OBJDIR}/scripting.jb_luaapi.o \
 				${OBJDIR}/scripting.jb_luaapi_filetypes.o \
-				${OBJDIR}/scripting.jb_luaapi_gui.o \
+				${OBJDIR}/scripting.jb_luaapi_gui_imgrsrc.o \
+				${OBJDIR}/scripting.jb_luaapi_gui_textrsrc.o \
+				${OBJDIR}/scripting.jb_luaapi_gui_button.o \
+				${OBJDIR}/scripting.jb_luaapi_gui_dial.o \
+				${OBJDIR}/scripting.jb_luaapi_gui_group.o \
+				${OBJDIR}/scripting.jb_luaapi_gui_scrollset.o \
+				${OBJDIR}/scripting.jb_luaapi_gui_tabset.o \
 				${OBJDIR}/scripting.jb_luaapi_tasking.o \
 				${OBJDIR}/scripting.jb_luaapi_utility.o \
 				${OBJDIR}/scripting.jb_luaapi_windowsys.o \
