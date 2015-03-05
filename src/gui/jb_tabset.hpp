@@ -74,8 +74,8 @@ namespace jade
         void removeTab( shared_ptr< tab > );                                    // Does not call the content's closed()
         
         void makeTabCurrent( shared_ptr< tab > );
-        void moveTabToLeft( shared_ptr< tab > );
-        void moveTabToRight( shared_ptr< tab > );
+        void moveTabLeft( shared_ptr< tab > );
+        void moveTabRight( shared_ptr< tab > );
         
         void setParentWindow( window* );
         

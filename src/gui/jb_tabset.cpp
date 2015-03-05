@@ -256,7 +256,7 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void tabset::moveTabToLeft( shared_ptr< tab > t )
+    void tabset::moveTabLeft( shared_ptr< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -280,7 +280,7 @@ namespace jade
             }
         }
     }
-    void tabset::moveTabToRight( shared_ptr< tab > t )
+    void tabset::moveTabRight( shared_ptr< tab > t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
