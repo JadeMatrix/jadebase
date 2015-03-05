@@ -62,7 +62,7 @@ namespace jade
                 else
                     result = false;
                 
-                lua_pop( state, 2 );
+                lua_pop( state, 2 );                                            // Pop metatable & __type_key
             }
             
             return result;
