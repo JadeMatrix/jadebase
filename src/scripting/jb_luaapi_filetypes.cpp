@@ -17,7 +17,7 @@ namespace jade
 {
     namespace lua
     {
-        int jade_filetypes_png_new( lua_State* state )
+        int jade_filetypes_newPNG( lua_State* state )
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
