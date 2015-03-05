@@ -23,6 +23,7 @@
 #include <utility>
 
 #include "../threading/jb_mutex.hpp"
+#include "../utility/jb_callback.hpp"
 #include "../windowsys/jb_windowevent.hpp"
 
 /******************************************************************************//******************************************************************************/
@@ -30,13 +31,6 @@
 namespace jade
 {
     class window;                                                               // Predec because window needs shared_ptr< group >
-    
-    class gui_callback
-    {
-    public:
-        virtual ~gui_callback() {};
-        virtual void call() = 0;
-    };
     
     class gui_element
     {

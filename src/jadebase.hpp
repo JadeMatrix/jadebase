@@ -44,6 +44,7 @@
 #include "threading/jb_thread.hpp"
 #include "threading/jb_threadutil.hpp"
 
+#include "utility/jb_callback.hpp"
 #include "utility/jb_container.hpp"
 #include "utility/jb_exception.hpp"
 #include "utility/jb_gl.hpp"
