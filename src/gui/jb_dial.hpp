@@ -11,6 +11,8 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "jb_element.hpp"
+#include "../utility/jb_callback.hpp"
+#include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -38,6 +40,8 @@ namespace jade
         } capturing;
         jb_platform_idevid_t captured_dev;
         float capture_start[ 3 ];
+        
+        shared_ptr< callback > value_changed_callback;
     public:
         dial( window* parent,
               int x,
@@ -47,6 +51,8 @@ namespace jade
         
         float getValue();
         void setValue( float v );
+        
+        void setValueChangedCallback( shared_ptr< callback >& );
         
         bool acceptEvent( window_event& e );
         

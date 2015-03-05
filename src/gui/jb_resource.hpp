@@ -27,7 +27,8 @@ namespace jade
         
         virtual std::pair< unsigned int, unsigned int > getDimensions();
         
-        virtual void draw() = 0;
+        virtual void draw() {}                                                  // TODO: Change this back to pure virtual after move to C++11
+        // virtual void draw() = 0;
     };
 }
 

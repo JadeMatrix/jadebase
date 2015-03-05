@@ -58,19 +58,38 @@ namespace
 
 namespace jade
 {
+    void button::setState( button_state s )
+    {
+        switch( s )
+        {
+        case OFF_UP:
+            if( state != OFF_UP && state != OFF_DOWN )                          // Change from on to off
+                toggle_off_callback -> call();
+            break;
+        case ON_UP:
+            if( state != ON_UP && state != ON_DOWN )                            // Change from off to on
+                toggle_on_callback -> call();
+        default:
+            break;
+        }
+        
+        state = s;
+    }
+    
     button::button( window* parent,
                     int x,
                     int y,
                     unsigned int w,
-                    unsigned int h ) : gui_element( parent, x, y, w, h )
+                    unsigned int h ) : gui_element( parent, x, y, w, h ),
+                                       toggle_on_callback( new callback() ),
+                                       toggle_off_callback( new callback() ),
+                                       contents( new gui_resource( 0, 0 ) )
     {
         state = OFF_UP;
         
-        scoped_lock< mutex > slock( button_rsrc_mutex );
-        
-        contents = NULL;
-        contents_owner = true;
         contents_align = CENTER_CENTER;
+        
+        scoped_lock< mutex > slock( button_rsrc_mutex );
         
         if( !got_resources )
         {
@@ -157,10 +176,18 @@ namespace jade
             got_resources = true;
         }
     }
-    button::~button()
+    
+    void button::setToggleOnCallback( shared_ptr< callback >& cb )
     {
-        if( contents_owner )
-            delete contents;
+        scoped_lock< mutex > slock( element_mutex );
+        
+        toggle_on_callback = cb;
+    }
+    void button::setToggleOffCallback( shared_ptr< callback >& cb )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        toggle_off_callback = cb;
     }
     
     void button::setRealDimensions( unsigned int w, unsigned int h )
@@ -181,22 +208,14 @@ namespace jade
             parent -> requestRedraw();
     }
     
-    void button::setContents( gui_resource* c,
+    void button::setContents( shared_ptr< gui_resource >& c,
                               resource_align a,
-                              bool r,
-                              bool o )
+                              bool r )
     {
-        if( contents_owner )
-        {
-            if( contents != NULL )
-                delete contents;
-        }
-        
         contents = c;
         contents_align = a;
-        contents_owner = o;
         
-        if( contents != NULL && r )
+        if( r )
         {
             std::pair< unsigned int, unsigned int > rsrc_dim = c -> getDimensions();
             
@@ -241,7 +260,7 @@ namespace jade
                                         dimensions[ 0 ],
                                         dimensions[ 1 ] ) )
                 {
-                    state = OFF_DOWN;
+                    setState( OFF_DOWN );
                     parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
                     parent -> requestRedraw();
@@ -257,14 +276,14 @@ namespace jade
                 {
                     if( !( e.stroke.click & CLICK_PRIMARY ) )
                     {
-                        state = ON_UP;
+                        setState( ON_UP );
                         parent -> deassociateDevice( e.stroke.dev_id );
                         parent -> requestRedraw();
                     }
                 }
                 else                                                            // Works because we still get strokes that have just gone out of the mask
                 {
-                    state = OFF_UP;                                             // Cancel the button press
+                    setState( OFF_UP );                                         // Cancel the button press
                     parent -> deassociateDevice( e.stroke.dev_id );
                     parent -> requestRedraw();
                     return false;                                               // Stroke went out of the button
@@ -279,7 +298,7 @@ namespace jade
                                         dimensions[ 0 ],
                                         dimensions[ 1 ] ) )
                 {
-                    state = ON_DOWN;
+                    setState( ON_DOWN );
                     parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
                     parent -> requestRedraw();
@@ -295,14 +314,14 @@ namespace jade
                 {
                     if( !( e.stroke.click & CLICK_PRIMARY ) )
                     {
-                        state = OFF_UP;
+                        setState( OFF_UP );
                         parent -> deassociateDevice( e.stroke.dev_id );
                         parent -> requestRedraw();
                     }
                 }
                 else
                 {
-                    state = ON_UP;
+                    setState( ON_UP );
                     parent -> deassociateDevice( e.stroke.dev_id );
                     parent -> requestRedraw();
                     return false;                                               // Again, out of button

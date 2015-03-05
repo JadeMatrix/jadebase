@@ -49,7 +49,9 @@
 
 namespace jade
 {
-    class lua_callback : public gui_callback
+    // WARNING: lua_callback assumes that the Lua state will live at least as long as the callback itself
+    // FIXME: Potentially use a container for the parent state
+    class lua_callback : public callback
     {
     public:
         lua_callback( lua_state*,                                               // Constructor takes a jade::lua_state& instead of lua_State* for thread safety
@@ -66,6 +68,7 @@ namespace jade
     {
         enum udata_type
         {
+            JADE_LUA_STATE,
             JADE_PNG_FILE,
             JADE_WINDOW,
             JADE_TEXT_RSRC,
@@ -197,7 +200,6 @@ namespace jade
         // TASKING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         // TODO: Ensure state lifetime?
-        // TODO: Set __jade_lua_state global userdata pointing to that jade::lua_state
         
         // class CallLuaFunction_task : public task
         // {

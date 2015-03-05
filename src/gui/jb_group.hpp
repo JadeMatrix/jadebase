@@ -24,6 +24,7 @@
 
 #include "jb_element.hpp"
 #include "jb_scrollable.hpp"
+#include "../utility/jb_callback.hpp"
 #include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
@@ -40,9 +41,9 @@ namespace jade
         
         bool event_fallthrough;
         
-        gui_callback* shown_callback;
-        gui_callback* hidden_callback;
-        gui_callback* closed_callback;
+        shared_ptr< callback > shown_callback;
+        shared_ptr< callback > hidden_callback;
+        shared_ptr< callback > closed_callback;
         
         int scroll_limits[ 2 ];                                                 // X min, X max, Y min, Y max
         int scroll_offset[ 2 ];
@@ -56,7 +57,6 @@ namespace jade
                int y,
                unsigned int w,
                unsigned int h );
-        ~group();
         
         void addElement( shared_ptr< gui_element >& e );                        // Safe to use shared_ptr<>& here as it is copied during storage
         void removeElement( shared_ptr< gui_element >& e );                     // Safe to use shared_ptr<>& here as it is only used locally to the function
@@ -68,9 +68,9 @@ namespace jade
         
         // CALLBACKS & EVENTS //////////////////////////////////////////////////
         
-        gui_callback* setShownCallback( gui_callback* );                        // All callback pointers belong to the group after setting them, unless changed
-        gui_callback* setHiddenCallback( gui_callback* );                       // or set to NULL.  They return the previous callback pointer.
-        gui_callback* setClosedCallback( gui_callback* );
+        void setShownCallback( shared_ptr< callback >& );
+        void setHiddenCallback( shared_ptr< callback >& );
+        void setClosedCallback( shared_ptr< callback >& );
         
         void shown();
         void hidden();

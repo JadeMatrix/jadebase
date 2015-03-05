@@ -23,6 +23,24 @@ namespace jade
         
         lua_newtable( state );
         {
+            lua_state** state_ptr = ( lua_state** )lua_newuserdata( state, sizeof( lua_state* ) );
+            ( *state_ptr ) = this;
+            lua_setfield( state, -2, "__jade_lua_state" );
+            
+            lua_newtable( state );
+            {
+                lua_pushnumber( state, lua::JADE_LUA_STATE );
+                lua_setfield( state, -2, "__type_key" );
+                
+                lua_pushstring( state, lua::warn_metatable( __FILE__, "__jade_lua_state" ).c_str() );
+                lua_setfield( state, -2, "__metatable" );                       // Protect metatable
+                
+                lua_pushstring( state, "__index" );                             // Create object index
+                lua_pushvalue( state, -2 );
+                lua_settable( state, -3 );
+            }
+            lua_setmetatable( state, -2 );
+            
             // "filetypes" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             if( use_sub_names ) lua_newtable( state );

@@ -238,6 +238,114 @@ namespace jade
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
+        
+        int jade_util_newCallback( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if( lua_gettop( state ) != 1 )
+                {
+                    luaL_error( state, err_argcount( "new_callback", "", 1, 1 ).c_str() );
+                    return 0;
+                }
+                
+                if( lua_isfunction( state, 1 ) )
+                {
+                    luaL_error( state, err_argtype( "new_callback", "", "function", 1, "function" ).c_str() );
+                    return 0;
+                }
+                
+                lua_getglobal( state, "__jade_lua_state" );
+                if( !check_udata_type( state, -1, JADE_LUA_STATE ) )
+                {
+                    luaL_error( state, "new_callback(): __jade_lua_state corrupt" );
+                    return 0;
+                }
+                
+                lua_state* state_p = *( lua_state** )lua_touserdata( state, -1 );
+                lua_reference ref = luaL_ref( state, 1 );
+                
+                new( lua_newuserdata( state, sizeof( shared_ptr< lua_callback > ) ) ) shared_ptr< lua_callback >( new lua_callback( state_p, ref ) );
+                
+                lua_newtable( state );
+                {
+                    lua_pushcfunction( state, jade_util_callback_gc );
+                    lua_setfield( state, -2, "__gc" );
+                    lua_pushcfunction( state, jade_util_callback_tostring );
+                    lua_setfield( state, -2, "__tostring" );
+                    
+                    lua_pushnumber( state, JADE_CALLBACK );
+                    lua_setfield( state, -2, "__type_key" );
+                    
+                    lua_pushstring( state, warn_metatable( __FILE__, "callback" ).c_str() );
+                    lua_setfield( state, -2, "__metatable" );                   // Protect metatable
+                    
+                    lua_pushstring( state, "__index" );                         // Create object index
+                    lua_pushvalue( state, -2 );
+                    lua_settable( state, -3 );
+                }
+                lua_setmetatable( state, -2 );
+                
+                return 1;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_util_callback_gc( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_CALLBACK ) )
+                {
+                    luaL_error( state, err_objtype( "__gc", "callback" ).c_str() );
+                    return 0;
+                }
+                
+                if( argc > 1 )
+                {
+                    luaL_error( state, err_argcount( "__gc", "callback", 0 ).c_str() );
+                    return 0;
+                }
+                
+                ( ( shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ) -> ~shared_ptr< lua_callback >();
+                
+                return 0;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_util_callback_tostring( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || !check_udata_type( state, 1, JADE_CALLBACK ) )
+                {
+                    luaL_error( state, err_objtype( "__tostring", "callback" ).c_str() );
+                    return 0;
+                }
+                
+                if( argc > 1 )
+                {
+                    luaL_error( state, err_argcount( "__tostring", "callback", 0 ).c_str() );
+                    return 0;
+                }
+                
+                std::string str;
+                
+                ff::write( str,
+                           "jade::lua_callback at 0x",
+                           ff::to_x( ( long )( &*( shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ) ) );
+                
+                lua_pushstring( state, str.c_str() );
+                
+                return 1;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
     }
 }
 

@@ -33,9 +33,9 @@ namespace jade
                     return 0;
                 }
                 
-                png_file** file_p = ( png_file** )lua_newuserdata( state, sizeof( png_file* ) );
+                png_file* file_p = ( png_file* )lua_newuserdata( state, sizeof( png_file ) );
                 
-                ( *file_p ) = new png_file( lua_tostring( state, 1 ) );
+                new( file_p ) png_file( lua_tostring( state, 1 ) );
                 
                 lua_newtable( state );                                          // Create metatable
                 {
@@ -85,7 +85,7 @@ namespace jade
                     return 0;
                 }
                 
-                std::pair< unsigned int, unsigned int > dimensions = ( *( png_file** )lua_touserdata( state, 1 ) ) -> getDimensions();
+                std::pair< unsigned int, unsigned int > dimensions = ( ( png_file* )lua_touserdata( state, 1 ) ) -> getDimensions();
                 lua_pushnumber( state, dimensions.first );
                 lua_pushnumber( state, dimensions.second );
                 
@@ -112,7 +112,7 @@ namespace jade
                     return 0;
                 }
                 
-                lua_pushnumber( state, ( *( png_file** )lua_touserdata( state, 1 ) ) -> getBitDepth() );
+                lua_pushnumber( state, ( ( png_file* )lua_touserdata( state, 1 ) ) -> getBitDepth() );
                 
                 return 1;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ namespace jade
                     return 0;
                 }
                 
-                lua_pushnumber( state, ( *( png_file** )lua_touserdata( state, 1 ) ) -> getColorType() );
+                lua_pushnumber( state, ( ( png_file* )lua_touserdata( state, 1 ) ) -> getColorType() );
                 
                 return 1;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,7 +162,7 @@ namespace jade
                     return 0;
                 }
                 
-                delete *( png_file** )lua_touserdata( state, 1 );
+                ( ( png_file* )lua_touserdata( state, 1 ) ) -> ~png_file();
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,7 +191,7 @@ namespace jade
                 
                 ff::write( png_string,
                            "jade::png_file at 0x",
-                           ff::to_x( ( long )( *( png_file** )lua_touserdata( state, 1 ) ) ) );
+                           ff::to_x( ( long )( ( png_file* )lua_touserdata( state, 1 ) ) ) );
                 
                 lua_pushstring( state, png_string.c_str() );
                 

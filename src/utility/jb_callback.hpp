@@ -16,11 +16,12 @@
 
 namespace jade
 {
-    class gui_callback
+    class callback
     {
     public:
-        virtual ~gui_callback() {};
-        virtual void call() = 0;
+        virtual ~callback() {}
+        virtual void call() {}                                                  // Virtual but non-pure virtual call() so this can be used as a default callback
+                                                                                // TODO: Change this back to pure virtual after move to C++11
     };
 }
 

@@ -53,7 +53,8 @@ namespace jade
                                          x,
                                          y,
                                          s ? DIAL_SMALL_DIAMETER : DIAL_LARGE_DIAMETER,
-                                         s ? DIAL_SMALL_DIAMETER : DIAL_LARGE_DIAMETER )
+                                         s ? DIAL_SMALL_DIAMETER : DIAL_LARGE_DIAMETER ),
+                            value_changed_callback( new callback() )
     {
         value = v;
         small = s;
@@ -92,8 +93,17 @@ namespace jade
                 value = v;
         }
         
+        value_changed_callback -> call();
+        
         if( parent != NULL )
             parent -> requestRedraw();
+    }
+    
+    void dial::setValueChangedCallback( shared_ptr< callback >& cb )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        value_changed_callback = cb;
     }
     
     bool dial::acceptEvent( window_event& e )
