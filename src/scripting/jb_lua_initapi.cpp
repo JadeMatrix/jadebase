@@ -59,10 +59,19 @@ namespace jade
                 lua_setfield( state, -2, "new_text_rsrc" );
                 lua_pushcfunction( state, lua::jade_gui_newImageRsrc );
                 lua_setfield( state, -2, "new_image_rsrc" );
-                lua_pushcfunction( state, lua::jade_gui_newGroup );
-                lua_setfield( state, -2, "new_group" );
                 lua_pushcfunction( state, lua::jade_gui_newButton );
                 lua_setfield( state, -2, "new_button" );
+                lua_pushcfunction( state, lua::jade_gui_newDial );
+                lua_setfield( state, -2, "new_dial" );
+                lua_pushcfunction( state, lua::jade_gui_newGroup );
+                lua_setfield( state, -2, "new_group" );
+                lua_pushcfunction( state, lua::jade_gui_newScrollset );
+                lua_setfield( state, -2, "new_scrollset" );
+                lua_pushcfunction( state, lua::jade_gui_newTabset );
+                lua_setfield( state, -2, "new_tabset" );
+                
+                lua_pushcfunction( state, lua::jade_gui_newTab );
+                lua_setfield( state, -2, "new_tab" );
                 
                 // Constants
                 
