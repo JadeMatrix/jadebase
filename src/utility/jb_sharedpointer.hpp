@@ -28,6 +28,21 @@
 
 /******************************************************************************//******************************************************************************/
 
+// namespace jade
+// {
+//     template< typename T > class shared_ptr;
+// }
+
+// namespace std
+// {
+//     template< typename T > bool operator==( const jade::shared_ptr< T >&, const jade::shared_ptr< T >& );
+//     template< typename T > bool operator!=( const jade::shared_ptr< T >&, const jade::shared_ptr< T >& );
+//     template< typename T > bool operator>( const jade::shared_ptr< T >&, const jade::shared_ptr< T >& );
+//     template< typename T > bool operator<( const jade::shared_ptr< T >&, const jade::shared_ptr< T >& );
+//     template< typename T > bool operator>=( const jade::shared_ptr< T >&, const jade::shared_ptr< T >& );
+//     template< typename T > bool operator<=( const jade::shared_ptr< T >&, const jade::shared_ptr< T >& );
+// }
+
 namespace jade
 {
     template< typename T > class shared_ptr
@@ -50,12 +65,18 @@ namespace jade
         T& operator[]( long ) const;
         
         // Boolean operators also check for object/ref_count inconsistencies
-        friend bool operator==( const shared_ptr< T >&, const shared_ptr< T >& );   // TODO: Declare as inline?
-        friend bool operator!=( const shared_ptr< T >&, const shared_ptr< T >& );
-        friend bool operator>( const shared_ptr< T >&, const shared_ptr< T >& );
-        friend bool operator<( const shared_ptr< T >&, const shared_ptr< T >& );
-        friend bool operator>=( const shared_ptr< T >&, const shared_ptr< T >& );
-        friend bool operator<=( const shared_ptr< T >&, const shared_ptr< T >& );
+        bool operator==( const shared_ptr< T >& );
+        bool operator!=( const shared_ptr< T >& );
+        bool operator>( const shared_ptr< T >& );
+        bool operator<( const shared_ptr< T >& );
+        bool operator>=( const shared_ptr< T >& );
+        bool operator<=( const shared_ptr< T >& );
+        // template< typename U > friend bool std::operator==( const shared_ptr< U >&, const shared_ptr< U >& );  // TODO: Declare as inline?
+        // template< typename U > friend bool std::operator!=( const shared_ptr< U >&, const shared_ptr< U >& );
+        // template< typename U > friend bool std::operator>( const shared_ptr< U >&, const shared_ptr< U >& );
+        // template< typename U > friend bool std::operator<( const shared_ptr< U >&, const shared_ptr< U >& );
+        // template< typename U > friend bool std::operator>=( const shared_ptr< U >&, const shared_ptr< U >& );
+        // template< typename U > friend bool std::operator<=( const shared_ptr< U >&, const shared_ptr< U >& );
     private:
         struct sptr_contents
         {
@@ -200,60 +221,117 @@ namespace jade
         return ( contents -> object )[ offset ];
     }
     
-    template< typename T > inline bool operator==( const shared_ptr< T >& a, const shared_ptr< T >& b )
+    template< typename T > bool shared_ptr< T >::operator==( const shared_ptr< T >& b )
     {
-        scoped_lock< mutex > alock( a.contents -> contents_mutex );             // ==, >, and < reference ref_count so they need to lock
+        scoped_lock< mutex > alock( contents -> contents_mutex );
         scoped_lock< mutex > block( b.contents -> contents_mutex );
         
-        if( a.contents -> object == b.contents -> object )
+        if( contents -> object == b.contents -> object )
         {
-            if( a.contents -> ref_count == b.contents -> ref_count )
+            if( contents -> ref_count == b.contents -> ref_count )
                 return true;
             else
-                throw exception( "operator==( const shared_ptr<>&, const shared_ptr<>& ): Pointer same but count different" );
+                throw jade::exception( "shared_ptr<>::operator==(): Pointer same but count different" );
         }
         else
             return false;
     }
-    template< typename T > inline bool operator!=( const shared_ptr< T >& a, const shared_ptr< T >& b )
+    template< typename T > bool shared_ptr< T >::operator!=( const shared_ptr< T >& b )
     {
-        return !( a == b );
+        return !( *this == b );
     }
-    template< typename T > inline bool operator>( const shared_ptr< T >& a, const shared_ptr< T >& b )
+    template< typename T > bool shared_ptr< T >::operator>( const shared_ptr< T >& b )
     {
-        scoped_lock< mutex > alock( a.contents -> contents_mutex );
+        scoped_lock< mutex > alock( contents -> contents_mutex );
         scoped_lock< mutex > block( b.contents -> contents_mutex );
         
-        if( a.contents -> object == b.contents -> object
-            && a.contents -> ref_count != b.contents -> ref_count )
+        if( contents -> object == b.contents -> object
+            && contents -> ref_count != b.contents -> ref_count )
         {
-            throw exception( "operator>( const shared_ptr<>&, const shared_ptr<>& ): Pointer same but count different" );
+            throw jade::exception( "shared_ptr<>::operator>(): Pointer same but count different" );
         }
         else
-            return a.contents -> object > b.contents -> object;
+            return contents -> object > b.contents -> object;
     }
-    template< typename T > inline bool operator<( const shared_ptr< T >& a, const shared_ptr< T >& b )
+    template< typename T > bool shared_ptr< T >::operator<( const shared_ptr< T >& b )
     {
-        scoped_lock< mutex > alock( a.contents -> contents_mutex );
+        scoped_lock< mutex > alock( contents -> contents_mutex );
         scoped_lock< mutex > block( b.contents -> contents_mutex );
         
-        if( a.contents -> object == b.contents -> object
-            && a.contents -> ref_count != b.contents -> ref_count )
+        if( contents -> object == b.contents -> object
+            && contents -> ref_count != b.contents -> ref_count )
         {
-            throw exception( "operator<( const shared_ptr<>&, const shared_ptr<>& ): Pointer same but count different" );
+            throw jade::exception( "shared_ptr<>::operator<(): Pointer same but count different" );
         }
         else
-            return a.contents -> object < b.contents -> object;
+            return contents -> object < b.contents -> object;
     }
-    template< typename T > inline bool operator>=( const shared_ptr< T >& a, const shared_ptr< T >& b )
+    template< typename T > bool shared_ptr< T >::operator>=( const shared_ptr< T >& b )
     {
-        return !( a < b );
+        return !( *this < b );
     }
-    template< typename T > inline bool operator<=( const shared_ptr< T >& a, const shared_ptr< T >& b )
+    template< typename T > bool shared_ptr< T >::operator<=( const shared_ptr< T >& b )
     {
-        return !( a > b );
+        return !( *this > b );
     }
 }
+
+// namespace std
+// {
+//     template< typename T > inline bool operator==( const jade::shared_ptr< T >& a, const jade::shared_ptr< T >& b )
+//     {
+//         jade::scoped_lock< jade::mutex > alock( a.contents -> contents_mutex );             // ==, >, and < reference ref_count so they need to lock
+//         jade::scoped_lock< jade::mutex > block( b.contents -> contents_mutex );
+        
+//         if( a.contents -> object == b.contents -> object )
+//         {
+//             if( a.contents -> ref_count == b.contents -> ref_count )
+//                 return true;
+//             else
+//                 throw jade::exception( "operator==( const jade::shared_ptr<>&, const jade::shared_ptr<>& ): Pointer same but count different" );
+//         }
+//         else
+//             return false;
+//     }
+//     template< typename T > inline bool operator!=( const jade::shared_ptr< T >& a, const jade::shared_ptr< T >& b )
+//     {
+//         return !( a == b );
+//     }
+//     template< typename T > inline bool operator>( const jade::shared_ptr< T >& a, const jade::shared_ptr< T >& b )
+//     {
+//         jade::scoped_lock< jade::mutex > alock( a.contents -> contents_mutex );
+//         jade::scoped_lock< jade::mutex > block( b.contents -> contents_mutex );
+        
+//         if( a.contents -> object == b.contents -> object
+//             && a.contents -> ref_count != b.contents -> ref_count )
+//         {
+//             throw jade::exception( "operator>( const jade::shared_ptr<>&, const jade::shared_ptr<>& ): Pointer same but count different" );
+//         }
+//         else
+//             return a.contents -> object > b.contents -> object;
+//     }
+//     template< typename T > inline bool operator<( const jade::shared_ptr< T >& a, const jade::shared_ptr< T >& b )
+//     {
+//         jade::scoped_lock< jade::mutex > alock( a.contents -> contents_mutex );
+//         jade::scoped_lock< jade::mutex > block( b.contents -> contents_mutex );
+        
+//         if( a.contents -> object == b.contents -> object
+//             && a.contents -> ref_count != b.contents -> ref_count )
+//         {
+//             throw jade::exception( "operator<( const jade::shared_ptr<>&, const jade::shared_ptr<>& ): Pointer same but count different" );
+//         }
+//         else
+//             return a.contents -> object < b.contents -> object;
+//     }
+//     template< typename T > inline bool operator>=( const jade::shared_ptr< T >& a, const jade::shared_ptr< T >& b )
+//     {
+//         return !( a < b );
+//     }
+//     template< typename T > inline bool operator<=( const jade::shared_ptr< T >& a, const jade::shared_ptr< T >& b )
+//     {
+//         return !( a > b );
+//     }
+// }
 
 /******************************************************************************//******************************************************************************/
 

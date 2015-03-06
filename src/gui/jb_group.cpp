@@ -152,12 +152,15 @@ namespace jade
         
         e -> setParentWindow( parent );
         elements.push_back( e );
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
-    void group::removeElement( shared_ptr< gui_element >& e )
+    void group::removeElement( jade::shared_ptr< jade::gui_element >& e )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        for( std::vector< shared_ptr< gui_element > >::iterator iter = elements.begin();
+        for( std::vector< jade::shared_ptr< gui_element > >::iterator iter = elements.begin();
              iter != elements.end();
              ++iter )
         {

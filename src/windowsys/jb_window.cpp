@@ -173,6 +173,7 @@ namespace jade
         registerWindow( *this );
         
         top_group -> setParentWindow( this );
+        top_group -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] );
     }
     
     void window::makeContextCurrent()
@@ -487,6 +488,15 @@ namespace jade
                     unsigned int new_dimensions[ 2 ];
                     new_dimensions[ 0 ] = target -> dimensions[ 0 ];
                     new_dimensions[ 1 ] = target -> dimensions[ 1 ];
+                    
+                    // TODO: Fluid syncing of window & top_group dimensions:
+                    //         1. Window gets dimension changed
+                    //         2. If good, window sets top_group dimensions
+                    //         3. top_group clips dimensions to calculated mins
+                    //            (if any)
+                    //         4. Window then gets top_group dimensions and sets
+                    //            self dimensions from those
+                    //         No min window dimensions (X will be happier)
                     
                     if( target -> dimensions[ 0 ] < JADEBASE_WINDOW_MIN_WIDTH )
                     {

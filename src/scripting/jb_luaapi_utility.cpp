@@ -265,7 +265,7 @@ namespace jade
                 lua_state* state_p = *( lua_state** )lua_touserdata( state, -1 );
                 lua_reference ref = luaL_ref( state, 1 );
                 
-                new( lua_newuserdata( state, sizeof( shared_ptr< lua_callback > ) ) ) shared_ptr< lua_callback >( new lua_callback( state_p, ref ) );
+                new( lua_newuserdata( state, sizeof( shared_ptr< lua_callback > ) ) ) shared_ptr< lua_callback >( new lua_callback( *state_p, ref ) );
                 
                 lua_newtable( state );
                 {

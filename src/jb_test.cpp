@@ -69,14 +69,17 @@ namespace jade
                 
                 window* test_window = new window();
                 
-                test_window -> getTopGroup() -> addElement( new button( NULL, 10, 10, 150, 27 ) );
-                
                 window::manipulate* manip = new window::manipulate( test_window );
                 
                 manip -> setTitle( getProgramVersionString() + " (C++)" );
                 
                 submitTask( new window::manipulate( test_window ) );
                 
+                shared_ptr< gui_element > butt_p( new button( NULL, 10, 10, 150, 27 ) );
+                
+                test_window -> getTopGroup() -> addElement( butt_p );
+                
+                // test_window -> requestRedraw();
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             // std::string main_script_file= getMainScriptFileName();

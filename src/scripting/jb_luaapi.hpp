@@ -54,13 +54,13 @@ namespace jade
     class lua_callback : public callback
     {
     public:
-        lua_callback( lua_state*,                                               // Constructor takes a jade::lua_state& instead of lua_State* for thread safety
+        lua_callback( lua_state&,                                               // Constructor takes a jade::lua_state& instead of lua_State* for thread safety
                       lua_reference );                                          // Reference to the Lua object to call (function with no arguments & no return)
         ~lua_callback();
         
         void call();
     protected:
-        lua_state* parent_state;
+        lua_state& parent_state;
         lua_reference lua_func;
     };
     

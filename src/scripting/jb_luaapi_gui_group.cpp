@@ -24,13 +24,10 @@ namespace jade
             
             lua_newtable( state );
             {
-                lua_pushcfunction( state, jade_gui_element_position );
+                lua_pushcfunction( state, jade_gui_group_position );
                 lua_setfield( state, -2, "position" );
-                lua_pushcfunction( state, jade_gui_element_dimensions );
+                lua_pushcfunction( state, jade_gui_group_dimensions );
                 lua_setfield( state, -2, "dimensions" );
-                lua_pushcfunction( state, jade_gui_element_gc );
-                lua_setfield( state, -2, "__gc" );
-                
                 lua_pushcfunction( state, jade_gui_group_addElement );
                 lua_setfield( state, -2, "add_element" );
                 lua_pushcfunction( state, jade_gui_group_removeElement );
@@ -43,6 +40,8 @@ namespace jade
                 lua_setfield( state, -2, "hidden_callback" );
                 lua_pushcfunction( state, jade_gui_group_setClosedCallback );
                 lua_setfield( state, -2, "closed_callback" );
+                lua_pushcfunction( state, jade_gui_group_gc );
+                lua_setfield( state, -2, "__gc" );
                 lua_pushcfunction( state, jade_gui_group_tostring );
                 lua_setfield( state, -2, "__tostring" );
                 

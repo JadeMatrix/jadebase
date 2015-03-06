@@ -74,6 +74,9 @@ namespace jade
         }
         
         state = s;
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
     button::button( window* parent,
@@ -263,7 +266,6 @@ namespace jade
                     setState( OFF_DOWN );
                     parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
-                    parent -> requestRedraw();
                 }
                 break;
             case OFF_DOWN:
@@ -278,14 +280,12 @@ namespace jade
                     {
                         setState( ON_UP );
                         parent -> deassociateDevice( e.stroke.dev_id );
-                        parent -> requestRedraw();
                     }
                 }
                 else                                                            // Works because we still get strokes that have just gone out of the mask
                 {
                     setState( OFF_UP );                                         // Cancel the button press
                     parent -> deassociateDevice( e.stroke.dev_id );
-                    parent -> requestRedraw();
                     return false;                                               // Stroke went out of the button
                 }
                 break;
@@ -301,7 +301,6 @@ namespace jade
                     setState( ON_DOWN );
                     parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
-                    parent -> requestRedraw();
                 }
                 break;
             case ON_DOWN:
@@ -316,14 +315,12 @@ namespace jade
                     {
                         setState( OFF_UP );
                         parent -> deassociateDevice( e.stroke.dev_id );
-                        parent -> requestRedraw();
                     }
                 }
                 else
                 {
                     setState( ON_UP );
                     parent -> deassociateDevice( e.stroke.dev_id );
-                    parent -> requestRedraw();
                     return false;                                               // Again, out of button
                 }
                 break;
@@ -415,56 +412,53 @@ namespace jade
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
         
-        if( contents != NULL )
+        glPushMatrix();
         {
-            glPushMatrix();
+            switch( contents_align )
             {
-                switch( contents_align )
-                {
-                case TOP_LEFT:
-                case CENTER_LEFT:
-                case BOTTOM_LEFT:
-                    glTranslatef( position[ 0 ], 0.0f, 0.0f );
-                    break;
-                case TOP_CENTER:
-                case CENTER_CENTER:
-                case BOTTOM_CENTER:
-                    glTranslatef( position[ 0 ] + floor( ( dimensions[ 0 ] - contents -> getDimensions().first ) / 2.0f ), 0.0f, 0.0f );
-                    break;
-                case TOP_RIGHT:
-                case CENTER_RIGHT:
-                case BOTTOM_RIGHT:
-                    glTranslatef( position[ 0 ] + dimensions[ 0 ] - contents -> getDimensions().first, 0.0f, 0.0f );
-                    break;
-                default:
-                    throw exception( "button::draw(): Uknown contents alignment" );
-                }
-                
-                switch( contents_align )
-                {
-                case TOP_LEFT:
-                case TOP_CENTER:
-                case TOP_RIGHT:
-                    glTranslatef( 0.0f, position[ 1 ], 0.0f );
-                    break;
-                case CENTER_LEFT:
-                case CENTER_CENTER:
-                case CENTER_RIGHT:
-                    glTranslatef( 0.0f, position[ 1 ] + floor( ( dimensions[ 1 ] - contents -> getDimensions().second ) / 2.0f ), 0.0f );
-                    break;
-                case BOTTOM_LEFT:
-                case BOTTOM_CENTER:
-                case BOTTOM_RIGHT:
-                    glTranslatef( 0.0f, position[ 1 ] + dimensions[ 1 ] - contents -> getDimensions().second, 0.0f );
-                    break;
-                default:
-                    throw exception( "button::draw(): Uknown contents alignment" );
-                }
-                
-                contents -> draw();
+            case TOP_LEFT:
+            case CENTER_LEFT:
+            case BOTTOM_LEFT:
+                glTranslatef( position[ 0 ], 0.0f, 0.0f );
+                break;
+            case TOP_CENTER:
+            case CENTER_CENTER:
+            case BOTTOM_CENTER:
+                glTranslatef( position[ 0 ] + floor( ( dimensions[ 0 ] - contents -> getDimensions().first ) / 2.0f ), 0.0f, 0.0f );
+                break;
+            case TOP_RIGHT:
+            case CENTER_RIGHT:
+            case BOTTOM_RIGHT:
+                glTranslatef( position[ 0 ] + dimensions[ 0 ] - contents -> getDimensions().first, 0.0f, 0.0f );
+                break;
+            default:
+                throw exception( "button::draw(): Uknown contents alignment" );
             }
-            glPopMatrix();
+            
+            switch( contents_align )
+            {
+            case TOP_LEFT:
+            case TOP_CENTER:
+            case TOP_RIGHT:
+                glTranslatef( 0.0f, position[ 1 ], 0.0f );
+                break;
+            case CENTER_LEFT:
+            case CENTER_CENTER:
+            case CENTER_RIGHT:
+                glTranslatef( 0.0f, position[ 1 ] + floor( ( dimensions[ 1 ] - contents -> getDimensions().second ) / 2.0f ), 0.0f );
+                break;
+            case BOTTOM_LEFT:
+            case BOTTOM_CENTER:
+            case BOTTOM_RIGHT:
+                glTranslatef( 0.0f, position[ 1 ] + dimensions[ 1 ] - contents -> getDimensions().second, 0.0f );
+                break;
+            default:
+                throw exception( "button::draw(): Uknown contents alignment" );
+            }
+            
+            contents -> draw();
         }
+        glPopMatrix();
     }
 }
 
