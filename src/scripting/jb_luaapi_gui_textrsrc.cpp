@@ -23,19 +23,19 @@ namespace jade
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 int argc = lua_gettop( state );
                 
-                if( argc >=1
+                if( argc >= 1
                     && !lua_isnumber( state, 1 ) )
                 {
                     luaL_error( state, err_argtype( "new_text_rsrc", "", "pointsize", 1, "number" ).c_str() );
                     return 0;
                 }
-                if( argc >=2
+                if( argc >= 2
                     && !lua_isstring( state, 2 ) )
                 {
                     luaL_error( state, err_argtype( "new_text_rsrc", "", "font", 2, "string" ).c_str() );
                     return 0;
                 }
-                if( argc >=3
+                if( argc >= 3
                     && !lua_isstring( state, 3 ) )
                 {
                     luaL_error( state, err_argtype( "new_text_rsrc", "", "string", 3, "string" ).c_str() );
