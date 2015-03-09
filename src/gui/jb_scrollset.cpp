@@ -305,9 +305,12 @@ namespace jade
                           int y,
                           unsigned int w,
                           unsigned int h,
-                          shared_ptr< scrollable >& c ) : gui_element( parent, x, y, w, h ),
-                                                         contents( c )
+                          const std::shared_ptr< scrollable >& c ) : gui_element( parent, x, y, w, h ),
+                                                                     contents( c )
     {
+        if( !contents )
+            throw exception( "scrollset::scrollset(): Contents empty shared_ptr" );
+        
         horz_state[ 0 ] = DISABLED;
         horz_state[ 1 ] = DISABLED;
         vert_state[ 0 ] = DISABLED;

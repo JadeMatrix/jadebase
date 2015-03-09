@@ -14,9 +14,10 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <memory>
+
 #include "jb_element.hpp"
 #include "jb_scrollable.hpp"
-#include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -25,7 +26,7 @@ namespace jade
     class scrollset : public gui_element
     {
     protected:
-        shared_ptr< scrollable > contents;
+        std::shared_ptr< scrollable > contents;
         
         enum button_state
         {
@@ -67,7 +68,7 @@ namespace jade
                    int y,
                    unsigned int w,
                    unsigned int h,
-                   shared_ptr< scrollable >& c );                               // Using shared_ptr<>& here is safe as it is copied on storage
+                   const std::shared_ptr< scrollable >& c );
         ~scrollset();
         
         void setParentWindow( window* );

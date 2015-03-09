@@ -48,24 +48,24 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_newuserdata( state, sizeof( shared_ptr< text_rsrc > ) );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_newuserdata( state, sizeof( std::shared_ptr< text_rsrc > ) );
                 
                 switch( argc )                                                  // This is set up to use default values for constructor
                 {
                 case 0:
-                    new( rsrc_sp ) shared_ptr< text_rsrc >( new text_rsrc() );
+                    new( rsrc_sp ) std::shared_ptr< text_rsrc >( new text_rsrc() );
                     break;
                 case 1:
-                    new( rsrc_sp ) shared_ptr< text_rsrc >( new text_rsrc( lua_tonumber( state, 1 ) ) );
+                    new( rsrc_sp ) std::shared_ptr< text_rsrc >( new text_rsrc( lua_tonumber( state, 1 ) ) );
                     break;
                 case 2:
-                    new( rsrc_sp ) shared_ptr< text_rsrc >( new text_rsrc( lua_tonumber( state, 1 ),
-                                                                           lua_tostring( state, 2 ) ) );
+                    new( rsrc_sp ) std::shared_ptr< text_rsrc >( new text_rsrc( lua_tonumber( state, 1 ),
+                                                                                lua_tostring( state, 2 ) ) );
                     break;
                 case 3:
-                    new( rsrc_sp ) shared_ptr< text_rsrc >( new text_rsrc( lua_tonumber( state, 1 ),
-                                                                           lua_tostring( state, 2 ),
-                                                                           lua_tostring( state, 3 ) ) );
+                    new( rsrc_sp ) std::shared_ptr< text_rsrc >( new text_rsrc( lua_tonumber( state, 1 ),
+                                                                                lua_tostring( state, 2 ),
+                                                                                lua_tostring( state, 3 ) ) );
                     break;
                 default:
                     break;
@@ -127,7 +127,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 std::pair< unsigned int, unsigned int > dims( ( *rsrc_sp ) -> getDimensions() );
                 
@@ -151,7 +151,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 switch( argc )
                 {
@@ -187,7 +187,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 switch( argc )
                 {
@@ -223,7 +223,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 switch( argc )
                 {
@@ -286,7 +286,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 ( *rsrc_sp ) -> setColor( lua_tonumber( state, 2 ),
                                           lua_tonumber( state, 3 ),
@@ -332,7 +332,7 @@ namespace jade
                     }
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 switch( argc )
                 {
@@ -374,7 +374,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 switch( argc )
                 {
@@ -416,7 +416,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 rsrc_sp -> ~shared_ptr< text_rsrc >();
                 
@@ -443,7 +443,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< text_rsrc >* rsrc_sp = ( shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 1 );
                 
                 std::string str;
                 std::pair< unsigned int, unsigned int > dims( ( *rsrc_sp ) -> getDimensions() );

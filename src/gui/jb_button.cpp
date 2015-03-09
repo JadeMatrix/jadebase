@@ -63,12 +63,20 @@ namespace jade
         switch( s )
         {
         case OFF_UP:
-            if( state != OFF_UP && state != OFF_DOWN )                          // Change from on to off
+            if( state != OFF_UP
+                && state != OFF_DOWN
+                && toggle_off_callback )                                        // Change from on to off
+            {
                 toggle_off_callback -> call();
+            }
             break;
         case ON_UP:
-            if( state != ON_UP && state != ON_DOWN )                            // Change from off to on
+            if( state != ON_UP
+                && state != ON_DOWN
+                && toggle_on_callback )                                         // Change from off to on
+            {
                 toggle_on_callback -> call();
+            }
         default:
             break;
         }
@@ -83,10 +91,7 @@ namespace jade
                     int x,
                     int y,
                     unsigned int w,
-                    unsigned int h ) : gui_element( parent, x, y, w, h ),
-                                       toggle_on_callback( new callback() ),
-                                       toggle_off_callback( new callback() ),
-                                       contents( new gui_resource( 0, 0 ) )
+                    unsigned int h ) : gui_element( parent, x, y, w, h )
     {
         state = OFF_UP;
         
@@ -180,13 +185,13 @@ namespace jade
         }
     }
     
-    void button::setToggleOnCallback( shared_ptr< callback >& cb )
+    void button::setToggleOnCallback( const std::shared_ptr< callback >& cb )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         toggle_on_callback = cb;
     }
-    void button::setToggleOffCallback( shared_ptr< callback >& cb )
+    void button::setToggleOffCallback( const std::shared_ptr< callback >& cb )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -211,16 +216,16 @@ namespace jade
             parent -> requestRedraw();
     }
     
-    void button::setContents( shared_ptr< gui_resource >& c,
+    void button::setContents( const std::shared_ptr< gui_resource >& c,
                               resource_align a,
                               bool r )
     {
         contents = c;
         contents_align = a;
         
-        if( r )
+        if( contents && r )
         {
-            std::pair< unsigned int, unsigned int > rsrc_dim = c -> getDimensions();
+            std::pair< unsigned int, unsigned int > rsrc_dim = contents -> getDimensions();
             
             setRealDimensions( rsrc_dim.first, rsrc_dim.second );
         }
@@ -412,53 +417,56 @@ namespace jade
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
         
-        glPushMatrix();
+        if( contents )
         {
-            switch( contents_align )
+            glPushMatrix();
             {
-            case TOP_LEFT:
-            case CENTER_LEFT:
-            case BOTTOM_LEFT:
-                glTranslatef( position[ 0 ], 0.0f, 0.0f );
-                break;
-            case TOP_CENTER:
-            case CENTER_CENTER:
-            case BOTTOM_CENTER:
-                glTranslatef( position[ 0 ] + floor( ( dimensions[ 0 ] - contents -> getDimensions().first ) / 2.0f ), 0.0f, 0.0f );
-                break;
-            case TOP_RIGHT:
-            case CENTER_RIGHT:
-            case BOTTOM_RIGHT:
-                glTranslatef( position[ 0 ] + dimensions[ 0 ] - contents -> getDimensions().first, 0.0f, 0.0f );
-                break;
-            default:
-                throw exception( "button::draw(): Uknown contents alignment" );
+                switch( contents_align )
+                {
+                case TOP_LEFT:
+                case CENTER_LEFT:
+                case BOTTOM_LEFT:
+                    glTranslatef( position[ 0 ], 0.0f, 0.0f );
+                    break;
+                case TOP_CENTER:
+                case CENTER_CENTER:
+                case BOTTOM_CENTER:
+                    glTranslatef( position[ 0 ] + floor( ( dimensions[ 0 ] - contents -> getDimensions().first ) / 2.0f ), 0.0f, 0.0f );
+                    break;
+                case TOP_RIGHT:
+                case CENTER_RIGHT:
+                case BOTTOM_RIGHT:
+                    glTranslatef( position[ 0 ] + dimensions[ 0 ] - contents -> getDimensions().first, 0.0f, 0.0f );
+                    break;
+                default:
+                    throw exception( "button::draw(): Uknown contents alignment" );
+                }
+                
+                switch( contents_align )
+                {
+                case TOP_LEFT:
+                case TOP_CENTER:
+                case TOP_RIGHT:
+                    glTranslatef( 0.0f, position[ 1 ], 0.0f );
+                    break;
+                case CENTER_LEFT:
+                case CENTER_CENTER:
+                case CENTER_RIGHT:
+                    glTranslatef( 0.0f, position[ 1 ] + floor( ( dimensions[ 1 ] - contents -> getDimensions().second ) / 2.0f ), 0.0f );
+                    break;
+                case BOTTOM_LEFT:
+                case BOTTOM_CENTER:
+                case BOTTOM_RIGHT:
+                    glTranslatef( 0.0f, position[ 1 ] + dimensions[ 1 ] - contents -> getDimensions().second, 0.0f );
+                    break;
+                default:
+                    throw exception( "button::draw(): Uknown contents alignment" );
+                }
+                
+                contents -> draw();
             }
-            
-            switch( contents_align )
-            {
-            case TOP_LEFT:
-            case TOP_CENTER:
-            case TOP_RIGHT:
-                glTranslatef( 0.0f, position[ 1 ], 0.0f );
-                break;
-            case CENTER_LEFT:
-            case CENTER_CENTER:
-            case CENTER_RIGHT:
-                glTranslatef( 0.0f, position[ 1 ] + floor( ( dimensions[ 1 ] - contents -> getDimensions().second ) / 2.0f ), 0.0f );
-                break;
-            case BOTTOM_LEFT:
-            case BOTTOM_CENTER:
-            case BOTTOM_RIGHT:
-                glTranslatef( 0.0f, position[ 1 ] + dimensions[ 1 ] - contents -> getDimensions().second, 0.0f );
-                break;
-            default:
-                throw exception( "button::draw(): Uknown contents alignment" );
-            }
-            
-            contents -> draw();
+            glPopMatrix();
         }
-        glPopMatrix();
     }
 }
 

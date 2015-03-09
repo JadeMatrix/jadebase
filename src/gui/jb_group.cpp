@@ -127,10 +127,7 @@ namespace jade
                   int x,
                   int y,
                   unsigned int w,
-                  unsigned int h ) : scrollable( parent, x, y, w, h ),
-                                     shown_callback( new callback() ),
-                                     hidden_callback( new callback() ),
-                                     closed_callback( new callback() )
+                  unsigned int h ) : scrollable( parent, x, y, w, h )
     {
         draw_background = true;
         
@@ -146,9 +143,12 @@ namespace jade
         scroll_offset[ 1 ] = 0;
     }
     
-    void group::addElement( shared_ptr< gui_element >& e )
+    void group::addElement( const std::shared_ptr< gui_element >& e )
     {
         scoped_lock< mutex > slock( element_mutex );
+        
+        if( !e )
+            throw exception( "group::addElement(): Empty shared_ptr" );
         
         e -> setParentWindow( parent );
         elements.push_back( e );
@@ -156,17 +156,20 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void group::removeElement( jade::shared_ptr< jade::gui_element >& e )
+    void group::removeElement( const std::shared_ptr< gui_element >& e )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        for( std::vector< jade::shared_ptr< gui_element > >::iterator iter = elements.begin();
+        if( !e )
+            throw exception( "group::removeElement(): Empty shared_ptr" );
+        
+        for( auto iter = elements.begin();
              iter != elements.end();
              ++iter )
         {
             if( *iter == e )
             {
-                elements.erase( iter );                                         // Dereferences by deleting shared_ptr
+                elements.erase( iter );                                         // Dereferences by deleting std::shared_ptr
                 
                 e -> setParentWindow( NULL );                                   // Deassociate the window from the element just in case
                 
@@ -202,19 +205,19 @@ namespace jade
     
     // CALLBACKS & EVENTS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    void group::setShownCallback( shared_ptr< callback >& cb )
+    void group::setShownCallback( const std::shared_ptr< callback >& cb )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         shown_callback = cb;
     }
-    void group::setHiddenCallback( shared_ptr< callback >& cb )
+    void group::setHiddenCallback( const std::shared_ptr< callback >& cb )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         hidden_callback = cb;
     }
-    void group::setClosedCallback( shared_ptr< callback >& cb )
+    void group::setClosedCallback( const std::shared_ptr< callback >& cb )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -225,19 +228,22 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        shown_callback -> call();
+        if( shown_callback )
+            shown_callback -> call();
     }
     void group::hidden()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        hidden_callback -> call();
+        if( hidden_callback )
+            hidden_callback -> call();
     }
     void group::closed()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        closed_callback -> call();
+        if( closed_callback )
+            closed_callback -> call();
     }
     
     // GUI_ELEMENT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

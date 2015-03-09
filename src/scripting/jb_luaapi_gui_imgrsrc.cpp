@@ -53,13 +53,13 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< image_rsrc >* rsrc_sp = ( shared_ptr< image_rsrc >* )lua_newuserdata( state, sizeof( shared_ptr< image_rsrc > ) );
+                std::shared_ptr< image_rsrc >* rsrc_sp = ( std::shared_ptr< image_rsrc >* )lua_newuserdata( state, sizeof( std::shared_ptr< image_rsrc > ) );
                 
-                new( rsrc_sp ) shared_ptr< image_rsrc >( new image_rsrc( lua_tostring( state, 1 ),
-                                                                         lua_tonumber( state, 2 ),
-                                                                         lua_tonumber( state, 3 ),
-                                                                         lua_tonumber( state, 4 ),
-                                                                         lua_tonumber( state, 5 ) ) );
+                new( rsrc_sp ) std::shared_ptr< image_rsrc >( new image_rsrc( lua_tostring( state, 1 ),
+                                                                              lua_tonumber( state, 2 ),
+                                                                              lua_tonumber( state, 3 ),
+                                                                              lua_tonumber( state, 4 ),
+                                                                              lua_tonumber( state, 5 ) ) );
                 
                 lua_newtable( state );
                 {
@@ -105,7 +105,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< image_rsrc >* rsrc_sp = ( shared_ptr< image_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< image_rsrc >* rsrc_sp = ( std::shared_ptr< image_rsrc >* )lua_touserdata( state, 1 );
                 
                 std::pair< unsigned int, unsigned int > dims( ( *rsrc_sp ) -> getDimensions() );
                 
@@ -135,7 +135,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< image_rsrc >* rsrc_sp = ( shared_ptr< image_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< image_rsrc >* rsrc_sp = ( std::shared_ptr< image_rsrc >* )lua_touserdata( state, 1 );
                 
                 rsrc_sp -> ~shared_ptr< image_rsrc >();
                 
@@ -162,7 +162,7 @@ namespace jade
                     return 0;
                 }
                 
-                shared_ptr< image_rsrc >* rsrc_sp = ( shared_ptr< image_rsrc >* )lua_touserdata( state, 1 );
+                std::shared_ptr< image_rsrc >* rsrc_sp = ( std::shared_ptr< image_rsrc >* )lua_touserdata( state, 1 );
                 
                 std::string str;
                 std::pair< unsigned int, unsigned int > dims( ( *rsrc_sp ) -> getDimensions() );

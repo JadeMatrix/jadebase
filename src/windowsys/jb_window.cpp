@@ -173,6 +173,7 @@ namespace jade
         registerWindow( *this );
         
         top_group -> setParentWindow( this );
+        top_group -> drawBackground( false );
         top_group -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] );
     }
     
@@ -212,7 +213,8 @@ namespace jade
     
     window::window() : top_group( new group( NULL, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ) )
     {
-        top_group -> drawBackground( false );
+        // We create the top_group on construction rather than init() as we
+        // might get a call for getTopGroup() before init().
         
         platform_window.good = false;
         
@@ -376,13 +378,9 @@ namespace jade
         return title;
     }
     
-    shared_ptr< group > window::getTopGroup()
+    std::shared_ptr< group > window::getTopGroup()
     {
         return top_group;                                                       // No thread safety required: the top group has the same lifetime as the window
-    }
-    shared_ptr< group >* window::getTopGroup_opt()
-    {
-        return new shared_ptr< group >( top_group );
     }
     
     void window::requestRedraw()
@@ -459,7 +457,7 @@ namespace jade
             
             target -> top_group -> closed();                                    // Close first in case the closed callback wants parent window
             target -> top_group -> setParentWindow( NULL );                     // Now safe to delete window
-            // Window will destroy shared_ptr when deleted
+            // Window will destroy std::shared_ptr when deleted
             
             /* WINDOW CLEANUP *************************************************//******************************************************************************/
             

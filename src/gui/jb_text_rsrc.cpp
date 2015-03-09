@@ -353,6 +353,22 @@ namespace jade
         updatePixels();
     }
     
+    std::string text_rsrc::getFont()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return font;
+    }
+    void text_rsrc::setFont( std::string f )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        font = f;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
     // const float* text_rsrc::getColor();
     void text_rsrc::setColor( float r, float g, float b, float a )
     {

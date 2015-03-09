@@ -17,6 +17,7 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -25,7 +26,6 @@
 #include "jb_element.hpp"
 #include "jb_scrollable.hpp"
 #include "../utility/jb_callback.hpp"
-#include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -34,16 +34,16 @@ namespace jade
     class group : public scrollable
     {
     protected:
-        std::vector< shared_ptr< gui_element > > elements;
+        std::vector< std::shared_ptr< gui_element > > elements;
         unsigned int internal_dims[ 2 ];                                        // Dimensions of the internal layout of the group
         
         bool draw_background;
         
         bool event_fallthrough;
         
-        shared_ptr< callback > shown_callback;
-        shared_ptr< callback > hidden_callback;
-        shared_ptr< callback > closed_callback;
+        std::shared_ptr< callback > shown_callback;
+        std::shared_ptr< callback > hidden_callback;
+        std::shared_ptr< callback > closed_callback;
         
         int scroll_limits[ 2 ];                                                 // X min, X max, Y min, Y max
         int scroll_offset[ 2 ];
@@ -58,8 +58,8 @@ namespace jade
                unsigned int w,
                unsigned int h );
         
-        void addElement( shared_ptr< gui_element >& e );                        // Safe to use shared_ptr<>& here as it is copied during storage
-        void removeElement( shared_ptr< gui_element >& e );                     // Safe to use shared_ptr<>& here as it is only used locally to the function
+        void addElement( const std::shared_ptr< gui_element >& e );
+        void removeElement( const std::shared_ptr< gui_element >& e );
         
         void drawBackground( bool );
         
@@ -68,9 +68,9 @@ namespace jade
         
         // CALLBACKS & EVENTS //////////////////////////////////////////////////
         
-        void setShownCallback( shared_ptr< callback >& );
-        void setHiddenCallback( shared_ptr< callback >& );
-        void setClosedCallback( shared_ptr< callback >& );
+        void setShownCallback( const std::shared_ptr< callback >& );
+        void setHiddenCallback( const std::shared_ptr< callback >& );
+        void setClosedCallback( const std::shared_ptr< callback >& );
         
         void shown();
         void hidden();

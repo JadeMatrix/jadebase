@@ -159,7 +159,7 @@ namespace jade
                         return 0;
                     }
                     
-                    switch( lua_type( state, 2 ) )                              // Check 'value' 2) argument & execute
+                    switch( lua_type( state, 2 ) )                              // Check 'value' (2) argument & execute
                     {
                     case LUA_TNUMBER:
                         setSetting( luaL_tolstring( state, 1, NULL ), lua_tonumber( state, 2 ), true );
@@ -265,7 +265,7 @@ namespace jade
                 lua_state* state_p = *( lua_state** )lua_touserdata( state, -1 );
                 lua_reference ref = luaL_ref( state, 1 );
                 
-                new( lua_newuserdata( state, sizeof( shared_ptr< lua_callback > ) ) ) shared_ptr< lua_callback >( new lua_callback( *state_p, ref ) );
+                new( lua_newuserdata( state, sizeof( std::shared_ptr< lua_callback > ) ) ) std::shared_ptr< lua_callback >( new lua_callback( *state_p, ref ) );
                 
                 lua_newtable( state );
                 {
@@ -309,7 +309,7 @@ namespace jade
                     return 0;
                 }
                 
-                ( ( shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ) -> ~shared_ptr< lua_callback >();
+                ( ( std::shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ) -> ~shared_ptr< lua_callback >();
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,7 +338,7 @@ namespace jade
                 
                 ff::write( str,
                            "jade::lua_callback at 0x",
-                           ff::to_x( ( long )( &*( shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ) ) );
+                           ff::to_x( ( long )( &*( std::shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ) ) );
                 
                 lua_pushstring( state, str.c_str() );
                 

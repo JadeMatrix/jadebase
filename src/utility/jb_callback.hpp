@@ -20,8 +20,7 @@ namespace jade
     {
     public:
         virtual ~callback() {}
-        virtual void call() {}                                                  // Virtual but non-pure virtual call() so this can be used as a default callback
-                                                                                // TODO: Change this back to pure virtual after move to C++11
+        virtual void call() = 0;
     };
 }
 

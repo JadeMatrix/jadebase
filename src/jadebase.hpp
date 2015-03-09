@@ -52,7 +52,6 @@
 #include "utility/jb_log.hpp"
 #include "utility/jb_platform.h"
 #include "utility/jb_settings.hpp"
-#include "utility/jb_sharedpointer.hpp"
 #include "utility/jb_timestamp.hpp"
 #include "utility/jb_exception.hpp"
 // #include "utility/jb_trackable.hpp"

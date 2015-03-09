@@ -19,7 +19,7 @@ endif
 # Compiler(s)
 # CC = /usr/local/Cellar/llvm/3.4/bin/clang
 CC = clang
-CPPC = ${CC}++ -stdlib=libstdc++
+CPPC = ${CC}++ -std=c++11 -stdlib=libstdc++
 OBJCC = ${CC}
 
 # Directories

@@ -10,10 +10,11 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <memory>
+
 #include "jb_element.hpp"
 #include "jb_resource.hpp"
 #include "../utility/jb_callback.hpp"
-#include "../utility/jb_sharedpointer.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -43,10 +44,10 @@ namespace jade
         button_state state;
         jb_platform_idevid_t captured_dev;
         
-        shared_ptr< callback > toggle_on_callback;
-        shared_ptr< callback > toggle_off_callback;
+        std::shared_ptr< callback > toggle_on_callback;
+        std::shared_ptr< callback > toggle_off_callback;
         
-        shared_ptr< gui_resource > contents;
+        std::shared_ptr< gui_resource > contents;
         resource_align contents_align;
         
         void setState( button_state );                                          // Internal utility function, not thread-safe
@@ -57,12 +58,12 @@ namespace jade
                 unsigned int w = BUTTON_MIN_WIDTH,
                 unsigned int h = BUTTON_MIN_HEIGHT );
         
-        void setToggleOnCallback( shared_ptr< callback >& );
-        void setToggleOffCallback( shared_ptr< callback >& );
+        void setToggleOnCallback( const std::shared_ptr< callback >& );
+        void setToggleOffCallback( const std::shared_ptr< callback >& );
         
         void setRealDimensions( unsigned int w, unsigned int h );
         
-        void setContents( shared_ptr< gui_resource >& c,                        // c - contents
+        void setContents( const std::shared_ptr< gui_resource >& c,             // c - contents
                           resource_align a,                                     // a - alignment
                           bool r = false );                                     // r - resize button to match contents
         

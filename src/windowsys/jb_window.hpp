@@ -17,6 +17,7 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -25,7 +26,6 @@
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_container.hpp"
-#include "../utility/jb_sharedpointer.hpp"
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
 
@@ -88,7 +88,7 @@ namespace jade
         
         std::map< jb_platform_idevid_t,
                   idev_assoc > input_assoc;
-        shared_ptr< group > top_group;
+        std::shared_ptr< group > top_group;
         
         /* Container infrastructure *******************************************//******************************************************************************/
         
@@ -139,8 +139,7 @@ namespace jade
         
         std::string getTitle();
         
-        shared_ptr< group > getTopGroup();                                      // Get top-level GUI group element; not safe to return a reference
-        shared_ptr< group >* getTopGroup_opt();                                 // Slightly more optimized, no unnecesasry copies (returns a new shared_ptr)
+        std::shared_ptr< group > getTopGroup();                                 // Get top-level GUI group element; not safe to return a reference
         
         void register_container( container< window >* );
         void deregister_container( container< window >* );

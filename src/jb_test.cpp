@@ -75,11 +75,14 @@ namespace jade
                 
                 submitTask( new window::manipulate( test_window ) );
                 
-                shared_ptr< gui_element > butt_p( new button( NULL, 10, 10, 150, 27 ) );
+                std::shared_ptr< button > butt_sp = std::make_shared< button >( nullptr, 10, 10, 150, 27 );
+                test_window -> getTopGroup() -> addElement( std::dynamic_pointer_cast< gui_element >( butt_sp ) );
                 
-                test_window -> getTopGroup() -> addElement( butt_p );
+                std::shared_ptr< dial > dial_sp = std::make_shared< dial >( nullptr, 180, 10 );
+                test_window -> getTopGroup() -> addElement( std::dynamic_pointer_cast< gui_element >( dial_sp ) );
                 
-                // test_window -> requestRedraw();
+                
+                test_window -> requestRedraw();
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             // std::string main_script_file= getMainScriptFileName();

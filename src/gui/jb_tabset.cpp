@@ -60,8 +60,11 @@ namespace jade
     
     tabset::tab::tab( tabset* p,
                       std::string t,
-                      shared_ptr< group >& c ) : contents( c )
+                      std::shared_ptr< group >& c ) : contents( c )
     {
+        if( !contents )
+            throw exception( "tabset::tab::tab(): Contents empty shared_ptr" );
+        
         parent = p;
         
         title = new text_rsrc( 11.0f, GUI_LABEL_FONT, t );
@@ -168,7 +171,7 @@ namespace jade
             tabs[ i ].data -> contents -> closed();
     }
     
-    void tabset::addTab( shared_ptr< tab > t )
+    void tabset::addTab( std::shared_ptr< tab >& t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -194,7 +197,7 @@ namespace jade
         
         reorganizeTabs();                                                       // May call parent -> requestRedraw()
     }
-    void tabset::removeTab( shared_ptr< tab > t )
+    void tabset::removeTab( std::shared_ptr< tab >& t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -243,7 +246,7 @@ namespace jade
         throw exception( "tabset::removeTab(): No such tab" );
     }
     
-    void tabset::makeTabCurrent( shared_ptr< tab > t )
+    void tabset::makeTabCurrent( std::shared_ptr< tab >& t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -256,7 +259,7 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void tabset::moveTabLeft( shared_ptr< tab > t )
+    void tabset::moveTabLeft( std::shared_ptr< tab >& t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -280,7 +283,7 @@ namespace jade
             }
         }
     }
-    void tabset::moveTabRight( shared_ptr< tab > t )
+    void tabset::moveTabRight( std::shared_ptr< tab >& t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -711,7 +714,7 @@ namespace jade
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
     }
     
-    int tabset::getTabIndex( shared_ptr< tab > t )
+    int tabset::getTabIndex( std::shared_ptr< tab > t )
     {
         for( int i = 0; i < tabs.size(); ++ i )
         {

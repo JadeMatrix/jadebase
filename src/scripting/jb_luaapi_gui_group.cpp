@@ -17,9 +17,10 @@ namespace jade
 {
     namespace lua
     {
-        void group_to_udata( lua_State* state, shared_ptr< group > g )          // Pushes onto stack
+        void group_to_udata( lua_State* state,
+                             const std::shared_ptr< group >& g )                // Pushes onto stack
         {
-            new( lua_newuserdata( state, sizeof( shared_ptr< group > ) ) ) shared_ptr< group >( g );
+            new( lua_newuserdata( state, sizeof( std::shared_ptr< group > ) ) ) std::shared_ptr< group >( g );
             
             lua_newtable( state );
             {

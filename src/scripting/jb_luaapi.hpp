@@ -17,11 +17,11 @@
 #include <lua.hpp>
 
 #include <cstdarg>
+#include <memory>
 
 #include "jb_lua.hpp"
 #include "../gui/jb_element.hpp"
 #include "../gui/jb_group.hpp"
-#include "../utility/jb_sharedpointer.hpp"
 #include "../tasking/jb_task.hpp"
 
 /******************************************************************************//******************************************************************************/
@@ -98,7 +98,7 @@ namespace jade
         std::string warn_metatable( std::string,                                // File where metatable is constructed, e.g. __FILE__, __FUNCTION__, or __func__
                                     std::string );                              // Object type
         
-        void group_to_udata( lua_State*, shared_ptr< group > );                 // Utility function for converting GUI groups into userdata (implemented in
+        void group_to_udata( lua_State*, const std::shared_ptr< group >& );     // Utility function for converting GUI groups into userdata (implemented in
                                                                                 // jb_luaapi_gui.cpp)
         
         // FILETYPES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +204,7 @@ namespace jade
         // class CallLuaFunction_task : public task
         // {
         // public:
-        //     CallLuaFunction_task( lua_State*, shared_ptr< lua_callback >* );
+        //     CallLuaFunction_task( lua_State*, std::shared_ptr< lua_callback >& );
         //     bool execute( task_mask* );
         //     task_mask getMask()
         //     {
@@ -213,7 +213,7 @@ namespace jade
         //     // Medium priority
         // protected:
         //     lua_State* state;
-        //     shared_ptr< lua_callback > cb_ptr;
+        //     std::shared_ptr< lua_callback > cb_ptr;
         // };
         
         // int jade_tasking_submitTask( lua_State* );                              // Takes a Lua function and any number of arguments, creating & submitting a
