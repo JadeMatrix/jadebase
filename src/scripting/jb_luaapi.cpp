@@ -49,18 +49,16 @@ namespace jade
     
     namespace lua
     {
-        bool check_udata_type( lua_State* state, int index, udata_type type )
+        udata_type getUDataType( lua_State* state, int index )
         {
-            bool result = false;
+            udata_type result = JADE_NONE;
             
             if( lua_getmetatable( state, index ) )
             {
                 lua_getfield( state, -1, "__type_key" );
                 
                 if( lua_isnumber( state, -1 ) )
-                    result = ( int )lua_tonumber( state, -1 ) == ( int )type;
-                else
-                    result = false;
+                    result = ( udata_type )lua_tonumber( state, -1 );
                 
                 lua_pop( state, 2 );                                            // Pop metatable & __type_key
             }

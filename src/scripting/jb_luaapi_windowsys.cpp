@@ -76,7 +76,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_WINDOW ) )
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
                     luaL_error( state, err_objtype( "top_group", "window" ).c_str() );
                     return 0;
@@ -118,7 +118,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_WINDOW ) )
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
                     luaL_error( state, err_objtype( "set_title", "window" ).c_str() );
                     return 0;
@@ -155,7 +155,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_WINDOW ) )
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
                     luaL_error( state, err_objtype( "close", "window" ).c_str() );
                     return 0;
@@ -192,7 +192,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_WINDOW ) )
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
                     luaL_error( state, err_objtype( "request_redraw", "window" ).c_str() );
                     return 0;
@@ -225,7 +225,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_WINDOW ) )
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
                     luaL_error( state, err_objtype( "is_open", "window" ).c_str() );
                     return 0;
@@ -252,7 +252,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_WINDOW ) )
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
                     luaL_error( state, err_objtype( "__gc", "window" ).c_str() );
                     return 0;
@@ -283,7 +283,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_WINDOW ) )
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
                     luaL_error( state, err_objtype( "__tostring", "window" ).c_str() );
                     return 0;

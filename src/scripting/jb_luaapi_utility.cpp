@@ -256,7 +256,7 @@ namespace jade
                 }
                 
                 lua_getglobal( state, "__jade_lua_state" );
-                if( !check_udata_type( state, -1, JADE_LUA_STATE ) )
+                if( getUDataType( state, -1 ) != JADE_LUA_STATE )
                 {
                     luaL_error( state, "new_callback(): __jade_lua_state corrupt" );
                     return 0;
@@ -297,7 +297,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_CALLBACK ) )
+                    || getUDataType( state, 1 ) != JADE_CALLBACK )
                 {
                     luaL_error( state, err_objtype( "__gc", "callback" ).c_str() );
                     return 0;
@@ -322,7 +322,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_CALLBACK ) )
+                    || getUDataType( state, 1 ) != JADE_CALLBACK )
                 {
                     luaL_error( state, err_objtype( "__tostring", "callback" ).c_str() );
                     return 0;

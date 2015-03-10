@@ -73,7 +73,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                    || getUDataType( state, 1 ) != JADE_PNG_FILE )
                 {
                     luaL_error( state, err_objtype( "get_dimensions", "png_file" ).c_str() );
                     return 0;
@@ -100,7 +100,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                    || getUDataType( state, 1 ) != JADE_PNG_FILE )
                 {
                     luaL_error( state, err_objtype( "get_bit_depth", "png_file" ).c_str() );
                     return 0;
@@ -125,7 +125,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                    || getUDataType( state, 1 ) != JADE_PNG_FILE )
                 {
                     luaL_error( state, err_objtype( "get_color_type", "png_file" ).c_str() );
                     return 0;
@@ -150,7 +150,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                    || getUDataType( state, 1 ) != JADE_PNG_FILE )
                 {
                     luaL_error( state, err_objtype( "__gc", "png_file" ).c_str() );
                     return 0;
@@ -175,7 +175,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_PNG_FILE ) )
+                    || getUDataType( state, 1 ) != JADE_PNG_FILE )
                 {
                     luaL_error( state, err_objtype( "__tostring", "png_file" ).c_str() );
                     return 0;

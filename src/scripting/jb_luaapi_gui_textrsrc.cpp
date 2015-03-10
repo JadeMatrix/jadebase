@@ -115,7 +115,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "dimensions", "text_rsrc" ).c_str() );
                     return 0;
@@ -145,7 +145,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "point_size", "text_rsrc" ).c_str() );
                     return 0;
@@ -181,7 +181,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "string", "text_rsrc" ).c_str() );
                     return 0;
@@ -217,7 +217,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "font", "text_rsrc" ).c_str() );
                     return 0;
@@ -253,7 +253,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "color", "text_rsrc" ).c_str() );
                     return 0;
@@ -304,7 +304,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "max_dimensions", "text_rsrc" ).c_str() );
                     return 0;
@@ -368,7 +368,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "baseline", "text_rsrc" ).c_str() );
                     return 0;
@@ -404,7 +404,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "__gc", "text_rsrc" ).c_str() );
                     return 0;
@@ -431,7 +431,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_TEXT_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_TEXT_RSRC )
                 {
                     luaL_error( state, err_objtype( "__tostring", "text_rsrc" ).c_str() );
                     return 0;

@@ -93,7 +93,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_IMAGE_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_IMAGE_RSRC )
                 {
                     luaL_error( state, err_objtype( "dimensions", "image_rsrc" ).c_str() );
                     return 0;
@@ -123,7 +123,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_IMAGE_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_IMAGE_RSRC )
                 {
                     luaL_error( state, err_objtype( "__gc", "image_rsrc" ).c_str() );
                     return 0;
@@ -150,7 +150,7 @@ namespace jade
                 int argc = lua_gettop( state );
                 
                 if( argc < 1
-                    || !check_udata_type( state, 1, JADE_IMAGE_RSRC ) )
+                    || getUDataType( state, 1 ) != JADE_IMAGE_RSRC )
                 {
                     luaL_error( state, err_objtype( "__tostring", "image_rsrc" ).c_str() );
                     return 0;

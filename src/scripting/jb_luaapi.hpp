@@ -68,6 +68,7 @@ namespace jade
     {
         enum udata_type
         {
+            JADE_NONE,
             JADE_LUA_STATE,
             JADE_PNG_FILE,
             JADE_WINDOW,
@@ -81,7 +82,7 @@ namespace jade
             JADE_CALLBACK
         };
         
-        bool check_udata_type( lua_State*, int, udata_type );                   // Utility function for checking userdata
+        udata_type getUDataType( lua_State*, int );                             // Utility function for checking userdata
         
         // Utility functions for standardizing error messages
         std::string err_argcount( std::string,                                  // Lua function name

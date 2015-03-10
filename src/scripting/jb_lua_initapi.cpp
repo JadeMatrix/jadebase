@@ -115,9 +115,9 @@ namespace jade
                 lua_pushstring( state, TEXTBOX_FONT );
                 lua_setfield( state, -2, "TEXTBOX_FONT" );
                 lua_pushstring( state, GUI_LABEL_FONT );
-                lua_setfield( state, -2, "GUI_LABEL_FONT" );
+                lua_setfield( state, -2, "LABEL_FONT" );
                 lua_pushstring( state, GUI_DEBUG_FONT );
-                lua_setfield( state, -2, "GUI_DEBUG_FONT" );
+                lua_setfield( state, -2, "DEBUG_FONT" );
                 
                 lua_pushnumber( state, text_rsrc::NONE );
                 lua_setfield( state, -2, "ELLIPSIS_NONE" );
@@ -127,6 +127,11 @@ namespace jade
                 lua_setfield( state, -2, "ELLIPSIS_MIDDLE" );
                 lua_pushnumber( state, text_rsrc::END );
                 lua_setfield( state, -2, "ELLIPSIS_END" );
+                
+                lua_pushnumber( state, BUTTON_MIN_WIDTH );
+                lua_setfield( state, -2, "BUTTON_MIN_WIDTH" );
+                lua_pushnumber( state, BUTTON_MIN_HEIGHT );
+                lua_setfield( state, -2, "BUTTON_MIN_HEIGHT" );
             }
             if( use_sub_names ) lua_setfield( state, -2, "gui" );
             
