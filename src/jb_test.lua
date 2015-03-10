@@ -12,7 +12,7 @@ test_window:set_title( name .. " " .. major .. "." .. minor .. "." .. patch .. "
 -- test_group_a = jade.gui.new_group( 0, 0, 256, 256 )
 
 b = jade.gui.new_button( 10, 10, 150, 27 )
-t = jade.gui.new_text_rsrc( 12, jade.gui.GUI_LABEL_FONT, "Hello World" );
+t = jade.gui.new_text_rsrc( 12, jade.gui.LABEL_FONT, "Hello World" );
 t:baseline( false )
 b:set_contents( t, jade.gui.CENTER_CENTER )
 -- test_group_a:add_element( b )
