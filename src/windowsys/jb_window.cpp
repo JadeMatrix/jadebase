@@ -400,8 +400,7 @@ namespace jade
         if( !can_add_containers )
         {
             #ifdef JADEBASE_WINDOW_CONTAINERREGISTERSILENTFAIL
-            // c -> clear();    // C++11
-            clear< window >( *c );
+            c -> clear();
             #else
             throw exception( "window::register_container(): Cannot register containers now" );
             #endif
@@ -449,8 +448,7 @@ namespace jade
                  iter != target -> containers.end();
                  ++iter )
             {
-                // ( *iter ) -> clear();    // C++11
-                clear< window >( **iter );
+                ( *iter ) -> clear();
             }
             
             /* GUI CLEANUP ****************************************************//******************************************************************************/

@@ -25,17 +25,10 @@
 
 namespace jade
 {
-    // Pre-C++11 friend workaround
-    template< typename T > class container;
-    template< typename T > void clear( container< T >& );                       // External clear function
-    
     template< typename T > class container                                      // T is only required to have T::register_container( container< T >* ) and
                                                                                 // T::deregister_container( container< T >* )
     {
-        // C++11 allows us to do this:
-        // friend T;                                                               // So that the parent type T can call container::clear()
-        // But until we use C++11 we have to use this:
-        friend void clear< T >( container< T >& );
+        friend T;
     public:
         container( T* );
         ~container();
@@ -92,11 +85,6 @@ namespace jade
     // }
     
     // CONTAINER<> /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    template< typename T > void clear( container< T >& c )                      // Pre-C++11 workaround
-    {
-        c.clear();
-    }
     
     template< typename T > container< T >::container( T* p )
     {
