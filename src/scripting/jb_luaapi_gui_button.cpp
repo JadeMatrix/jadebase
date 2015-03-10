@@ -48,23 +48,10 @@ namespace jade
                     return 0;
                 }
                 
-                if( argc > 4 )
-                {
-                    luaL_error( state, err_argcount( "new_button", "", 2, 0, -4 ).c_str() );
-                    return 0;
-                }
-                
                 std::shared_ptr< button >* butt_sp = ( std::shared_ptr< button >* )lua_newuserdata( state, sizeof( std::shared_ptr< button > ) );
                 
                 switch( argc )                                                  // This is set up to use default values for constructor
                 {
-                case 0:
-                    new( butt_sp ) std::shared_ptr< button >( new button( NULL ) );
-                    break;
-                case 1:
-                    new( butt_sp ) std::shared_ptr< button >( new button( NULL,
-                                                                          lua_tonumber( state, 1 ) ) );
-                    break;
                 case 2:
                     new( butt_sp ) std::shared_ptr< button >( new button( NULL,
                                                                           lua_tonumber( state, 1 ),
@@ -84,7 +71,8 @@ namespace jade
                                                                           lua_tonumber( state, 4 ) ) );
                     break;
                 default:
-                    break;
+                    luaL_error( state, err_argcount( "new_button", "", 2, 2, -4 ).c_str() );
+                    return 0;
                 }
                 
                 lua_newtable( state );
@@ -148,8 +136,8 @@ namespace jade
                         luaL_error( state, err_argtype( "position", "button", "y", 2, "number" ).c_str() );
                         return 0;
                     }
-                    ( *butt_sp ) -> setRealDimensions( lua_tonumber( state, 2 ),
-                                                       lua_tonumber( state, 3 ) );
+                    ( *butt_sp ) -> setRealPosition( lua_tonumber( state, 2 ),
+                                                     lua_tonumber( state, 3 ) );
                 case 1:
                     {
                         std::pair< int, int > pos( ( *butt_sp ) -> getRealPosition() );

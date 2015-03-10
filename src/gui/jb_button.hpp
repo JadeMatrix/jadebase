@@ -53,8 +53,8 @@ namespace jade
         void setState( button_state );                                          // Internal utility function, not thread-safe
     public:
         button( window* parent,
-                int x = 0,
-                int y = 0,
+                int x,
+                int y,
                 unsigned int w = BUTTON_MIN_WIDTH,
                 unsigned int h = BUTTON_MIN_HEIGHT );
         

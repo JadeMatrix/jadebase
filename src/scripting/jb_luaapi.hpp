@@ -149,6 +149,7 @@ namespace jade
         int jade_gui_dial_position( lua_State* );
         int jade_gui_dial_dimensions( lua_State* );
         int jade_gui_dial_value( lua_State* );
+        int jade_gui_dial_small( lua_State* );
         int jade_gui_dial_setValueChangeCallback( lua_State* );
         int jade_gui_dial_gc( lua_State* );
         int jade_gui_dial_tostring( lua_State* );

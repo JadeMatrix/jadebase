@@ -24,8 +24,6 @@
 #define DIAL_MIN_VALUE     -1.0f
 #define DIAL_DEFAULT_VALUE  0.0f
 
-#define DIAL_DRAG_FACTOR    80.0f
-
 namespace jade
 {
     class dial : public gui_element
@@ -42,7 +40,7 @@ namespace jade
         jb_platform_idevid_t captured_dev;
         float capture_start[ 3 ];
         
-        std::shared_ptr< callback > value_changed_callback;
+        std::shared_ptr< callback > value_change_callback;
     public:
         dial( window* parent,
               int x,
@@ -53,7 +51,10 @@ namespace jade
         float getValue();
         void setValue( float v );
         
-        void setValueChangedCallback( const std::shared_ptr< callback >& );
+        bool getSmall();
+        void setSmall( bool );
+        
+        void setValueChangeCallback( const std::shared_ptr< callback >& );
         
         bool acceptEvent( window_event& e );
         

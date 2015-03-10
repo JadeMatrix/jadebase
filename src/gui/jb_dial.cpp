@@ -92,18 +92,37 @@ namespace jade
                 value = v;
         }
         
-        if( value_changed_callback )
-            value_changed_callback -> call();
+        if( value_change_callback )
+            value_change_callback -> call();
         
         if( parent != NULL )
             parent -> requestRedraw();
     }
     
-    void dial::setValueChangedCallback( const std::shared_ptr< callback >& cb )
+    bool dial::getSmall()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        value_changed_callback = cb;
+        return small;
+    }
+    void dial::setSmall( bool s )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        small = s;
+        
+        dimensions[ 0 ] = small ? DIAL_SMALL_DIAMETER : DIAL_LARGE_DIAMETER;
+        dimensions[ 1 ] = small ? DIAL_SMALL_DIAMETER : DIAL_LARGE_DIAMETER;
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
+    }
+    
+    void dial::setValueChangeCallback( const std::shared_ptr< callback >& cb )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        value_change_callback = cb;
     }
     
     bool dial::acceptEvent( window_event& e )
@@ -133,7 +152,7 @@ namespace jade
                     if( capturing == VERTICAL )
                         setValue( capture_start[ 2 ]
                                   + ( e.stroke.position[ 1 ] - e.offset[ 1 ] - capture_start[ 1 ] )
-                                  / ( DIAL_DRAG_FACTOR * -1.0f ) );
+                                  / ( getSetting_num( "jb_DialDragFactor" ) * -1.0f ) );
                     else
                         // atan2 takes y/x, but since our origin is at the top,
                         // we switch that around and multiply y by -1
@@ -192,7 +211,7 @@ namespace jade
                                       position[ 1 ] + radius,
                                       radius ) )
             {
-                setValue( value + e.scroll.amount[ 1 ] / ( DIAL_DRAG_FACTOR * getSetting_num( "jb_ScrollDistance" ) / 2.0f ) );
+                setValue( value + e.scroll.amount[ 1 ] / ( getSetting_num( "jb_DialDragFactor" ) * getSetting_num( "jb_ScrollDistance" ) / 2.0f ) );
                 parent -> requestRedraw();
                 return true;
             }
