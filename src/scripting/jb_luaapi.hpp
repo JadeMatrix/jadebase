@@ -99,8 +99,8 @@ namespace jade
         std::string warn_metatable( std::string,                                // File where metatable is constructed, e.g. __FILE__, __FUNCTION__, or __func__
                                     std::string );                              // Object type
         
-        void group_to_udata( lua_State*, const std::shared_ptr< group >& );     // Utility function for converting GUI groups into userdata (implemented in
-                                                                                // jb_luaapi_gui.cpp)
+        void groupToUData( lua_State*, const std::shared_ptr< group >& );       // Utility function for converting GUI groups into userdata (implemented in
+                                                                                // jb_luaapi_gui_group.cpp)
         
         // FILETYPES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         

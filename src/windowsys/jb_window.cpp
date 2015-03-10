@@ -173,7 +173,7 @@ namespace jade
         registerWindow( *this );
         
         top_group -> setParentWindow( this );
-        top_group -> drawBackground( false );
+        top_group -> setDrawBackground( false );
         top_group -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] );
     }
     

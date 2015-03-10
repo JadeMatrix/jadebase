@@ -183,11 +183,20 @@ namespace jade
         throw exception( "group::removeElement(): No such element" );
     }
     
-    void group::drawBackground( bool d )
+    bool group::getDrawBackground()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        return draw_background;
+    }
+    void group::setDrawBackground( bool d )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         draw_background = d;
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
     bool group::getEventFallthrough()

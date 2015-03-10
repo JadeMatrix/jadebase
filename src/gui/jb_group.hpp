@@ -61,7 +61,8 @@ namespace jade
         void addElement( const std::shared_ptr< gui_element >& e );
         void removeElement( const std::shared_ptr< gui_element >& e );
         
-        void drawBackground( bool );
+        bool getDrawBackground();
+        void setDrawBackground( bool );
         
         bool getEventFallthrough();
         void setEventFallthrough( bool t );

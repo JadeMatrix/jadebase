@@ -92,7 +92,7 @@ namespace jade
                 
                 if( *slock )
                 {
-                    group_to_udata( state, ( *slock ) -> getTopGroup() );
+                    groupToUData( state, ( *slock ) -> getTopGroup() );
                     return 1;
                 }
                 else

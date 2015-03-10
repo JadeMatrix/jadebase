@@ -210,7 +210,7 @@ namespace jade
                 }
                 
                 std::shared_ptr< button >* butt_sp = ( std::shared_ptr< button >* )lua_touserdata( state, 1 );
-                std::shared_ptr< gui_resource > element_sp;
+                std::shared_ptr< gui_resource > rsrc_sp;
                 
                 if( argc == 3 || argc == 4 )
                 {
@@ -218,18 +218,18 @@ namespace jade
                     {
                     case JADE_IMAGE_RSRC:
                         {
-                            std::shared_ptr< image_rsrc >* rsrc_sp = ( std::shared_ptr< image_rsrc >* )lua_touserdata( state, 2 );
-                            element_sp = std::dynamic_pointer_cast< gui_resource >( *rsrc_sp );
+                            std::shared_ptr< image_rsrc >* img_rsrc_sp = ( std::shared_ptr< image_rsrc >* )lua_touserdata( state, 2 );
+                            rsrc_sp = std::dynamic_pointer_cast< gui_resource >( *img_rsrc_sp );
                         }
                         break;
                     case JADE_TEXT_RSRC:
                         {
-                            std::shared_ptr< text_rsrc >* rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 2 );
-                            element_sp = std::dynamic_pointer_cast< gui_resource >( *rsrc_sp );
+                            std::shared_ptr< text_rsrc >* text_rsrc_sp = ( std::shared_ptr< text_rsrc >* )lua_touserdata( state, 2 );
+                            rsrc_sp = std::dynamic_pointer_cast< gui_resource >( *text_rsrc_sp );
                         }
                         break;
                     default:
-                        luaL_error( state, err_argtype( "set_contents", "button", "contents", 1, "image_rsrc or text_rsrc" ).c_str() );
+                        luaL_error( state, err_argtype( "set_contents", "button", "contents", 1, "gui_resource" ).c_str() );
                         return 0;
                     }
                     
@@ -250,22 +250,21 @@ namespace jade
                 switch( argc )
                 {
                 case 4:
-                    ( *butt_sp ) -> setContents( element_sp,
+                    ( *butt_sp ) -> setContents( rsrc_sp,
                                                  ( resource_align )lua_tonumber( state, 3 ),
                                                  lua_toboolean( state, 4 ) );
                     return 0;
                 case 3:
-                    ( *butt_sp ) -> setContents( element_sp,
+                    ( *butt_sp ) -> setContents( rsrc_sp,
                                                  ( resource_align )lua_tonumber( state, 3 ) );
                     return 0;
                 case 1:
-                    ( *butt_sp ) -> setContents( element_sp,
+                    ( *butt_sp ) -> setContents( rsrc_sp,
                                                  CENTER_CENTER );
                     return 0;
                 default:
                     luaL_error( state, err_argcount( "set_contents", "button", 2, 0, 2 ).c_str() );
                     return 0;
-                    
                 }
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
