@@ -79,7 +79,8 @@ namespace jade
             JADE_GROUP,
             JADE_SCROLLSET,
             JADE_TABSET,
-            JADE_CALLBACK
+            JADE_CALLBACK,
+            JADE_TAB
         };
         
         udata_type getUDataType( lua_State*, int );                             // Utility function for checking userdata

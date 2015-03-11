@@ -97,13 +97,13 @@ namespace jade
         return title -> getString();
     }
     
-    void tabset::tab::setTabSafe( bool s )
+    void tabset::tab::setSafe( bool s )
     {
         scoped_lock< mutex > slock( tab_mutex );
         
         safe = s;
     }
-    bool tabset::tab::getTabSafe()
+    bool tabset::tab::getSafe()
     {
         scoped_lock< mutex > slock( tab_mutex );
         

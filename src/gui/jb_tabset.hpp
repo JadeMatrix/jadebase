@@ -51,14 +51,14 @@ namespace jade
         public:
             tab( tabset*,                                                       // Parent tabset (can be NULL)
                  std::string,                                                   // Title
-                 std::shared_ptr< group >& );                                        // Using std::shared_ptr<>& here is safe as it is copied on storage
+                 std::shared_ptr< group >& );                                   // Tab contents
             ~tab();
             
             void setTitle( std::string );
             std::string getTitle();
             
-            void setTabSafe( bool );                                            // Set whether the tab's close button is in safe-to-close mode
-            bool getTabSafe();                                                  // Get the above mode
+            void setSafe( bool );                                               // Set whether the tab's close button is in safe-to-close mode
+            bool getSafe();                                                     // Get the above mode
             
             void setParentTabset( tabset* );
         };
