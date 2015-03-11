@@ -5,6 +5,8 @@
  * 
  */
 
+// FIXME: Fix this entire mess so it works
+
 // offset_temp[ i ] = scroll_offset[ i ] + offset[ i ];
 
 // if( offset_temp[ i ] / scroll_limits[ i ] >= 0 )  // same direction, clip to limit
@@ -300,16 +302,10 @@ namespace jade
         // parent.requestRedraw();
     }
     
-    scrollset::scrollset( window* parent,
-                          int x,
-                          int y,
-                          unsigned int w,
-                          unsigned int h,
-                          const std::shared_ptr< scrollable >& c ) : gui_element( parent, x, y, w, h ),
-                                                                     contents( c )
+    void scrollset::init()
     {
         if( !contents )
-            throw exception( "scrollset::scrollset(): Contents empty shared_ptr" );
+            throw exception( "scrollset::init(): Contents empty shared_ptr" );
         
         horz_state[ 0 ] = DISABLED;
         horz_state[ 1 ] = DISABLED;
@@ -325,8 +321,6 @@ namespace jade
         bars_always_visible = false;
         
         contents -> setRealPosition( position[ 0 ], position[ 1 ] );
-        contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
-                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
         arrangeBars();
         
@@ -355,6 +349,32 @@ namespace jade
             
             got_resources = true;
         }
+    }
+    
+    scrollset::scrollset( window* parent,
+                          int x,
+                          int y,
+                          unsigned int w,
+                          unsigned int h,
+                          const std::shared_ptr< scrollable >& c ) : gui_element( parent, x, y, w, h ),
+                                                                     contents( c )
+    {
+        init();
+        
+        contents -> setRealDimensions( dimensions[ 0 ],
+                                       dimensions[ 1 ] );
+    }
+    scrollset::scrollset( window* parent,
+                          int x,
+                          int y,
+                          const std::shared_ptr< scrollable >& c ) : gui_element( parent, x, y, 0, 0 ),
+                                                                     contents( c )
+    {
+        init();
+        
+        std::pair< unsigned int, unsigned int > c_dims( contents -> getRealDimensions() );
+        
+        setRealDimensions( c_dims.first, c_dims.second );
     }
     scrollset::~scrollset()
     {

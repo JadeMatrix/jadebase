@@ -62,6 +62,8 @@ namespace jade
         bool bars_always_visible;
         
         void arrangeBars();
+        
+        void init();
     public:
         scrollset( window* parent,
                    int x,
@@ -69,6 +71,10 @@ namespace jade
                    unsigned int w,
                    unsigned int h,
                    const std::shared_ptr< scrollable >& c );
+        scrollset( window* parent,
+                   int x,
+                   int y,
+                   const std::shared_ptr< scrollable >& c );                    // Inherits width & height from contents
         ~scrollset();
         
         void setParentWindow( window* );

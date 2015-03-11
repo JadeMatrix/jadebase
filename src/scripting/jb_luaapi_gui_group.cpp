@@ -462,9 +462,9 @@ namespace jade
                     return 0;
                 }
                 
-                std::shared_ptr< group >* dial_sp = ( std::shared_ptr< group >* )lua_touserdata( state, 1 );
+                std::shared_ptr< group >* group_sp = ( std::shared_ptr< group >* )lua_touserdata( state, 1 );
                 
-                dial_sp -> ~shared_ptr< group >();
+                group_sp -> ~shared_ptr< group >();
                 
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
