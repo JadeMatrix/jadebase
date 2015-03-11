@@ -292,7 +292,7 @@ namespace jade
                         return 0;
                     }
                     
-                    if( getUDataType( state, 1 ) != JADE_CALLBACK )
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
                     {
                         luaL_error( state, err_argtype( "set_toggle_on_callback", "button", "callback", 1, "callback" ).c_str() );
                         return 0;
@@ -332,7 +332,7 @@ namespace jade
                         return 0;
                     }
                     
-                    if( getUDataType( state, 1 ) != JADE_CALLBACK )
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
                     {
                         luaL_error( state, err_argtype( "set_toggle_off_callback", "button", "callback", 1, "callback" ).c_str() );
                         return 0;

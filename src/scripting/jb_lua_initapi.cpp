@@ -25,7 +25,6 @@ namespace jade
         {
             lua_state** state_ptr = ( lua_state** )lua_newuserdata( state, sizeof( lua_state* ) );
             ( *state_ptr ) = this;
-            lua_setfield( state, -2, "__jade_lua_state" );
             
             lua_newtable( state );
             {
@@ -40,6 +39,8 @@ namespace jade
                 lua_settable( state, -3 );
             }
             lua_setmetatable( state, -2 );
+            
+            lua_setglobal( state, "__jade_lua_state" );
             
             // "filetypes" /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
@@ -174,6 +175,9 @@ namespace jade
                 lua_setfield( state, -2, "get_jadebase_version" );
                 lua_pushcfunction( state, lua::jade_util_getProgramVersion );
                 lua_setfield( state, -2, "get_program_version" );
+                
+                lua_pushcfunction( state, lua::jade_util_newCallback );
+                lua_setfield( state, -2, "new_callback" );
             }
             if( use_sub_names ) lua_setfield( state, -2, "utility" );
             

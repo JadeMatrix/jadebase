@@ -346,7 +346,7 @@ namespace jade
                         return 0;
                     }
                     
-                    if( getUDataType( state, 1 ) != JADE_CALLBACK )
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
                     {
                         luaL_error( state, err_argtype( "set_shown_callback", "group", "callback", 1, "callback" ).c_str() );
                         return 0;
@@ -386,7 +386,7 @@ namespace jade
                         return 0;
                     }
                     
-                    if( getUDataType( state, 1 ) != JADE_CALLBACK )
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
                     {
                         luaL_error( state, err_argtype( "set_hidden_callback", "group", "callback", 1, "callback" ).c_str() );
                         return 0;
@@ -426,7 +426,7 @@ namespace jade
                         return 0;
                     }
                     
-                    if( getUDataType( state, 1 ) != JADE_CALLBACK )
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
                     {
                         luaL_error( state, err_argtype( "set_closed_callback", "group", "callback", 1, "callback" ).c_str() );
                         return 0;

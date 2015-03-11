@@ -249,7 +249,7 @@ namespace jade
                     return 0;
                 }
                 
-                if( lua_isfunction( state, 1 ) )
+                if( !lua_isfunction( state, 1 ) )
                 {
                     luaL_error( state, err_argtype( "new_callback", "", "function", 1, "function" ).c_str() );
                     return 0;
@@ -263,7 +263,9 @@ namespace jade
                 }
                 
                 lua_state* state_p = *( lua_state** )lua_touserdata( state, -1 );
-                lua_reference ref = luaL_ref( state, 1 );
+                
+                lua_pop( state, 1 );                                            // Pop __jade_lua_state off
+                lua_reference ref = luaL_ref( state, LUA_REGISTRYINDEX );       // Save the callback to the registry
                 
                 new( lua_newuserdata( state, sizeof( std::shared_ptr< lua_callback > ) ) ) std::shared_ptr< lua_callback >( new lua_callback( *state_p, ref ) );
                 
