@@ -7,10 +7,7 @@ test_window:set_title( name .. " " .. major .. "." .. minor .. "." .. patch .. "
 
 -- Callbacks
 
-function quit()
-    jade.utility.quit()
-end
-quit_cb = jade.utility.new_callback( quit )
+quit_cb = jade.utility.new_callback( function () jade.utility.quit() end )
 
 -- Group A
 
