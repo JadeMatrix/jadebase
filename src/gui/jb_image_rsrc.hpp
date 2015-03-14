@@ -19,6 +19,16 @@ namespace jade
 {
     class image_rsrc : public gui_resource
     {
+    public:
+        image_rsrc( std::string,                                                // Image file name
+                    unsigned int,                                               // X position on image in pixels
+                    unsigned int,                                               // Y position on image in pixels
+                    unsigned int,                                               // Width on image in pixels
+                    unsigned int );                                             // Height on image in pixels
+        ~image_rsrc();
+        
+        void draw();
+        
     protected:
         gui_texture* texture;
         
@@ -30,15 +40,6 @@ namespace jade
         void createDisplayList();
         
         void drawTempGraphic();
-    public:
-        image_rsrc( std::string f,
-                    unsigned int x,
-                    unsigned int y,
-                    unsigned int w,
-                    unsigned int h );
-        ~image_rsrc();
-        
-        void draw();
     };
 }
 

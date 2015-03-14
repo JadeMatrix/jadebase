@@ -37,13 +37,13 @@ namespace jade
                     unsigned int h ) : gui_element( parent, x, y, w, h ) {}
         virtual ~scrollable() {}
         
-        virtual void setRealDimensions( unsigned int w, unsigned int h ) = 0;
+        virtual void setRealDimensions( unsigned int, unsigned int ) = 0;       // Width, height
         
-        virtual void scrollPixels(    int x,   int y ) = 0;
-        virtual void scrollPercent( float x, float y ) = 0;
+        virtual void scrollPixels(    int,   int ) = 0;                         // X, Y
+        virtual void scrollPercent( float, float ) = 0;                         // X, Y
         
-        virtual void setScrollPixels(   int x,    int y ) = 0;
-        virtual void setScrollPercent( float x, float y ) = 0;
+        virtual void setScrollPixels(    int,   int ) = 0;                      // X, Y
+        virtual void setScrollPercent( float, float ) = 0;                      // X, Y
         
         virtual std::pair<   int,   int > getScrollPixels()  = 0;
         virtual std::pair< float, float > getScrollPercent() = 0;               // ... as a +/- % of real dimensions

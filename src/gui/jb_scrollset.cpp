@@ -5,6 +5,7 @@
  * 
  */
 
+// FIXME: Everything.
 // FIXME: Fix this entire mess so it works
 
 // offset_temp[ i ] = scroll_offset[ i ] + offset[ i ];

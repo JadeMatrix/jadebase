@@ -39,6 +39,218 @@ namespace jade
         PangoFontDescription* p_fontd;
     };
     
+    text_rsrc::text_rsrc( float p,
+                          std::string f,
+                          std::string s ) : gui_resource( 0, 0 )
+    {
+        tex_offset[ 0 ] = 0;
+        tex_offset[ 1 ] = 0;
+        
+        string = s;
+        font = f;
+        point_size = p;
+        
+        color[ 0 ] = 1.0f;
+        color[ 1 ] = 1.0f;
+        color[ 2 ] = 1.0f;
+        color[ 3 ] = 1.0f;
+        
+        max_dimensions[ 0 ] = -1;
+        max_dimensions[ 1 ] = -1;
+        
+        enable_baseline = true;
+        
+        ellipsize = NONE;
+        hinting_enabled = false;
+        antialiasing_enabled = true;
+        
+        pixel_space = NULL;
+        gl_tex = 0x00;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    text_rsrc::~text_rsrc()
+    {
+        if( pixel_space != NULL )
+            delete pixel_space;
+    }
+    
+    float text_rsrc::getPointSize()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return point_size;
+    }
+    void text_rsrc::setPointSize( float p )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        if( p <= 0 )
+            throw exception( "text_rsrc::setPointSize(): Point size <= 0" );
+        
+        point_size = p;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
+    std::string text_rsrc::getString()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return string;
+    }
+    void text_rsrc::setString( std::string s )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        string = s;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
+    std::string text_rsrc::getFont()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return font;
+    }
+    void text_rsrc::setFont( std::string f )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        font = f;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
+    void text_rsrc::setColor( float r, float g, float b, float a )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        color[ 0 ] = r;
+        color[ 1 ] = g;
+        color[ 2 ] = b;
+        color[ 3 ] = a;
+        
+        // Do not update pixels, as coloring is render-time only
+    }
+    
+    std::pair< int, int > text_rsrc::getMaxDimensions()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return std::pair< int, int >( max_dimensions[ 0 ], max_dimensions[ 1 ] );
+    }
+    void text_rsrc::setMaxDimensions( int w, int h, ellipsis_mode e )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        if( w < 0 )
+        {
+            if( w < -1 )
+                throw exception( "text_rsrc::setMaxWidth(): Width < -1" );
+            
+            max_dimensions[ 0 ] = -1;
+            ellipsize = NONE;
+        }
+        else
+        {
+            max_dimensions[ 0 ] = w;
+            ellipsize = e;
+        }
+        
+        max_dimensions[ 1 ] = h;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
+    bool text_rsrc::getEnableBaseline()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return enable_baseline;
+    }
+    void text_rsrc::setEnableBaseline( bool b )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        enable_baseline = b;
+    }
+    
+    bool text_rsrc::getHinting()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return hinting_enabled;
+    }
+    void text_rsrc::setHinting( bool h )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        hinting_enabled = h;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
+    bool text_rsrc::getAntialiasing()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        return antialiasing_enabled;
+    }
+    void text_rsrc::setAntialiasing( bool a )
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        antialiasing_enabled = a;
+        
+        update_tex = true;
+        updatePixels();
+    }
+    
+    void text_rsrc::draw()
+    {
+        scoped_lock< mutex > slock( text_mutex );
+        
+        if( update_tex )
+            updateTexture();
+        
+        glColor4f( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
+        {
+            glBindTexture( GL_TEXTURE_2D, gl_tex );
+            
+            if( enable_baseline )
+                glTranslatef( tex_offset[ 0 ], tex_offset[ 1 ], 0.0f );
+            
+            glBegin( GL_QUADS );
+            {
+                glTexCoord2f( 0.0f, 0.0f );
+                glVertex2f( 0.0f, 0.0f );
+                
+                glTexCoord2f( 0.0f, 1.0f );
+                glVertex2f( 0.0f, dimensions[ 1 ] );
+                
+                glTexCoord2f( 1.0f, 1.0f );
+                glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
+                
+                glTexCoord2f( 1.0f, 0.0f );
+                glVertex2f( dimensions[ 0 ], 0.0f );
+            }
+            glEnd();
+            
+            glTranslatef( tex_offset[ 0 ] * -1.0f, tex_offset[ 1 ] * -1.0f, 0.0f );
+            
+            glBindTexture( GL_TEXTURE_2D, 0x00 );
+        }
+        glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+    }
+    
     void text_rsrc::updatePixels()
     {
         // WARNING: While setString() will almost always be called from the main
@@ -279,219 +491,6 @@ namespace jade
         g_object_unref( context -> p_layout );
         
         cairo_font_options_destroy( context -> c_fontops );
-    }
-    
-    text_rsrc::text_rsrc( float p,
-                          std::string f,
-                          std::string s ) : gui_resource( 0, 0 )
-    {
-        tex_offset[ 0 ] = 0;
-        tex_offset[ 1 ] = 0;
-        
-        string = s;
-        font = f;
-        point_size = p;
-        
-        color[ 0 ] = 1.0f;
-        color[ 1 ] = 1.0f;
-        color[ 2 ] = 1.0f;
-        color[ 3 ] = 1.0f;
-        
-        max_dimensions[ 0 ] = -1;
-        max_dimensions[ 1 ] = -1;
-        
-        enable_baseline = true;
-        
-        ellipsize = NONE;
-        hinting_enabled = false;
-        antialiasing_enabled = true;
-        
-        pixel_space = NULL;
-        gl_tex = 0x00;
-        
-        update_tex = true;
-        updatePixels();
-    }
-    text_rsrc::~text_rsrc()
-    {
-        if( pixel_space != NULL )
-            delete pixel_space;
-    }
-    
-    float text_rsrc::getPointSize()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        return point_size;
-    }
-    void text_rsrc::setPointSize( float p )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        if( p <= 0 )
-            throw exception( "text_rsrc::setPointSize(): Point size <= 0" );
-        
-        point_size = p;
-        
-        update_tex = true;
-        updatePixels();
-    }
-    
-    std::string text_rsrc::getString()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        return string;
-    }
-    void text_rsrc::setString( std::string s )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        string = s;
-        
-        update_tex = true;
-        updatePixels();
-    }
-    
-    std::string text_rsrc::getFont()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        return font;
-    }
-    void text_rsrc::setFont( std::string f )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        font = f;
-        
-        update_tex = true;
-        updatePixels();
-    }
-    
-    // const float* text_rsrc::getColor();
-    void text_rsrc::setColor( float r, float g, float b, float a )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        color[ 0 ] = r;
-        color[ 1 ] = g;
-        color[ 2 ] = b;
-        color[ 3 ] = a;
-        
-        // Do not update pixels, as coloring is render-time only
-    }
-    
-    std::pair< int, int > text_rsrc::getMaxDimensions()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        return std::pair< int, int >( max_dimensions[ 0 ], max_dimensions[ 1 ] );
-    }
-    void text_rsrc::setMaxDimensions( int w, int h, ellipsis_mode e )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        if( w < 0 )
-        {
-            if( w < -1 )
-                throw exception( "text_rsrc::setMaxWidth(): Width < -1" );
-            
-            max_dimensions[ 0 ] = -1;
-            ellipsize = NONE;
-        }
-        else
-        {
-            max_dimensions[ 0 ] = w;
-            ellipsize = e;
-        }
-        
-        max_dimensions[ 1 ] = h;
-        
-        update_tex = true;
-        updatePixels();
-    }
-    
-    bool text_rsrc::getEnableBaseline()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        return enable_baseline;
-    }
-    void text_rsrc::setEnableBaseline( bool b )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        enable_baseline = b;
-    }
-    
-    bool text_rsrc::getHinting()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        return hinting_enabled;
-    }
-    void text_rsrc::setHinting( bool h )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        hinting_enabled = h;
-        
-        update_tex = true;
-        updatePixels();
-    }
-    
-    bool text_rsrc::getAntialiasing()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        return antialiasing_enabled;
-    }
-    void text_rsrc::setAntialiasing( bool a )
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        antialiasing_enabled = a;
-        
-        update_tex = true;
-        updatePixels();
-    }
-    
-    void text_rsrc::draw()
-    {
-        scoped_lock< mutex > slock( text_mutex );
-        
-        if( update_tex )
-            updateTexture();
-        
-        glColor4f( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
-        {
-            glBindTexture( GL_TEXTURE_2D, gl_tex );
-            
-            if( enable_baseline )
-                glTranslatef( tex_offset[ 0 ], tex_offset[ 1 ], 0.0f );
-            
-            glBegin( GL_QUADS );
-            {
-                glTexCoord2f( 0.0f, 0.0f );
-                glVertex2f( 0.0f, 0.0f );
-                
-                glTexCoord2f( 0.0f, 1.0f );
-                glVertex2f( 0.0f, dimensions[ 1 ] );
-                
-                glTexCoord2f( 1.0f, 1.0f );
-                glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
-                
-                glTexCoord2f( 1.0f, 0.0f );
-                glVertex2f( dimensions[ 0 ], 0.0f );
-            }
-            glEnd();
-            
-            glTranslatef( tex_offset[ 0 ] * -1.0f, tex_offset[ 1 ] * -1.0f, 0.0f );
-            
-            glBindTexture( GL_TEXTURE_2D, 0x00 );
-        }
-        glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
     }
 }
 

@@ -32,7 +32,7 @@ namespace jade
         lua_state();
         ~lua_state();
         
-        void open( std::string file );                                          // Open a Lua script and feed it into the lua state
+        void open( std::string );                                               // Open a Lua script from a path string and feed it into the lua state
         void run();                                                             // Call the state as-is
         
         // void call( lua_reference );                                             // Call a Lua function with no arguments and no return by reference (e.g. a

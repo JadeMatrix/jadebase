@@ -38,179 +38,6 @@ namespace jade
 {
     // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    void window::init()
-    {
-        scoped_lock< mutex > slock( window_mutex );
-        
-        #if defined PLATFORM_XWS_GNUPOSIX
-        
-        Display* x_display = getXDisplay();
-        Window x_root = DefaultRootWindow( x_display );
-        
-        XMapWindow( x_display, x_root );
-        
-        XFlush( x_display );
-        
-        platform_window.x_visual_info = glXChooseVisual( x_display,
-                                                         DefaultScreen( x_display ),
-                                                         platform_window.glx_attr );
-        
-        if( platform_window.x_visual_info == NULL )
-            throw exception( "window::init(): No appropriate X visual found" );
-        
-        // TODO: Do we need to initialize platform_window.x_set_window_att?
-        platform_window.x_set_window_attr.colormap = XCreateColormap( x_display,
-                                                                      x_root,
-                                                                      platform_window.x_visual_info -> visual,
-                                                                      AllocNone );
-        platform_window.x_set_window_attr.event_mask = KeyPressMask
-                                                       | KeyReleaseMask
-                                                       | ButtonPressMask
-                                                       | ButtonReleaseMask
-                                                       | EnterWindowMask
-                                                       | LeaveWindowMask
-                                                       | PointerMotionMask
-                                                       // | PointerMotionHintMask
-                                                       // | Button1MotionMask
-                                                       // | Button2MotionMask
-                                                       // | Button3MotionMask
-                                                       // | Button4MotionMask
-                                                       // | Button5MotionMask
-                                                       | ButtonMotionMask
-                                                       // | KeyMapStateMask
-                                                       | ExposureMask
-                                                       | VisibilityChangeMask
-                                                       | StructureNotifyMask
-                                                       // | ResizeRedirectMask
-                                                       | SubstructureNotifyMask
-                                                       // | SubstructureRedirectMask
-                                                       | FocusChangeMask
-                                                       | PropertyChangeMask
-                                                       | ColormapChangeMask
-                                                       // | OwnerGrabButtonMask
-                                                       ;
-        
-        platform_window.x_window = XCreateWindow( x_display,
-                                                  x_root,
-                                                  position[ 0 ],
-                                                  position[ 1 ],
-                                                  dimensions[ 0 ],
-                                                  dimensions[ 1 ],
-                                                  0,                            // Window border width, unused
-                                                  platform_window.x_visual_info -> depth,
-                                                  InputOutput,
-                                                  platform_window.x_visual_info -> visual,
-                                                  CWColormap | CWEventMask,
-                                                  &platform_window.x_set_window_attr );
-        
-        XMapWindow( x_display, platform_window.x_window );
-        XStoreName( x_display, platform_window.x_window, title.c_str() );
-        
-        platform_window.x_protocols[ 0 ] = XInternAtom( getXDisplay(), "WM_DELETE_WINDOW", False );
-        if( !XSetWMProtocols( x_display,
-                              platform_window.x_window,
-                              platform_window.x_protocols,
-                              X_PROTOCOL_COUNT ) )
-            throw exception( "window::init(): Could not set X window protocols" );
-        
-        XFlush( x_display );                                                    // We need to flush X before creating the GLX Context
-        
-        if( !getRegisteredWindowCount() )                                       // No windows registered, so create a context
-        {
-            if( getDevMode() )
-                ff::write( jb_out,
-                           "Creating a blank GLX context for window id 0x",
-                           ff::to_x( platform_window.x_window ),
-                           "\n" );
-            
-            platform_window.glx_context = glXCreateContext( x_display,
-                                                        platform_window.x_visual_info,
-                                                        NULL,
-                                                        GL_TRUE );
-            
-            initOpenGL();                                                       // Init OpenGL first time only
-            
-            glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
-            
-            glewExperimental = GL_TRUE;                                         // To allow FBOs in OpenGL <3.0
-            GLenum err = glewInit();                                            // Init GLEW first time only
-                                                                                // TODO: Move to initOpenGL()?
-            if( err != GLEW_OK )
-            {
-                jade::exception e;
-                ff::write( *e, "Failed to initialize GLEW: ", std::string( ( const char* )glewGetErrorString( err ) ) );
-                throw e;
-            }
-        }
-        else
-        {
-            window& context_source( getAnyWindow() );
-            
-            if( getDevMode() )
-                ff::write( jb_out,
-                           "Creating a GLX context for window id 0x",
-                           ff::to_x( platform_window.x_window ),
-                           " from window id 0x",
-                           ff::to_x( context_source.getPlatformWindow().x_window ),
-                           "\n" );
-            
-            platform_window.glx_context = glXCreateContext( x_display,
-                                                        platform_window.x_visual_info,
-                                                        context_source.getPlatformWindow().glx_context,
-                                                        GL_TRUE );
-            
-            glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
-        }
-        
-        #else
-        
-        #error "Windows not implemented on non-X platforms"
-        
-        #endif
-        
-        platform_window.good = true;
-        
-        registerWindow( *this );
-        
-        top_group -> setParentWindow( this );
-        top_group -> setDrawBackground( false );
-        top_group -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] );
-    }
-    
-    void window::makeContextCurrent()
-    {
-        Display* x_display = getXDisplay();
-        glXMakeCurrent( x_display,
-                        platform_window.x_window,
-                        platform_window.glx_context );
-        
-        XFlush( x_display );
-    }
-    
-    window::~window()
-    {
-        scoped_lock< mutex > slock( window_mutex );                             // If we really need this we have bigger problems (pending tasks, etc.)
-        
-        #if defined PLATFORM_XWS_GNUPOSIX
-        
-        if( platform_window.good )
-        {
-            Display* x_display = getXDisplay();
-            
-            glXMakeCurrent( x_display, None, NULL );
-            glXDestroyContext( x_display, platform_window.glx_context );
-            XDestroyWindow( x_display, platform_window.x_window );
-            
-            platform_window.good = false;
-        }
-        
-        #else
-        
-        #error "Windows not implemented on non-X platforms"
-        
-        #endif
-    }
-    
     window::window() : top_group( new group( NULL, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ) )
     {
         // We create the top_group on construction rather than init() as we
@@ -414,6 +241,179 @@ namespace jade
         
         if( !containers.erase( c ) )                                            // Might as well throw an exception as something's wrong in the calling code
             throw exception( "window::deregister_container(): Container not a child" );
+    }
+    
+    void window::init()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        #if defined PLATFORM_XWS_GNUPOSIX
+        
+        Display* x_display = getXDisplay();
+        Window x_root = DefaultRootWindow( x_display );
+        
+        XMapWindow( x_display, x_root );
+        
+        XFlush( x_display );
+        
+        platform_window.x_visual_info = glXChooseVisual( x_display,
+                                                         DefaultScreen( x_display ),
+                                                         platform_window.glx_attr );
+        
+        if( platform_window.x_visual_info == NULL )
+            throw exception( "window::init(): No appropriate X visual found" );
+        
+        // TODO: Do we need to initialize platform_window.x_set_window_att?
+        platform_window.x_set_window_attr.colormap = XCreateColormap( x_display,
+                                                                      x_root,
+                                                                      platform_window.x_visual_info -> visual,
+                                                                      AllocNone );
+        platform_window.x_set_window_attr.event_mask = KeyPressMask
+                                                       | KeyReleaseMask
+                                                       | ButtonPressMask
+                                                       | ButtonReleaseMask
+                                                       | EnterWindowMask
+                                                       | LeaveWindowMask
+                                                       | PointerMotionMask
+                                                       // | PointerMotionHintMask
+                                                       // | Button1MotionMask
+                                                       // | Button2MotionMask
+                                                       // | Button3MotionMask
+                                                       // | Button4MotionMask
+                                                       // | Button5MotionMask
+                                                       | ButtonMotionMask
+                                                       // | KeyMapStateMask
+                                                       | ExposureMask
+                                                       | VisibilityChangeMask
+                                                       | StructureNotifyMask
+                                                       // | ResizeRedirectMask
+                                                       | SubstructureNotifyMask
+                                                       // | SubstructureRedirectMask
+                                                       | FocusChangeMask
+                                                       | PropertyChangeMask
+                                                       | ColormapChangeMask
+                                                       // | OwnerGrabButtonMask
+                                                       ;
+        
+        platform_window.x_window = XCreateWindow( x_display,
+                                                  x_root,
+                                                  position[ 0 ],
+                                                  position[ 1 ],
+                                                  dimensions[ 0 ],
+                                                  dimensions[ 1 ],
+                                                  0,                            // Window border width, unused
+                                                  platform_window.x_visual_info -> depth,
+                                                  InputOutput,
+                                                  platform_window.x_visual_info -> visual,
+                                                  CWColormap | CWEventMask,
+                                                  &platform_window.x_set_window_attr );
+        
+        XMapWindow( x_display, platform_window.x_window );
+        XStoreName( x_display, platform_window.x_window, title.c_str() );
+        
+        platform_window.x_protocols[ 0 ] = XInternAtom( getXDisplay(), "WM_DELETE_WINDOW", False );
+        if( !XSetWMProtocols( x_display,
+                              platform_window.x_window,
+                              platform_window.x_protocols,
+                              X_PROTOCOL_COUNT ) )
+            throw exception( "window::init(): Could not set X window protocols" );
+        
+        XFlush( x_display );                                                    // We need to flush X before creating the GLX Context
+        
+        if( !getRegisteredWindowCount() )                                       // No windows registered, so create a context
+        {
+            if( getDevMode() )
+                ff::write( jb_out,
+                           "Creating a blank GLX context for window id 0x",
+                           ff::to_x( platform_window.x_window ),
+                           "\n" );
+            
+            platform_window.glx_context = glXCreateContext( x_display,
+                                                        platform_window.x_visual_info,
+                                                        NULL,
+                                                        GL_TRUE );
+            
+            initOpenGL();                                                       // Init OpenGL first time only
+            
+            glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
+            
+            glewExperimental = GL_TRUE;                                         // To allow FBOs in OpenGL <3.0
+            GLenum err = glewInit();                                            // Init GLEW first time only
+                                                                                // TODO: Move to initOpenGL()?
+            if( err != GLEW_OK )
+            {
+                jade::exception e;
+                ff::write( *e, "Failed to initialize GLEW: ", std::string( ( const char* )glewGetErrorString( err ) ) );
+                throw e;
+            }
+        }
+        else
+        {
+            window& context_source( getAnyWindow() );
+            
+            if( getDevMode() )
+                ff::write( jb_out,
+                           "Creating a GLX context for window id 0x",
+                           ff::to_x( platform_window.x_window ),
+                           " from window id 0x",
+                           ff::to_x( context_source.getPlatformWindow().x_window ),
+                           "\n" );
+            
+            platform_window.glx_context = glXCreateContext( x_display,
+                                                        platform_window.x_visual_info,
+                                                        context_source.getPlatformWindow().glx_context,
+                                                        GL_TRUE );
+            
+            glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
+        }
+        
+        #else
+        
+        #error "Windows not implemented on non-X platforms"
+        
+        #endif
+        
+        platform_window.good = true;
+        
+        registerWindow( *this );
+        
+        top_group -> setParentWindow( this );
+        top_group -> setDrawBackground( false );
+        top_group -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] );
+    }
+    
+    void window::makeContextCurrent()
+    {
+        Display* x_display = getXDisplay();
+        glXMakeCurrent( x_display,
+                        platform_window.x_window,
+                        platform_window.glx_context );
+        
+        XFlush( x_display );
+    }
+    
+    window::~window()
+    {
+        scoped_lock< mutex > slock( window_mutex );                             // If we really need this we have bigger problems (pending tasks, etc.)
+        
+        #if defined PLATFORM_XWS_GNUPOSIX
+        
+        if( platform_window.good )
+        {
+            Display* x_display = getXDisplay();
+            
+            glXMakeCurrent( x_display, None, NULL );
+            glXDestroyContext( x_display, platform_window.glx_context );
+            XDestroyWindow( x_display, platform_window.x_window );
+            
+            platform_window.good = false;
+        }
+        
+        #else
+        
+        #error "Windows not implemented on non-X platforms"
+        
+        #endif
     }
     
     // WINDOW::MANIPULATE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

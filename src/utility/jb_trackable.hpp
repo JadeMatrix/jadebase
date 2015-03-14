@@ -53,13 +53,14 @@ namespace jade
     
     class trackable
     {
-    protected:
-        void registerChange( timestamp stamp );
     public:
         virtual int undo() = 0;
         virtual int redo() = 0;
-        virtual int undo( timestamp stamp ) = 0;
-        virtual int redo( timestamp stamp ) = 0;
+        virtual int undo( timestamp ) = 0;
+        virtual int redo( timestamp ) = 0;
+        
+    protected:
+        void registerChange( timestamp );
     };
     
     int undoLastChange();

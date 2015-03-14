@@ -18,19 +18,19 @@
 
 namespace jade
 {
-    void registerWindow( window& w );
-    void deregisterWindow( window& w);
+    void registerWindow( window& );
+    void deregisterWindow( window& );
     
-    bool isRegisteredWindow( jb_platform_window_t& w );
+    bool isRegisteredWindow( jb_platform_window_t& );
     
     int getRegisteredWindowCount();
     
     window& getAnyWindow();                                                     // Necessary for sharing OpenGL contexts
-    window& getWindow( jb_platform_window_t& w );                               // Throws an exception if no window matches the platform window
+    window& getWindow( jb_platform_window_t& );                                 // Throws an exception if no window matches the platform window
     
     void closeAllWindows();                                                     // Meant for cleanup; must be called from a task thread with TASK_SYSTEM
     
-    void redrawAllWindows();                                                    // Usefule when we update a grpahical preference, for example
+    void redrawAllWindows();                                                    // Useful when we update a global graphical setting
 }
 
 /******************************************************************************//******************************************************************************/

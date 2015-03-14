@@ -21,6 +21,8 @@
 
 /******************************************************************************//******************************************************************************/
 
+// TODO: Bring this up to current style standards
+
 namespace jade
 {
     class scrollset : public gui_element

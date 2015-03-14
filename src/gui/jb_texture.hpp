@@ -6,6 +6,8 @@
  * 
  * Simple wrapper for OpenGL textures
  * 
+ * Implemented in jb_named_resources.cpp
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -32,8 +34,8 @@ namespace jade
         }
     };
     
-    gui_texture* acquireTexture( std::string filename );
-    void releaseTexture( gui_texture* t );
+    gui_texture* acquireTexture( std::string );                                 // Lock & return (possibly opening) a texture from the image at the given path
+    void releaseTexture( gui_texture* t );                                      // Release an acquired texture
 }
 
 /******************************************************************************//******************************************************************************/

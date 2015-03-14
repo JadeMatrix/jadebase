@@ -22,11 +22,6 @@ namespace jade
 {
     class semaphore
     {
-    protected:
-        unsigned int start;
-        unsigned int free;
-        condition s_cond;
-        mutex s_mutex;
     public:
         semaphore( unsigned int start = 0 );
         
@@ -39,6 +34,12 @@ namespace jade
         void increase( unsigned int count = 1 );
         
         // TODO: operators instead?
+        
+    protected:
+        unsigned int start;
+        unsigned int free;
+        condition s_cond;
+        mutex s_mutex;
     };
     
     /* SCOPED_LOCK SPECIALIZATION *********************************************//******************************************************************************/

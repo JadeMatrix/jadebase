@@ -18,111 +18,6 @@
 
 namespace jade
 {
-    bool group::acceptEvent_copy( window_event e )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        bool no_position = false;
-        
-        std::pair< int, int > element_position;
-        std::pair< unsigned int, unsigned int > element_dimensions;
-        int e_position[ 2 ];
-        
-        e.offset[ 0 ] += position[ 0 ] - scroll_offset[ 0 ];
-        e.offset[ 1 ] += position[ 1 ] - scroll_offset[ 1 ];
-        
-        switch( e.type )
-        {
-        case STROKE:
-            e_position[ 0 ] = e.stroke.position[ 0 ];
-            e_position[ 1 ] = e.stroke.position[ 1 ];
-            break;
-        case DROP:
-            e_position[ 0 ] = e.drop.position[ 0 ];
-            e_position[ 1 ] = e.drop.position[ 1 ];
-            break;
-        case KEYCOMMAND:
-        case COMMAND:
-        case TEXT:
-            no_position = true;
-            break;
-        case PINCH:
-            e_position[ 0 ] = e.pinch.position[ 0 ];
-            e_position[ 1 ] = e.pinch.position[ 1 ];
-            break;
-        case SCROLL:
-            e_position[ 0 ] = e.scroll.position[ 0 ];
-            e_position[ 1 ] = e.scroll.position[ 1 ];
-            break;
-        default:
-            throw exception( "group::acceptEvent(): Unknown event type" );
-            break;
-        }
-        
-        e_position[ 0 ] -= e.offset[ 0 ];
-        e_position[ 1 ] -= e.offset[ 1 ];
-        
-        for( int i = elements.size() - 1; i >= 0; -- i )                        // Iterate newest (topmost) first
-        {
-            if( no_position )
-            {
-                if( elements[ i ] -> acceptEvent( e ) )
-                    return true;
-            }
-            else
-            {
-                element_position   = elements[ i ] -> getVisualPosition();
-                element_dimensions = elements[ i ] -> getVisualDimensions();
-                
-                if( pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
-                                     e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
-                                     element_position.first,
-                                     element_position.second,
-                                     element_dimensions.first,
-                                     element_dimensions.second )
-                    || pointInsideRect( e_position[ 0 ],
-                                        e_position[ 1 ],
-                                        element_position.first,
-                                        element_position.second,
-                                        element_dimensions.first,
-                                        element_dimensions.second ) )
-                {
-                    if( elements[ i ] -> acceptEvent( e ) )
-                        return true;
-                }
-            }
-        }
-        
-        if( event_fallthrough )
-            return false;
-        else
-            return ( no_position
-                     || pointInsideRect( e_position[ 0 ],
-                                         e_position[ 1 ],
-                                         0,
-                                         0,
-                                         dimensions[ 0 ],
-                                         dimensions[ 1 ] ) );
-    }
-    
-    void group::updateScrollParams()
-    {
-        #warning jade::group internal dimensions hardcoded to 2 * dimensions
-        
-        internal_dims[ 0 ] = dimensions[ 0 ] * 2;
-        internal_dims[ 1 ] = dimensions[ 1 ] * 2;
-        
-        if( internal_dims[ 0 ] > dimensions[ 0 ] )
-            scroll_limits[ 0 ] = dimensions[ 0 ] - internal_dims[ 0 ];
-        else
-            scroll_limits[ 0 ] = 0;
-        
-        if( internal_dims[ 1 ] > dimensions[ 1 ] )
-            scroll_limits[ 1 ] = dimensions[ 1 ] - internal_dims[ 1 ];
-        else
-            scroll_limits[ 1 ] = 0;
-    }
-    
     group::group( window* parent,
                   int x,
                   int y,
@@ -183,12 +78,6 @@ namespace jade
         throw exception( "group::removeElement(): No such element" );
     }
     
-    bool group::getDrawBackground()
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        return draw_background;
-    }
     void group::setDrawBackground( bool d )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -198,18 +87,24 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    
-    bool group::getEventFallthrough()
+    bool group::getDrawBackground()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return event_fallthrough;
+        return draw_background;
     }
+    
     void group::setEventFallthrough( bool t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         event_fallthrough = t;
+    }
+    bool group::getEventFallthrough()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        return event_fallthrough;
     }
     
     // CALLBACKS & EVENTS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -453,6 +348,111 @@ namespace jade
         
         return std::pair< float, float >( ( float )scroll_limits[ 0 ] / ( float )dimensions[ 0 ],
                                           ( float )scroll_limits[ 1 ] / ( float )dimensions[ 1 ] );
+    }
+    
+    bool group::acceptEvent_copy( window_event e )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        bool no_position = false;
+        
+        std::pair< int, int > element_position;
+        std::pair< unsigned int, unsigned int > element_dimensions;
+        int e_position[ 2 ];
+        
+        e.offset[ 0 ] += position[ 0 ] - scroll_offset[ 0 ];
+        e.offset[ 1 ] += position[ 1 ] - scroll_offset[ 1 ];
+        
+        switch( e.type )
+        {
+        case STROKE:
+            e_position[ 0 ] = e.stroke.position[ 0 ];
+            e_position[ 1 ] = e.stroke.position[ 1 ];
+            break;
+        case DROP:
+            e_position[ 0 ] = e.drop.position[ 0 ];
+            e_position[ 1 ] = e.drop.position[ 1 ];
+            break;
+        case KEYCOMMAND:
+        case COMMAND:
+        case TEXT:
+            no_position = true;
+            break;
+        case PINCH:
+            e_position[ 0 ] = e.pinch.position[ 0 ];
+            e_position[ 1 ] = e.pinch.position[ 1 ];
+            break;
+        case SCROLL:
+            e_position[ 0 ] = e.scroll.position[ 0 ];
+            e_position[ 1 ] = e.scroll.position[ 1 ];
+            break;
+        default:
+            throw exception( "group::acceptEvent(): Unknown event type" );
+            break;
+        }
+        
+        e_position[ 0 ] -= e.offset[ 0 ];
+        e_position[ 1 ] -= e.offset[ 1 ];
+        
+        for( int i = elements.size() - 1; i >= 0; -- i )                        // Iterate newest (topmost) first
+        {
+            if( no_position )
+            {
+                if( elements[ i ] -> acceptEvent( e ) )
+                    return true;
+            }
+            else
+            {
+                element_position   = elements[ i ] -> getVisualPosition();
+                element_dimensions = elements[ i ] -> getVisualDimensions();
+                
+                if( pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
+                                     e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
+                                     element_position.first,
+                                     element_position.second,
+                                     element_dimensions.first,
+                                     element_dimensions.second )
+                    || pointInsideRect( e_position[ 0 ],
+                                        e_position[ 1 ],
+                                        element_position.first,
+                                        element_position.second,
+                                        element_dimensions.first,
+                                        element_dimensions.second ) )
+                {
+                    if( elements[ i ] -> acceptEvent( e ) )
+                        return true;
+                }
+            }
+        }
+        
+        if( event_fallthrough )
+            return false;
+        else
+            return ( no_position
+                     || pointInsideRect( e_position[ 0 ],
+                                         e_position[ 1 ],
+                                         0,
+                                         0,
+                                         dimensions[ 0 ],
+                                         dimensions[ 1 ] ) );
+    }
+    
+    void group::updateScrollParams()
+    {
+        #warning jade::group internal dimensions hardcoded to 2 * dimensions
+        
+        internal_dims[ 0 ] = dimensions[ 0 ] * 2;
+        internal_dims[ 1 ] = dimensions[ 1 ] * 2;
+        
+        if( internal_dims[ 0 ] > dimensions[ 0 ] )
+            scroll_limits[ 0 ] = dimensions[ 0 ] - internal_dims[ 0 ];
+        else
+            scroll_limits[ 0 ] = 0;
+        
+        if( internal_dims[ 1 ] > dimensions[ 1 ] )
+            scroll_limits[ 1 ] = dimensions[ 1 ] - internal_dims[ 1 ];
+        else
+            scroll_limits[ 1 ] = 0;
     }
 }
 

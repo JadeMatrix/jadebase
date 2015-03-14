@@ -24,14 +24,14 @@ namespace jade
     };
     
     version&    getJadebaseVersion();
-    std::string getJadebaseVersionString();
+    std::string getJadebaseVersionString();                                     // Formatted version string
     
-    void        setProgramName( std::string n );
+    void        setProgramName( std::string );
     std::string getProgramName();
-    void        setProgramVersion( version& v );
-    void        setProgramVersion( int major, int minor, int patch );
+    void        setProgramVersion( version& );
+    void        setProgramVersion( int, int, int );                             // Major, minor, patch
     version     getProgramVersion();
-    std::string getProgramVersionString();
+    std::string getProgramVersionString();                                      // Formatted version string
 }
 
 /******************************************************************************//******************************************************************************/

@@ -33,6 +33,18 @@ namespace jade
             RGB_ALPHA  = PNG_COLOR_TYPE_RGB_ALPHA,
             GRAY_ALPHA = PNG_COLOR_TYPE_GRAY_ALPHA
         };
+        
+        png_file( std::string );                                                // Opens the png file at the given path
+        ~png_file();
+        
+        std::pair< unsigned int, unsigned int > getDimensions();
+        
+        size_t getBitDepth();
+        
+        color_type getColorType();
+        
+        void toRGBABytes( unsigned char*& );                                    // Assumes data has been allocated to w * h * 4 bytes
+        
     protected:
         FILE* c_file;
         png_infop file_info;
@@ -43,17 +55,6 @@ namespace jade
         size_t bit_depth;
         
         bool open;
-    public:
-        png_file( std::string filename );
-        ~png_file();
-        
-        std::pair< unsigned int, unsigned int > getDimensions();
-        
-        size_t getBitDepth();
-        
-        color_type getColorType();
-        
-        void toRGBABytes( unsigned char*& data );                               // Assumes data has been allocated to w * h * 4 bytes
     };
 }
 

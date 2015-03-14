@@ -26,7 +26,7 @@ namespace jade
     void closeInputDevices();
     void refreshInputDevices();
     
-    void handleStrokeEvent( XEvent& x_event );
+    void handleStrokeEvent( XEvent& );
 }
 
 /******************************************************************************//******************************************************************************/

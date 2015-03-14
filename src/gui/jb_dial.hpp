@@ -20,6 +20,7 @@
 #define DIAL_LARGE_DIAMETER 42
 #define DIAL_SMALL_DIAMETER 22
 
+// TODO: Make these settings
 #define DIAL_MAX_VALUE      1.0f
 #define DIAL_MIN_VALUE     -1.0f
 #define DIAL_DEFAULT_VALUE  0.0f
@@ -28,6 +29,25 @@ namespace jade
 {
     class dial : public gui_element
     {
+    public:
+        dial( window* parent,
+              int,                                                              // Initial X position in pixels
+              int,                                                              // Initial Y position in pixels
+              bool small = false,                                               // If true, initializes as a small dial
+              float v = DIAL_DEFAULT_VALUE );                                   // Initial dial value
+        
+        void setValue( float );                                                 // Clipped between DIAL_MAX_VALUE and DIAL_MIN_VALUE
+        float getValue();
+        
+        void setSmall( bool );                                                  // Set whether the dial is small or large
+        bool getSmall();
+        
+        void setValueChangeCallback( const std::shared_ptr< callback >& );      // Setting this to an empty shared_ptr disables it
+        
+        bool acceptEvent( window_event& );
+        
+        void draw();
+        
     protected:
         float value;
         bool small;
@@ -41,24 +61,6 @@ namespace jade
         float capture_start[ 3 ];
         
         std::shared_ptr< callback > value_change_callback;
-    public:
-        dial( window* parent,
-              int x,
-              int y,
-              bool s = false,
-              float v = DIAL_DEFAULT_VALUE );
-        
-        float getValue();
-        void setValue( float v );
-        
-        bool getSmall();
-        void setSmall( bool );
-        
-        void setValueChangeCallback( const std::shared_ptr< callback >& );
-        
-        bool acceptEvent( window_event& e );
-        
-        void draw();
     };
 }
 

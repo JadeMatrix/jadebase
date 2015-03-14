@@ -42,12 +42,14 @@ namespace jade
         class tab
         {
             friend class tabset;
+            
         protected:
             mutex tab_mutex;
             tabset* parent;
             std::shared_ptr< group > contents;
             text_rsrc* title;
             bool safe;
+            
         public:
             tab( tabset*,                                                       // Parent tabset (can be NULL)
                  std::string,                                                   // Title
@@ -85,6 +87,7 @@ namespace jade
         bool acceptEvent( window_event& );
         
         void draw();
+        
     protected:
         struct tab_state
         {

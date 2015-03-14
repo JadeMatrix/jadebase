@@ -72,12 +72,6 @@ namespace jade
         }
     }
     
-    float dial::getValue()
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        return value;
-    }
     void dial::setValue( float v )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -98,13 +92,13 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    
-    bool dial::getSmall()
+    float dial::getValue()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return small;
+        return value;
     }
+    
     void dial::setSmall( bool s )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -116,6 +110,12 @@ namespace jade
         
         if( parent != NULL )
             parent -> requestRedraw();
+    }
+    bool dial::getSmall()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        return small;
     }
     
     void dial::setValueChangeCallback( const std::shared_ptr< callback >& cb )

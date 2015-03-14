@@ -21,13 +21,16 @@
 
 namespace jade
 {
-    typedef bool (* launcharg_callback )( std::string arg );
-    void registerArgParser( launcharg_callback callback,
-                            char        flag,
-                            std::string long_flag,
-                            bool        require_arg,
-                            std::string arg_desc,
-                            std::string desc );                                 // Not thread-safe
+    typedef bool (* launcharg_callback )( std::string );                        // Argument parsing functions take a string and return a bool (whether the
+                                                                                // parser should continue or should exit, for example after the version flag).
+    
+    void registerArgParser( launcharg_callback,                                 // The function to be called when the flag is encountered
+                            char,                                               // The single-character version of the flag, e.g. "d" (parsed after a "-")
+                            std::string,                                        // The long version of the flag, e.g. "developer-mode" (parsed after a "--")
+                            bool,                                               // Whether the flag requires an argument to follow
+                            std::string,                                        // A string describing what type of argument to pass, e.g. "FILE"
+                            std::string );                                      // A help string describing the purpose and use of the flag
+                                                                                // Note: registerArgParser() is not thread-safe
     
     bool parseLaunchArgs( int argc, char* argv[] );                             // Returns true if the program should continue after parsing, false if exit
     void initFromLaunchArgs();                                                  // Does any special stuff we may need to do only after platform code is called

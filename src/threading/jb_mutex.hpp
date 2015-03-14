@@ -28,8 +28,7 @@ namespace jade
     class mutex
     {
         friend class condition;
-    protected:
-        jb_platform_mutex_t platform_mutex;
+        
     public:
         mutex();
         ~mutex();
@@ -38,6 +37,9 @@ namespace jade
         void lock() const;
         void unlock() const;
         bool try_lock() const;                                                  // Returns true if lock was successful, false if it was not.
+        
+    protected:
+        jb_platform_mutex_t platform_mutex;
     };
 }
 

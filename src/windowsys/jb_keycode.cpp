@@ -54,6 +54,8 @@ namespace jade
         
         // Now stuff that's harder to optimize
         
+        // TODO: Perhaps a tree (such as std::map) would be better at this point?
+        
         if( k == XK_Delete || k == XK_KP_Delete || k == XK_BackSpace )
             return KEY_Delete;
         if( k == XK_Tab || k == XK_KP_Tab /* || k == XK_ISO_Left_Tab */ )

@@ -20,7 +20,7 @@ namespace jade
     void initNamedResources();
     void deInitNamedResources();
     
-    gui_resource* getNamedResource( gui_resource_name name );
+    gui_resource* getNamedResource( gui_resource_name );                        // Throws an exception if no resource exists with that name
 }
 
 /******************************************************************************//******************************************************************************/

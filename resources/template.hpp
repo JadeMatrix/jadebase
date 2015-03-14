@@ -1,8 +1,8 @@
-#ifndef TEMPLATE_HPP
-#define TEMPLATE_HPP
+#ifndef JADEBASE_TEMPLATE_HPP
+#define JADEBASE_TEMPLATE_HPP
 
 /* 
- * template.hpp
+ * jb_template.hpp
  * 
  * About
  * 

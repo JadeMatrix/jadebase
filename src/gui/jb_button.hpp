@@ -40,6 +40,27 @@ namespace jade
     
     class button : public gui_element
     {
+    public:
+        button( window*,                                                        // Initial parent window (can be NULL)
+                int,                                                            // Initial x position in pixels
+                int,                                                            // Initial y position in pixels
+                unsigned int w = BUTTON_MIN_WIDTH,                              // Initial width in pixels
+                unsigned int h = BUTTON_MIN_HEIGHT );                           // Initial height in pixels
+        
+        void setToggleOnCallback( const std::shared_ptr< callback >& );         // Setting these to empty shared_ptrs disables them
+        void setToggleOffCallback( const std::shared_ptr< callback >& );
+        
+        void setRealDimensions( unsigned int, unsigned int );                   // Width, height
+        
+        void setContents( const std::shared_ptr< gui_resource >&,               // Contents resource pointer
+                          resource_align,                                       // Content alignment
+                          bool r = false );                                     // Resize button to match contents
+                                                                                // TODO: Specify a resize padding (-1 for no resize)
+        
+        bool acceptEvent( window_event& );
+        
+        void draw();
+        
     protected:
         button_state state;
         jb_platform_idevid_t captured_dev;
@@ -51,25 +72,6 @@ namespace jade
         resource_align contents_align;
         
         void setState( button_state );                                          // Internal utility function, not thread-safe
-    public:
-        button( window* parent,
-                int x,
-                int y,
-                unsigned int w = BUTTON_MIN_WIDTH,
-                unsigned int h = BUTTON_MIN_HEIGHT );
-        
-        void setToggleOnCallback( const std::shared_ptr< callback >& );
-        void setToggleOffCallback( const std::shared_ptr< callback >& );
-        
-        void setRealDimensions( unsigned int w, unsigned int h );
-        
-        void setContents( const std::shared_ptr< gui_resource >& c,             // c - contents
-                          resource_align a,                                     // a - alignment
-                          bool r = false );                                     // r - resize button to match contents
-        
-        bool acceptEvent( window_event& e );
-        
-        void draw();
     };
 }
 

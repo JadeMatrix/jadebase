@@ -27,7 +27,7 @@ namespace jade
     class HandleEvents_task : public task
     {
     public:
-        bool execute( task_mask* caller_mask );
+        bool execute( task_mask* );
         task_mask getMask()
         {
             return TASK_SYSTEM;

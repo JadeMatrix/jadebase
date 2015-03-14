@@ -23,17 +23,18 @@ namespace jade
 {
     class condition
     {
-    protected:
-        jb_platform_condition_t platform_condition;
     public:
         condition();
         ~condition();
         
-        void wait( const mutex& wait_mutex ) const;                             // Unlocks wait_mutex & pauses thread; on return relocks wait_mutex & unpauses
+        void wait( const mutex& ) const;                                        // Unlocks the mutex & pauses thread; on return relocks the mutex & unpauses the
                                                                                 // thread
         // void wait_time( ... ) const;                                         // Timed wait, maybe implement later
         void signal() const;                                                    // Restart a single waiting thread
         void broadcast() const;                                                 // Restart all waiting threads
+        
+    protected:
+        jb_platform_condition_t platform_condition;
     };
 }
 

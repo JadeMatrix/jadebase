@@ -38,10 +38,10 @@ namespace jade
     class task
     {
     public:
-        virtual ~task() {};                                                     // Safety
+        virtual ~task() {};                                                     // Virtual inheritance safety
         
         // TODO: pass a task_mask& instead of task_mask*
-        virtual bool execute( task_mask* caller_mask ) = 0;                     // Returns true on success, false to re-queue
+        virtual bool execute( task_mask* ) = 0;                                 // Takes the calling thread's mask; returns true on success, false to re-queue
         
         virtual task_priority getPriority()
         {

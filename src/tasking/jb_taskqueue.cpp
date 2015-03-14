@@ -21,9 +21,6 @@ namespace jade
     {
         status = PREOPEN;
     }
-    // task_queue::~task_queue()
-    // {
-    // }
     
     task* task_queue::pop()
     {

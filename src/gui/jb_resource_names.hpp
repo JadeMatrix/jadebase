@@ -174,7 +174,7 @@ namespace jade
         dial_small_dial,
         dial_small_dot,
         
-        last_resource_name                                                      // Used when adding named resources through an API
+        last_resource_name                                                      // Used when adding additional named resources through a future API
     };
 }
 

@@ -6,13 +6,14 @@
  * 
  * GUI resource type to handle rendering of UTF8 strings with basic formatting
  * 
- * The default text color is which, as it can easily be colored with glColor*();
+ * The default text color is white, as it can easily be colored with glColor*();
  * it can be changed with text_rsrc::setColor().
  * 
  * Note that text resources' origins are not at the top left (as are images'),
  * but at the baseline of the first line of text.  This means that for a single
  * line of standard horizontal left-to-right style text (like English) the
- * origin is roughly the lower left corner (if baseline is enabled).
+ * origin is roughly the lower left corner (if baseline is enabled).  This
+ * baseline behavior can be enabled/disabled with setEnableBaseline().
  * 
  */
 
@@ -45,6 +46,43 @@ namespace jade
             MIDDLE,
             END
         };
+        
+        text_rsrc( float p = 12.0f,
+                   std::string f = TEXTBOX_FONT,
+                   std::string s = "" );
+        ~text_rsrc();
+        
+        float getPointSize();
+        void  setPointSize( float );
+        
+        std::string getString();
+        void        setString( std::string );
+        
+        std::string getFont();
+        void        setFont( std::string );                                     // Font name as a string, for example "Menlo Bold"
+        
+        void setColor( float, float, float, float );                            // RGBA
+        
+        #define TEXT_MAXWIDTH_NONE      -1
+                                                                                // FIXME: Figure out why Pango doesn't like one line:
+        // #define TEXT_MAXHEIGHT_ONELINE   0                                      // Doesn't work like it should, perhaps?  Pango docs not clear.
+        
+        std::pair< int, int > getMaxDimensions();
+        void                  setMaxDimensions( int,                            // Max width in pixels
+                                                int,                            // Max heigth in pixels
+                                                ellipsis_mode e = NONE );       // Ellipsis mode for truncating string when it does not fit max dimensions
+        
+        bool getEnableBaseline();
+        void setEnableBaseline( bool );                                         // Centered baseline obeys writing direction (horizontal/vertical)
+        
+        bool getHinting();
+        void setHinting( bool );
+        
+        bool getAntialiasing();
+        void setAntialiasing( bool );
+        
+        void draw();
+        
     protected:
         mutex text_mutex;
         
@@ -67,45 +105,8 @@ namespace jade
         void updatePixels();
         void updateTexture();
         
-        void updatePixels_setup( text_update_context* context );
-        void updatePixels_cleanup( text_update_context* context );
-    public:
-        text_rsrc( float p = 12.0f,
-                   std::string f = TEXTBOX_FONT,
-                   std::string s = "" );
-        ~text_rsrc();
-        
-        float getPointSize();
-        void  setPointSize( float p );
-        
-        std::string getString();
-        void        setString( std::string s );
-        
-        std::string getFont();
-        void        setFont( std::string f );
-        
-        // const float* getColor();
-        void setColor( float r, float g, float b, float a );
-        
-        #define TEXT_MAXWIDTH_NONE      -1
-                                                                                // FIXME: Figure out why Pango doesn't like one line:
-        // #define TEXT_MAXHEIGHT_ONELINE   0                                      // Doesn't work like it should, maybe?
-        
-        std::pair< int, int > getMaxDimensions();
-        void                  setMaxDimensions( int w,
-                                                int h,
-                                                ellipsis_mode e = NONE );       // If w = -1 e is ignored
-        
-        bool getEnableBaseline();
-        void setEnableBaseline( bool b );                                       // Centered baseline obeys writing direction (horizontal/vertical)
-        
-        bool getHinting();
-        void setHinting( bool h );
-        
-        bool getAntialiasing();
-        void setAntialiasing( bool a );
-        
-        void draw();
+        void updatePixels_setup( text_update_context* );
+        void updatePixels_cleanup( text_update_context* );
     };
 }
 

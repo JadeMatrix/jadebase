@@ -33,6 +33,61 @@ namespace jade
 {
     class group : public scrollable
     {
+    public:
+        group( window*,                                                         // Initial parent window (can be NULL)
+               int,                                                             // Initial X position in pixels
+               int,                                                             // Initial Y position in pixels
+               unsigned int,                                                    // Initial width in pixels
+               unsigned int );                                                  // Initial height in pixels
+        
+        void addElement( const std::shared_ptr< gui_element >& );
+        void removeElement( const std::shared_ptr< gui_element >& );            // Assumes caller retains a shared_ptr
+        
+        void setDrawBackground( bool );                                         // Set whether the group has an opaque or transparent background
+        bool getDrawBackground();
+        
+        void setEventFallthrough( bool t );                                     // Set whether the group accepts all events all its children don't
+        bool getEventFallthrough();
+        
+        // CALLBACKS & EVENTS //////////////////////////////////////////////////
+        
+        void setShownCallback( const std::shared_ptr< callback >& );            // Setting these to empty shared_ptrs disables them
+        void setHiddenCallback( const std::shared_ptr< callback >& );
+        void setClosedCallback( const std::shared_ptr< callback >& );
+        
+        void shown();
+        void hidden();
+        void closed();
+        
+        // GUI_ELEMENT /////////////////////////////////////////////////////////
+        
+        void setParentWindow( window* );
+        
+        void setRealPosition( int, int );                                       // X, Y
+        void setRealDimensions( unsigned int, unsigned int );                   // Width, height
+        
+        std::pair< int, int > getVisualPosition();
+        std::pair< unsigned int, unsigned int > getVisualDimensions();
+        
+        bool acceptEvent( window_event& );
+        
+        void draw();
+        
+        // SCROLLABLE //////////////////////////////////////////////////////////
+        
+        void scrollPixels(    int,   int );                                     // X, Y
+        void scrollPercent( float, float );                                     // X, Y
+        
+        void setScrollPixels(    int,   int );                                  // X, Y
+        void setScrollPercent( float, float );                                  // X, Y
+        
+        std::pair<   int,   int > getScrollPixels();
+        std::pair< float, float > getScrollPercent();
+        
+        bool hasScrollLimit();
+        std::pair<   int,   int > getScrollLimitPixels();
+        std::pair< float, float > getScrollLimitPercent();
+        
     protected:
         std::vector< std::shared_ptr< gui_element > > elements;
         unsigned int internal_dims[ 2 ];                                        // Dimensions of the internal layout of the group
@@ -48,63 +103,9 @@ namespace jade
         int scroll_limits[ 2 ];                                                 // X min, X max, Y min, Y max
         int scroll_offset[ 2 ];
         
-        bool acceptEvent_copy( window_event e );                                // Copies event first for modification
+        bool acceptEvent_copy( window_event );                                  // Copies event first for modification
         
         void updateScrollParams();                                              // Utility, not thread-safe
-    public:
-        group( window* parent,
-               int x,
-               int y,
-               unsigned int w,
-               unsigned int h );
-        
-        void addElement( const std::shared_ptr< gui_element >& e );
-        void removeElement( const std::shared_ptr< gui_element >& e );
-        
-        bool getDrawBackground();
-        void setDrawBackground( bool );
-        
-        bool getEventFallthrough();
-        void setEventFallthrough( bool t );
-        
-        // CALLBACKS & EVENTS //////////////////////////////////////////////////
-        
-        void setShownCallback( const std::shared_ptr< callback >& );
-        void setHiddenCallback( const std::shared_ptr< callback >& );
-        void setClosedCallback( const std::shared_ptr< callback >& );
-        
-        void shown();
-        void hidden();
-        void closed();
-        
-        // GUI_ELEMENT /////////////////////////////////////////////////////////
-        
-        void setParentWindow( window* );
-        
-        void setRealPosition( int x, int y );
-        void setRealDimensions( unsigned int w, unsigned int h );
-        
-        std::pair< int, int > getVisualPosition();
-        std::pair< unsigned int, unsigned int > getVisualDimensions();
-        
-        bool acceptEvent( window_event& e );
-        
-        void draw();
-        
-        // SCROLLABLE //////////////////////////////////////////////////////////
-        
-        void scrollPixels(    int x,   int y );
-        void scrollPercent( float x, float y );
-        
-        void setScrollPixels(    int x,   int y );
-        void setScrollPercent( float x, float y );
-        
-        std::pair<   int,   int > getScrollPixels();
-        std::pair< float, float > getScrollPercent();
-        
-        bool hasScrollLimit();
-        std::pair<   int,   int > getScrollLimitPixels();
-        std::pair< float, float > getScrollLimitPercent();
     };
 }
 

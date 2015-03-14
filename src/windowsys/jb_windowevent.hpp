@@ -101,7 +101,7 @@ namespace jade
     class gui_element;
     struct text_input
     {
-        gui_element* element;                                                   // Text input always occurst after a layout_element requests it
+        gui_element* element;                                                   // Text input always occurs after a gui_element requests it
         std::string* utf8str;                                                   // Unfortunately have to use a string* here
     };
     
@@ -168,7 +168,7 @@ namespace jade
     
     // UTILITY /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    std::string wevent2str( window_event& e );
+    std::string wevent2str( window_event& );                                    // Window EVENT 2 [to] STRing
     
     inline bool pointInsideRect( long p_x, long p_y,
                                  long r_x, long r_y, long r_w, long r_h )
@@ -176,14 +176,14 @@ namespace jade
         return(    p_x >= r_x
                 && p_y >= r_y
                 && p_x <  r_x + r_w
-                && p_y <  r_y + r_h );
+                && p_y <  r_y + r_h );                                          // We assume the compiler can optimize this a bit
     }
     
     inline bool pointInsideCircle( long p_x, long p_y,
                                    long c_x, long c_y, long c_r )               // c_x & c_y are the center of the circle
     {
         return ( p_x - c_x ) * ( p_x - c_x ) + ( p_y - c_y ) * ( p_y - c_y )
-               <= c_r * c_r;
+               <= c_r * c_r;                                                    // We assume the compiler can optimize this a bit
     }
 }
 

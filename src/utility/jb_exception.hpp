@@ -6,6 +6,11 @@
  * 
  * jadebase internal exceptions
  * 
+ * Exceptions can be used like this for advanced message formatting:
+ *     exception e;
+ *     ff::write( *e, "Message: ", str, ", etc." );
+ *     throw e;
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -16,24 +21,20 @@
 
 namespace jade
 {
-    // Exceptions can be used like this for advanced message formatting:
-    //     exception e;
-    //     ff::write( *e, "Message: ", str, ", etc." );
-    //     throw e;
-    
     class exception
     {
-    protected:
-        std::string message;
     public:
-        exception() throw() {};
-        exception( std::string message ) throw();
-        exception( const exception& o ) throw();
+        exception() throw() {};                                                 // Creates an exception with a blank message string ("")
+        exception( std::string ) throw();                                       // Creates an exception with the given message string
+        exception( const exception& ) throw();                                  // Copy constructor
         ~exception() throw();
         
-        const char* what() const throw();
+        const char* what() const throw();                                       // Retrieve the C-string version of the message
         
-        std::string& operator*();
+        std::string& operator*();                                               // Dereference operator for fancy message formatting
+        
+    protected:
+        std::string message;
     };
 }
 

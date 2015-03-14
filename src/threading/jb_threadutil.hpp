@@ -37,11 +37,11 @@ namespace jade
     
     long getSystemCoreCount();
     
-    std::string exc2str( exit_code ec );                                        // "EXit Code 2 [to] STRing"
+    std::string exc2str( exit_code );                                           // "EXit Code 2 [to] STRing"
     
     #if defined PLATFORM_XWS_GNUPOSIX || defined PLATFORM_MACOSX
     
-    std::string errc2str( int err );                                            // "unix ERRor Code 2 [to] STRing"
+    std::string errc2str( int );                                                // "unix ERRor Code 2 [to] STRing" (UNIX error as an int)
     
     #elif defined PLATFORM_WINDOWS
     

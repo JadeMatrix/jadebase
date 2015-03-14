@@ -16,6 +16,42 @@
 
 namespace jade
 {
+    image_rsrc::image_rsrc( std::string f,
+                            unsigned int x,
+                            unsigned int y,
+                            unsigned int w,
+                            unsigned int h ) : gui_resource( w, h )
+    {
+        texture = acquireTexture( f );
+        
+        dlist_created = false;
+        
+        tex_pos[ 0 ] = x;
+        tex_pos[ 1 ] = y;
+    }
+    image_rsrc::~image_rsrc()
+    {
+        if( dlist_created )
+            glDeleteLists( gl_dlist, 1 );
+        
+        releaseTexture( texture );
+    }
+    
+    void image_rsrc::draw()
+    {
+        if( texture -> gl_texture == 0x00 )
+            // && getDevMode() )                                                   // Resource not yet loaded (just in case)
+        {
+            drawTempGraphic();
+            return;
+        }
+        
+        if( !dlist_created )
+            createDisplayList();
+        
+        glCallList( gl_dlist );
+    }
+    
     void image_rsrc::createDisplayList()
     {
         double d_position  [ 2 ];
@@ -72,42 +108,6 @@ namespace jade
             glVertex2f( 0, dimensions[ 1 ] );
         }
         glEnd();
-    }
-    
-    image_rsrc::image_rsrc( std::string f,
-                            unsigned int x,
-                            unsigned int y,
-                            unsigned int w,
-                            unsigned int h ) : gui_resource( w, h )
-    {
-        texture = acquireTexture( f );
-        
-        dlist_created = false;
-        
-        tex_pos[ 0 ] = x;
-        tex_pos[ 1 ] = y;
-    }
-    image_rsrc::~image_rsrc()
-    {
-        if( dlist_created )
-            glDeleteLists( gl_dlist, 1 );
-        
-        releaseTexture( texture );
-    }
-    
-    void image_rsrc::draw()
-    {
-        if( texture -> gl_texture == 0x00 )
-            // && getDevMode() )                                                   // Resource not yet loaded (just in case)
-        {
-            drawTempGraphic();
-            return;
-        }
-        
-        if( !dlist_created )
-            createDisplayList();
-        
-        glCallList( gl_dlist );
     }
 }
 

@@ -24,9 +24,23 @@ namespace jade
 {
     class task_queue
     {
-    private:
+    public:
+        task_queue();
+        
+        task* pop();                                                            // Calls pop( TASK_NONE )
+        task* pop( task_mask );                                                 // Pops a task whose matchMask returns true with the passed mask, blocking until
+                                                                                // a task matches.  Returns NULL if not open yet has been closed.
+        
+        void push( task* );
+        
+        void open();
+        void close();                                                           // Broadcasts to tq_cond so that the queue can be deleted safely; also deletes
+                                                                                // any unexecuted tasks
+        
+        int size();                                                             // For debugging & benchmarking
+        
     protected:
-        std::list< task* > data[3];                                             // This is kind of a sanity hack, there's probably a more efficient way
+        std::list< task* > data[3];
         mutex tq_mutex;
         condition tq_cond;
         enum
@@ -35,20 +49,6 @@ namespace jade
             OPEN,
             CLOSED
         } status;
-    public:
-        task_queue();
-        // ~task_queue();
-        
-        task* pop();                                                            // Calls pop( TASK_NONE )
-        task* pop( task_mask mask );                                            // See jb_taskutil.h; returns NULL if not open
-        
-        void push( task* item );
-        
-        void open();
-        void close();                                                           // Broadcasts to tq_cond so that the queue can be deleted safely; also deletes
-                                                                                // any unexecuted tasks
-        
-        int size();                                                             // For debugging & benchmarking
     };
 }
 

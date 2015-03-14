@@ -58,35 +58,6 @@ namespace
 
 namespace jade
 {
-    void button::setState( button_state s )
-    {
-        switch( s )
-        {
-        case OFF_UP:
-            if( state != OFF_UP
-                && state != OFF_DOWN
-                && toggle_off_callback )                                        // Change from on to off
-            {
-                toggle_off_callback -> call();
-            }
-            break;
-        case ON_UP:
-            if( state != ON_UP
-                && state != ON_DOWN
-                && toggle_on_callback )                                         // Change from off to on
-            {
-                toggle_on_callback -> call();
-            }
-        default:
-            break;
-        }
-        
-        state = s;
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
-    }
-    
     button::button( window* parent,
                     int x,
                     int y,
@@ -216,6 +187,7 @@ namespace jade
             parent -> requestRedraw();
     }
     
+    // FIXME: Store resize flag so we are always resizing; contents' size may not be valid when adding
     void button::setContents( const std::shared_ptr< gui_resource >& c,
                               resource_align a,
                               bool r )
@@ -467,6 +439,35 @@ namespace jade
             }
             glPopMatrix();
         }
+    }
+    
+    void button::setState( button_state s )
+    {
+        switch( s )
+        {
+        case OFF_UP:
+            if( state != OFF_UP
+                && state != OFF_DOWN
+                && toggle_off_callback )                                        // Change from on to off
+            {
+                toggle_off_callback -> call();
+            }
+            break;
+        case ON_UP:
+            if( state != ON_UP
+                && state != ON_DOWN
+                && toggle_on_callback )                                         // Change from off to on
+            {
+                toggle_on_callback -> call();
+            }
+        default:
+            break;
+        }
+        
+        state = s;
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
 }
 

@@ -15,17 +15,6 @@
 
 namespace jade
 {
-    void gui_element::setRealDimensions( unsigned int w, unsigned int h )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        dimensions[ 0 ] = w;
-        dimensions[ 1 ] = h;
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
-    }
-    
     gui_element::gui_element( window* parent,
                  int x,
                  int y,
@@ -86,6 +75,17 @@ namespace jade
     std::pair< unsigned int, unsigned int > gui_element::getVisualDimensions()
     {
         return getRealDimensions();
+    }
+    
+    void gui_element::setRealDimensions( unsigned int w, unsigned int h )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        dimensions[ 0 ] = w;
+        dimensions[ 1 ] = h;
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
 }
 
