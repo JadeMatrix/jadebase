@@ -43,13 +43,6 @@ namespace jade
         {
             friend class tabset;
             
-        protected:
-            mutex tab_mutex;
-            tabset* parent;
-            std::shared_ptr< group > contents;
-            text_rsrc* title;
-            bool safe;
-            
         public:
             tab( tabset*,                                                       // Parent tabset (can be NULL)
                  std::string,                                                   // Title
@@ -63,30 +56,36 @@ namespace jade
             bool getSafe();                                                     // Get the above mode
             
             void setParentTabset( tabset* );
+            
+        protected:
+            mutex tab_mutex;
+            tabset* parent;
+            std::shared_ptr< group > contents;
+            text_rsrc* title;
+            bool safe;
         };
         
-        tabset( window*,
-                int,                                                            // x position
-                int,                                                            // y position
-                unsigned int,                                                   // width of area below bar
-                unsigned int );                                                 // height of area below bar
+        tabset( dpi::points,                                                    // x position
+                dpi::points,                                                    // y position
+                dpi::points,                                                    // width of area below bar
+                dpi::points );                                                  // height of area below bar
         ~tabset();                                                              // Calls closed() on all tabs' contents
         
-        void addTab( std::shared_ptr< tab >& );
+        void addTab(    std::shared_ptr< tab >& );
         void removeTab( std::shared_ptr< tab >& );                              // Does not call the content's closed()
         
         void makeTabCurrent( std::shared_ptr< tab >& );
-        void moveTabLeft( std::shared_ptr< tab >& );
-        void moveTabRight( std::shared_ptr< tab >& );
+        void moveTabLeft(    std::shared_ptr< tab >& );
+        void moveTabRight(   std::shared_ptr< tab >& );
         
-        void setParentWindow( window* );
+        void setParentElement( gui_element* );
         
-        void setRealPosition( int, int );                                       // x, y
-        void setRealDimensions( unsigned int, unsigned int );                   // w, h
+        void setRealPosition(   dpi::points, dpi::points );                     // x, y
+        void setRealDimensions( dpi::points, dpi::points );                     // w, h
         
         bool acceptEvent( window_event& );
         
-        void draw();
+        void draw( window* );
         
     protected:
         struct tab_state
@@ -99,20 +98,20 @@ namespace jade
                 OVER,
                 DOWN
             } button_state;
-            int position;
-            int width;
+            dpi::points position;
+            dpi::points width;
             
-            tab_state( std::shared_ptr< tab >& t ) : data( t ) {}                    // Using std::shared_ptr<>& here is safe as it is copied on storage
+            tab_state( std::shared_ptr< tab >& t ) : data( t ) {}               // Using std::shared_ptr<>& here is safe as it is copied on storage
         };
         std::vector< tab_state > tabs;
         int current_tab;
-        int total_tab_width;
+        dpi::points total_tab_width;
         
-        int bar_scroll;
+        dpi::points bar_scroll;
         
         bool capturing;
         jb_platform_idevid_t captured_dev;
-        float capture_start[ 3 ];
+        dpi::points capture_start[ 3 ];
         
         int getTabIndex( std::shared_ptr< tab > );
         void reorganizeTabs();

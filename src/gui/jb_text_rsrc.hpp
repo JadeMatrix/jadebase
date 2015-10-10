@@ -81,7 +81,7 @@ namespace jade
         bool getAntialiasing();
         void setAntialiasing( bool );
         
-        void draw();
+        void draw( window* );
         
     protected:
         mutex text_mutex;

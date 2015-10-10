@@ -18,11 +18,10 @@
 
 namespace jade
 {
-    group::group( window* parent,
-                  int x,
-                  int y,
-                  unsigned int w,
-                  unsigned int h ) : scrollable( parent, x, y, w, h )
+    group::group( dpi::points x,
+                  dpi::points y,
+                  dpi::points w,
+                  dpi::points h ) : scrollable( x, y, w, h )
     {
         draw_background = true;
         
@@ -45,7 +44,7 @@ namespace jade
         if( !e )
             throw exception( "group::addElement(): Empty shared_ptr" );
         
-        e -> setParentWindow( parent );
+        e -> setParentElement( this );
         elements.push_back( e );
         
         if( parent != NULL )
@@ -66,7 +65,7 @@ namespace jade
             {
                 elements.erase( iter );                                         // Dereferences by deleting std::shared_ptr
                 
-                e -> setParentWindow( NULL );                                   // Deassociate the window from the element just in case
+                e -> setParentElement( NULL );
                 
                 if( parent != NULL )
                     parent -> requestRedraw();
@@ -152,17 +151,17 @@ namespace jade
     
     // GUI_ELEMENT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    void group::setParentWindow( window* p )
+    void group::setParentElement( gui_element* p )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         parent = p;
         
         for( int i = 0; i < elements.size(); ++i )
-            elements[ i ] -> setParentWindow( p );
+            elements[ i ] -> setParentElement( p );
     }
     
-    void group::setRealPosition( int x, int y )
+    void group::setRealPosition( dpi::points x, dpi::points y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -172,7 +171,7 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void group::setRealDimensions( unsigned int w, unsigned int h )
+    void group::setRealDimensions( dpi::points w, dpi::points h )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -183,15 +182,15 @@ namespace jade
             parent -> requestRedraw();
     }
     
-    std::pair< int, int > group::getVisualPosition()
+    std::pair< dpi::points, dpi::points > group::getVisualPosition()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        std::pair< int, int > v_position = getRealPosition();
+        std::pair< dpi::points, dpi::points > v_position = getRealPosition();
         
         for( int i = 0; i < elements.size(); ++i )
         {
-            std::pair< int, int > evp = elements[ i ] -> getVisualPosition();
+            std::pair< dpi::points, dpi::points > evp = elements[ i ] -> getVisualPosition();
             
             if( evp.first < v_position.first )
                 v_position.first = evp.first;
@@ -202,12 +201,12 @@ namespace jade
         
         return v_position;
     }
-    std::pair< unsigned int, unsigned int > group::getVisualDimensions()
+    std::pair< dpi::points, dpi::points > group::getVisualDimensions()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        std::pair< int, int > v_position = getVisualPosition();
-        std::pair< unsigned int, unsigned int > v_dimensions = getRealDimensions();
+        std::pair< dpi::points, dpi::points > v_position = getVisualPosition();
+        std::pair< dpi::points, dpi::points > v_dimensions = getRealDimensions();
         
         if( v_position.first < position[ 0 ] )                                  // Always guaranteed to be <= from getVisualPosition()
             v_dimensions.first += position[ 0 ] - v_position.first;
@@ -216,8 +215,8 @@ namespace jade
         
         for( int i = 0; i < elements.size(); ++i )
         {
-            std::pair< int, int > evp = elements[ i ] -> getVisualPosition();
-            std::pair< unsigned int, unsigned int > evd = elements[ i ] -> getVisualPosition();
+            std::pair< dpi::points, dpi::points > evp = elements[ i ] -> getVisualPosition();
+            std::pair< dpi::points, dpi::points > evd = elements[ i ] -> getVisualPosition();
             
             if( evp.first + evd.first > v_position.first + v_dimensions.first )
                 v_dimensions.first = evd.first;
@@ -234,7 +233,7 @@ namespace jade
         return acceptEvent_copy( e );                                           // Easy way of changing offsets without editing original
     }
     
-    void group::draw()
+    void group::draw( window* w )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -264,7 +263,7 @@ namespace jade
                 
                 glTranslatef( -scroll_offset[ 0 ], -scroll_offset[ 1 ], 0 );
                 {
-                    elements[ i ] -> draw();
+                    elements[ i ] -> draw( w );
                 }
                 glTranslatef( scroll_offset[ 0 ], scroll_offset[ 1 ], 0 );
             }
@@ -276,7 +275,7 @@ namespace jade
     
     // SCROLLABLE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    void group::scrollPixels( int x, int y )
+    void group::scrollPoints( dpi::points x, dpi::points y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -297,57 +296,59 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void group::scrollPercent( float x, float y )
+    void group::scrollPercent( dpi::percent x, dpi::percent y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        scrollPixels( x * dimensions[ 0 ], y * dimensions[ 1 ] );
+        scrollPoints( x * dimensions[ 0 ], y * dimensions[ 1 ] );
     }
     
-    void group::setScrollPixels( int x, int y )
+    void group::setScrollPoints( dpi::points x, dpi::points y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        scrollPixels( x - scroll_offset[ 0 ], y - scroll_offset[ 1 ] );
+        scrollPoints( x - scroll_offset[ 0 ], y - scroll_offset[ 1 ] );
     }
-    void group::setScrollPercent( float x, float y )
+    void group::setScrollPercent( dpi::percent x, dpi::percent y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        scrollPixels( x * dimensions[ 0 ] - scroll_offset[ 0 ],
+        scrollPoints( x * dimensions[ 0 ] - scroll_offset[ 0 ],
                       y * dimensions[ 1 ] - scroll_offset[ 1 ] );
     }
     
-    std::pair< int, int > group::getScrollPixels()
+    std::pair< dpi::points, dpi::points > group::getScrollPoints()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return std::pair< int, int >( scroll_offset[ 0 ], scroll_offset[ 1 ] );
+        return std::pair< dpi::points, dpi::points >( scroll_offset[ 0 ], scroll_offset[ 1 ] );
     }
-    std::pair< float, float > group::getScrollPercent()
+    std::pair< dpi::percent, dpi::percent > group::getScrollPercent()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return std::pair< float, float >( ( float )scroll_offset[ 0 ] / ( float )dimensions[ 0 ],
-                                          ( float )scroll_offset[ 1 ] / ( float )dimensions[ 1 ] );
+        return std::pair< dpi::percent,
+                          dpi::percent >( scroll_offset[ 0 ] / dimensions[ 0 ],
+                                          scroll_offset[ 1 ] / dimensions[ 1 ] );
     }
     
     bool group::hasScrollLimit()
     {
         return true;
     }
-    std::pair< int, int > group::getScrollLimitPixels()
+    std::pair< dpi::points, dpi::points > group::getScrollLimitPoints()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return std::pair< int, int >( scroll_limits[ 0 ], scroll_limits[ 1 ] );
+        return std::pair< dpi::points, dpi::points >( scroll_limits[ 0 ], scroll_limits[ 1 ] );
     }
-    std::pair< float, float> group::getScrollLimitPercent()
+    std::pair< dpi::percent, dpi::percent> group::getScrollLimitPercent()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return std::pair< float, float >( ( float )scroll_limits[ 0 ] / ( float )dimensions[ 0 ],
-                                          ( float )scroll_limits[ 1 ] / ( float )dimensions[ 1 ] );
+        return std::pair< dpi::percent,
+                          dpi::percent >( scroll_limits[ 0 ] / dimensions[ 0 ],
+                                          scroll_limits[ 1 ] / dimensions[ 1 ] );
     }
     
     bool group::acceptEvent_copy( window_event e )
@@ -356,9 +357,9 @@ namespace jade
         
         bool no_position = false;
         
-        std::pair< int, int > element_position;
-        std::pair< unsigned int, unsigned int > element_dimensions;
-        int e_position[ 2 ];
+        std::pair< dpi::points, dpi::points > element_position;
+        std::pair< dpi::points, dpi::points > element_dimensions;
+        dpi::points e_position[ 2 ];
         
         e.offset[ 0 ] += position[ 0 ] - scroll_offset[ 0 ];
         e.offset[ 1 ] += position[ 1 ] - scroll_offset[ 1 ];
@@ -439,6 +440,7 @@ namespace jade
     
     void group::updateScrollParams()
     {
+        // TODO: something
         #warning jade::group internal dimensions hardcoded to 2 * dimensions
         
         internal_dims[ 0 ] = dimensions[ 0 ] * 2;

@@ -58,11 +58,10 @@ namespace
 
 namespace jade
 {
-    button::button( window* parent,
-                    int x,
-                    int y,
-                    unsigned int w,
-                    unsigned int h ) : gui_element( parent, x, y, w, h )
+    button::button( dpi::points x,
+                    dpi::points y,
+                    dpi::points w,
+                    dpi::points h ) : gui_element( x, y, w, h )
     {
         state = OFF_UP;
         
@@ -169,7 +168,7 @@ namespace jade
         toggle_off_callback = cb;
     }
     
-    void button::setRealDimensions( unsigned int w, unsigned int h )
+    void button::setRealDimensions( dpi::points w, dpi::points h )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -197,7 +196,7 @@ namespace jade
         
         if( contents && r )
         {
-            std::pair< unsigned int, unsigned int > rsrc_dim = contents -> getDimensions();
+            std::pair< dpi::points, dpi::points > rsrc_dim = contents -> getDimensions();
             
             setRealDimensions( rsrc_dim.first, rsrc_dim.second );
         }
@@ -241,7 +240,7 @@ namespace jade
                                         dimensions[ 1 ] ) )
                 {
                     setState( OFF_DOWN );
-                    parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    associateDevice( e.stroke.dev_id, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
                 }
                 break;
@@ -256,13 +255,13 @@ namespace jade
                     if( !( e.stroke.click & CLICK_PRIMARY ) )
                     {
                         setState( ON_UP );
-                        parent -> deassociateDevice( e.stroke.dev_id );
+                        deassociateDevice( e.stroke.dev_id );
                     }
                 }
                 else                                                            // Works because we still get strokes that have just gone out of the mask
                 {
                     setState( OFF_UP );                                         // Cancel the button press
-                    parent -> deassociateDevice( e.stroke.dev_id );
+                    deassociateDevice( e.stroke.dev_id );
                     return false;                                               // Stroke went out of the button
                 }
                 break;
@@ -276,7 +275,7 @@ namespace jade
                                         dimensions[ 1 ] ) )
                 {
                     setState( ON_DOWN );
-                    parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    associateDevice( e.stroke.dev_id, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
                 }
                 break;
@@ -291,13 +290,13 @@ namespace jade
                     if( !( e.stroke.click & CLICK_PRIMARY ) )
                     {
                         setState( OFF_UP );
-                        parent -> deassociateDevice( e.stroke.dev_id );
+                        deassociateDevice( e.stroke.dev_id );
                     }
                 }
                 else
                 {
                     setState( ON_UP );
-                    parent -> deassociateDevice( e.stroke.dev_id );
+                    deassociateDevice( e.stroke.dev_id );
                     return false;                                               // Again, out of button
                 }
                 break;
@@ -310,7 +309,7 @@ namespace jade
         }
     }
     
-    void button::draw()
+    void button::draw( window* w )
     {
         scoped_lock< mutex > slock_e( element_mutex );
         scoped_lock< mutex > slock_r( button_rsrc_mutex );
@@ -351,9 +350,9 @@ namespace jade
             {
                 glTranslatef( BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );
                 glScalef( dimensions[ 0 ] - BUTTON_MIN_WIDTH, 1.0f, 1.0f );
-                top_set -> top_center -> draw();
+                top_set -> top_center -> draw( w );
                 glTranslatef( 0.0f, dimensions[ 1 ] - BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
-                bottom_set -> bottom_center -> draw();
+                bottom_set -> bottom_center -> draw( w );
             }
             glPopMatrix();
             
@@ -361,9 +360,9 @@ namespace jade
             {
                 glTranslatef( 0.0f, BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
                 glScalef( 1.0f, dimensions[ 1 ] - BUTTON_MIN_HEIGHT, 1.0f );
-                center_set -> center_left -> draw();
+                center_set -> center_left -> draw( w );
                 glTranslatef( dimensions[ 0 ] - BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );
-                center_set -> center_right -> draw();
+                center_set -> center_right -> draw( w );
             }
             glPopMatrix();
             
@@ -371,19 +370,19 @@ namespace jade
             {
                 glTranslatef( BUTTON_MIN_WIDTH / 2.0f, BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
                 glScalef( dimensions[ 0 ] - BUTTON_MIN_WIDTH, dimensions[ 1 ] - BUTTON_MIN_HEIGHT, 1.0f );
-                center_set -> center_center -> draw();
+                center_set -> center_center -> draw( w );
             }
             glPopMatrix();
             
             glPushMatrix();                                                     // Corners
             {
-                top_set -> top_left -> draw();
+                top_set -> top_left -> draw( w );
                 glTranslatef( dimensions[ 0 ] - BUTTON_MIN_WIDTH / 2.0f, 0.0f, 0.0f );
-                top_set -> top_right -> draw();
+                top_set -> top_right -> draw( w );
                 glTranslatef( 0.0f, dimensions[ 1 ] - BUTTON_MIN_HEIGHT / 2.0f, 0.0f );
-                bottom_set -> bottom_right -> draw();
+                bottom_set -> bottom_right -> draw( w );
                 glTranslatef( ( dimensions[ 0 ] - BUTTON_MIN_WIDTH / 2.0f ) * -1.0f, 0.0f, 0.0f );
-                bottom_set -> bottom_left -> draw();
+                bottom_set -> bottom_left -> draw( w );
             }
             glPopMatrix();
         }
@@ -393,6 +392,7 @@ namespace jade
         {
             glPushMatrix();
             {
+                // TODO: Set contents->getDimensions().* to a var so we don't call it multiple times (inefficient, may change value)
                 switch( contents_align )
                 {
                 case TOP_LEFT:
@@ -435,7 +435,7 @@ namespace jade
                     throw exception( "button::draw(): Uknown contents alignment" );
                 }
                 
-                contents -> draw();
+                contents -> draw( w );
             }
             glPopMatrix();
         }

@@ -30,27 +30,26 @@ namespace jade
     class scrollable : public gui_element
     {
     public:
-        scrollable( window* parent,
-                    int x,
-                    int y,
-                    unsigned int w, 
-                    unsigned int h ) : gui_element( parent, x, y, w, h ) {}
+        scrollable( dpi::points x,
+                    dpi::points y,
+                    dpi::points w, 
+                    dpi::points h ) : gui_element( x, y, w, h ) {}
         virtual ~scrollable() {}
         
-        virtual void setRealDimensions( unsigned int, unsigned int ) = 0;       // Width, height
+        virtual void setRealDimensions( dpi::points, dpi::points ) = 0;         // Width, height
         
-        virtual void scrollPixels(    int,   int ) = 0;                         // X, Y
-        virtual void scrollPercent( float, float ) = 0;                         // X, Y
+        virtual void scrollPoints(  dpi::points,  dpi::points  ) = 0;           // X, Y
+        virtual void scrollPercent( dpi::percent, dpi::percent ) = 0;           // X, Y
         
-        virtual void setScrollPixels(    int,   int ) = 0;                      // X, Y
-        virtual void setScrollPercent( float, float ) = 0;                      // X, Y
+        virtual void setScrollPoints(  dpi::points,  dpi::points  ) = 0;        // X, Y
+        virtual void setScrollPercent( dpi::percent, dpi::percent ) = 0;        // X, Y
         
-        virtual std::pair<   int,   int > getScrollPixels()  = 0;
-        virtual std::pair< float, float > getScrollPercent() = 0;               // ... as a +/- % of real dimensions
+        virtual std::pair< dpi::points,  dpi::points  > getScrollPoints()  = 0;
+        virtual std::pair< dpi::percent, dpi::percent > getScrollPercent() = 0; // ... as a +/- % of real dimensions
         
         virtual bool hasScrollLimit() = 0;
-        virtual std::pair<    int,  int > getScrollLimitPixels()  = 0;
-        virtual std::pair< float, float > getScrollLimitPercent() = 0;          // ... as a +/- % of real dimensions
+        virtual std::pair< dpi::points,  dpi::points  > getScrollLimitPoints()  = 0;
+        virtual std::pair< dpi::percent, dpi::percent > getScrollLimitPercent() = 0;    // ... as a +/- % of real dimensions
     };
 }
 

@@ -6,68 +6,79 @@
  * 
  * Base class for gui elements
  * 
- * Note on elements using window* instead of window&:
- * As windows share GL contexts, there is no need for all elements to be locked
- * to a single window.  In addition, we want to allow the API to be able to
- * move elements from one window to another easily.  A parent window can be
- * NULL; changes are applied but no redraw is requested from the (nonexistent)
- * window.  Exceptions may be thrown in the few cases where calling the member
- * function requires knowledge of the parent.  As elements track their own
- * positions, positions can be changed without a window (or other kind of
- * parent).
- * 
  */
 
 // TODO: Change positions & dimensions for gui elements & resources to non-pixel values for non-pixel-based displays
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <list>
 #include <utility>
 
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_callback.hpp"
+#include "../utility/jb_dpi.hpp"
+#include "../utility/jb_platform.h"
 #include "../windowsys/jb_windowevent.hpp"
 
 /******************************************************************************//******************************************************************************/
 
 namespace jade
 {
-    class window;                                                               // Predec because window needs shared_ptr< group >
+    // jade::window predeclared in jb_dpi.hpp
     
     class gui_element
     {
     public:
-        gui_element( window*,                                                   // Initial parent window (can be NULL)
-                                                                                // TODO: Deprecate initial parent window
-                     int,                                                       // Initial X position in pixels
-                     int,                                                       // Initial Y position in pixels
-                     unsigned int,                                              // Initial (potentially final) width in pixels
-                     unsigned int );                                            // Initial (potentially final) height in pixels
+        gui_element( dpi::points,                                               // Initial X position in points
+                     dpi::points,                                               // Initial Y position in points
+                     dpi::points,                                               // Initial (potentially final) width in points
+                     dpi::points );                                             // Initial (potentially final) height in points
         virtual ~gui_element();
         
-        window* getParentWindow();
-        virtual void setParentWindow( window* );                                // 'Collection' elements need to override this to update their children
+        gui_element* getParentElement();
+        virtual void setParentElement( gui_element* );                          // 'Collection' elements need to override this to update their children
         
-        virtual void setRealPosition( int, int );                               // X, Y; virtual as derived classes may need to update contents
-        std::pair< int, int > getRealPosition();
-        virtual std::pair< int, int > getVisualPosition();
+        virtual void setRealPosition( dpi::points, dpi::points );               // X, Y; virtual as derived classes may need to update contents
+        std::pair< dpi::points, dpi::points > getRealPosition();
+        virtual std::pair< dpi::points, dpi::points > getVisualPosition();
         
-        virtual std::pair< unsigned int, unsigned int > getRealDimensions();    // Used to arrange elements
-        virtual std::pair< unsigned int, unsigned int > getVisualDimensions();  // Used to generate area for event capturing
+        virtual std::pair< dpi::points, dpi::points > getRealDimensions();      // Used to arrange elements
+        virtual std::pair< dpi::points, dpi::points > getVisualDimensions();    // Used to generate area for event capturing
         
         virtual bool acceptEvent( window_event& ) = 0;                          // If the event was accepted, returns true, else returns false.  If
                                                                                 // event_fallthrough is false should always return true.
         
-        virtual void draw() = 0;
+        // TODO: Investigate if this can be a ref instead
+        virtual void draw( window* ) = 0;                                       // Perform this element's OpenGL draw callback; the drawing window is neccessary
+                                                                                // to get information about the environment in which the element is rendered.
+        
+        // TODO: Optional passing of a gui_element* for rendering just that area
+        virtual void requestRedraw();                                           // Send a redraw request up the element graph; meant for children to call on
+                                                                                // their parent, but can be called directly on any element.  Most elements will
+                                                                                // not need to supply a custom implementation.
+        
+        // TODO: protected?
+        virtual void associateDevice( jb_platform_idevid_t,                     // ID of the device to associate
+                                      std::list< gui_element* >&,               // Capturing element chain
+                                      dpi::points,                              // X event offset
+                                      dpi::points );                            // Y event offset
+                                                                                // Begins sending input events from the device directly to the element without
+                                                                                // passing through the element tree, using the given event offsets.
+        virtual void associateDevice( jb_platform_idevid_t,
+                                      dpi::points,
+                                      dpi::points );                            // Overload for when capturing element is initial caller
+        virtual void deassociateDevice( jb_platform_idevid_t );                 // Called when an association is no longer necessary; elements must deassociate
+                                                                                // all associated devices before destruction.
         
     protected:
         mutex element_mutex;
-        window* parent;
+        gui_element* parent;
         
-        int position[ 2 ];
-        unsigned int dimensions[ 2 ];
+        dpi::points position[   2 ];
+        dpi::points dimensions[ 2 ];
         
-        virtual void setRealDimensions( unsigned int, unsigned int );           // Width, height; not all elements have flexible dimensions
+        virtual void setRealDimensions( dpi::points, dpi::points );               // Width, height; virtual as not all elements have flexible dimensions
     };
 }
 

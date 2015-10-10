@@ -37,7 +37,7 @@
 namespace jade
 {
     // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+                                                         // FIXME: yeah no, that don't werk
     window::window() : top_group( new group( NULL, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ) )
     {
         // We create the top_group on construction rather than init() as we

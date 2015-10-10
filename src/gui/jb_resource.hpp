@@ -12,20 +12,24 @@
 
 #include <utility>
 
+#include "../utility/jb_dpi.hpp"
+
 /******************************************************************************//******************************************************************************/
 
 namespace jade
 {
+    // jade::window predeclared in jb_dpi.hpp
+    
     class gui_resource
     {
     public:
-        gui_resource( unsigned int,                                             // Width
-                      unsigned int );                                           // Height
+        gui_resource( unsigned int,                                               // Width
+                      unsigned int );                                             // Height
         virtual ~gui_resource();
         
-        virtual std::pair< unsigned int, unsigned int > getDimensions();        // Non-pure virtual, as we are always guaranteed dimensions
+        virtual std::pair< unsigned int, unsigned int > getDimensions();            // Non-pure virtual, as we are always guaranteed dimensions
         
-        virtual void draw() = 0;
+        virtual void draw( window* ) = 0;
         
     protected:
         unsigned int dimensions[ 2 ];

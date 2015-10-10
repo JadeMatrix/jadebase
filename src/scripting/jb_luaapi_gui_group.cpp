@@ -93,8 +93,7 @@ namespace jade
                     return 0;
                 }
                 
-                std::shared_ptr< group > group_sp = std::make_shared< group >( nullptr,
-                                                                               lua_tonumber( state, 1 ),
+                std::shared_ptr< group > group_sp = std::make_shared< group >( lua_tonumber( state, 1 ),
                                                                                lua_tonumber( state, 2 ),
                                                                                lua_tonumber( state, 3 ),
                                                                                lua_tonumber( state, 4 ) );

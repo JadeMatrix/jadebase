@@ -41,25 +41,27 @@ namespace jade
     class button : public gui_element
     {
     public:
-        button( window*,                                                        // Initial parent window (can be NULL)
-                int,                                                            // Initial x position in pixels
-                int,                                                            // Initial y position in pixels
-                unsigned int w = BUTTON_MIN_WIDTH,                              // Initial width in pixels
-                unsigned int h = BUTTON_MIN_HEIGHT );                           // Initial height in pixels
+        button( dpi::points,                                                    // Initial x position in points
+                dpi::points,                                                    // Initial y position in points
+                dpi::points w = BUTTON_MIN_WIDTH,                               // Initial width in points
+                dpi::points h = BUTTON_MIN_HEIGHT );                            // Initial height in points
         
-        void setToggleOnCallback( const std::shared_ptr< callback >& );         // Setting these to empty shared_ptrs disables them
+        void setToggleOnCallback(  const std::shared_ptr< callback >& );        // Setting these to empty shared_ptrs disables them
         void setToggleOffCallback( const std::shared_ptr< callback >& );
         
-        void setRealDimensions( unsigned int, unsigned int );                   // Width, height
+        void setRealDimensions( dpi::points, dpi::points );                     // Width, height
         
         void setContents( const std::shared_ptr< gui_resource >&,               // Contents resource pointer
                           resource_align,                                       // Content alignment
                           bool r = false );                                     // Resize button to match contents
-                                                                                // TODO: Specify a resize padding (-1 for no resize)
+                                                                                // TODO: x/xx/xxxx resize options
+        // TODO: void setContentsPadding( dpi::points );
+        //       void setContentsPadding( dpi::points, dpi::points );
+        //       void setContentsPadding( dpi::points, dpi::points, dpi::points, dpi::points );
         
         bool acceptEvent( window_event& );
         
-        void draw();
+        void draw( window* );
         
     protected:
         button_state state;

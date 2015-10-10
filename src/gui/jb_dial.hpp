@@ -30,13 +30,12 @@ namespace jade
     class dial : public gui_element
     {
     public:
-        dial( window* parent,
-              int,                                                              // Initial X position in pixels
-              int,                                                              // Initial Y position in pixels
-              bool small = false,                                               // If true, initializes as a small dial
-              float v = DIAL_DEFAULT_VALUE );                                   // Initial dial value
+        dial( dpi::points,                                                      // Initial X position in points
+              dpi::points,                                                      // Initial Y position in points
+              bool = false,                                                     // If true, initializes as a small dial
+              float = DIAL_DEFAULT_VALUE );                                     // Initial dial value
         
-        void setValue( float );                                                 // Clipped between DIAL_MAX_VALUE and DIAL_MIN_VALUE
+        void setValue( float );                                                 // Clamped between DIAL_MAX_VALUE and DIAL_MIN_VALUE
         float getValue();
         
         void setSmall( bool );                                                  // Set whether the dial is small or large
@@ -46,7 +45,7 @@ namespace jade
         
         bool acceptEvent( window_event& );
         
-        void draw();
+        void draw( window* );
         
     protected:
         float value;
@@ -58,7 +57,7 @@ namespace jade
             CIRCULAR
         } capturing;
         jb_platform_idevid_t captured_dev;
-        float capture_start[ 3 ];
+        dpi::points capture_start[ 3 ];
         
         std::shared_ptr< callback > value_change_callback;
     };

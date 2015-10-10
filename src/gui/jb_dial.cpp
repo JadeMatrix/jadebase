@@ -45,12 +45,10 @@ namespace
 
 namespace jade
 {
-    dial::dial( window* parent,
-                int x,
-                int y,
+    dial::dial( dpi::points x,
+                dpi::points y,
                 bool s,
-                float v ) : gui_element( parent,
-                                         x,
+                float v ) : gui_element( x,
                                          y,
                                          s ? DIAL_SMALL_DIAMETER : DIAL_LARGE_DIAMETER,
                                          s ? DIAL_SMALL_DIAMETER : DIAL_LARGE_DIAMETER )
@@ -132,7 +130,7 @@ namespace jade
         if( parent == NULL )
             throw exception( "dial::acceptEvent(): NULL parent window" );
         
-        float radius = dimensions[ 0 ] / 2.0f;
+        dpi::points radius = dimensions[ 0 ] / 2.0f;
         
         if( e.type == STROKE )
         {
@@ -144,7 +142,7 @@ namespace jade
                 if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled
                 {
                     capturing = NONE;
-                    parent -> deassociateDevice( e.stroke.dev_id );
+                    deassociateDevice( e.stroke.dev_id );
                     return false;                                               // Don't accept event because it wasn't meant for the dial
                 }
                 else
@@ -193,7 +191,7 @@ namespace jade
                     capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
                     capture_start[ 2 ] = value;
                     
-                    parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                    associateDevice( e.stroke.dev_id, e.offset[ 0 ], e.offset[ 1 ] );
                     captured_dev = e.stroke.dev_id;
                     
                     // Don't need a redraw request
@@ -220,24 +218,25 @@ namespace jade
         return false;
     }
     
-    void dial::draw()
+    void dial::draw( window* w )
     {
         scoped_lock< mutex > slock_e( element_mutex );
         scoped_lock< mutex > slock_r( dial_rsrc_mutex );
         
+        // TODO: Reference instead?
         dial_set* set = small ? &size_set.small : &size_set.large;
         
-        std::pair< unsigned int, unsigned int > dot_dimensions = set -> dot -> getDimensions();
-        float radius = dimensions[ 0 ] / 2.0f;
-        float dot_roff = small ? 7.0f : 9.0f;
-        float dot_pos[ 2 ];
+        std::pair< dpi::points, dpi::points > dot_dimensions = set -> dot -> getDimensions();
+        dpi::points radius = dimensions[ 0 ] / 2.0f;
+        dpi::points dot_roff = small ? 7.0f : 9.0f;
+        dpi::points dot_pos[ 2 ];
         
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
-            set -> dial -> draw();
+            set -> dial -> draw( w );
             
-            dot_pos[ 0 ] = ( float )cos( ( value - 0.5f ) * M_PI ) * ( radius - dot_roff );
-            dot_pos[ 1 ] = ( float )sin( ( value - 0.5f ) * M_PI ) * ( radius - dot_roff );
+            dot_pos[ 0 ] = ( dpi::points )cos( ( value - 0.5f ) * M_PI ) * ( radius - dot_roff );
+            dot_pos[ 1 ] = ( dpi::points )sin( ( value - 0.5f ) * M_PI ) * ( radius - dot_roff );
             
             glPushMatrix();
             {
@@ -245,7 +244,7 @@ namespace jade
                               dot_pos[ 1 ] + radius - dot_dimensions.second / 2.0f,
                               0.0f );
                 
-                set -> dot -> draw();
+                set -> dot -> draw( w );
             }
             glPopMatrix();
         }

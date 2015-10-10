@@ -37,7 +37,7 @@ namespace jade
         releaseTexture( texture );
     }
     
-    void image_rsrc::draw()
+    void image_rsrc::draw( window* w )
     {
         if( texture -> gl_texture == 0x00 )
             // && getDevMode() )                                                   // Resource not yet loaded (just in case)

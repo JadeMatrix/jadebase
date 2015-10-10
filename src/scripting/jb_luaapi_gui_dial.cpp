@@ -53,19 +53,16 @@ namespace jade
                 switch( argc )                                                  // This is set up to use default values for constructor
                 {
                 case 2:
-                    new( dial_sp ) std::shared_ptr< dial >( new dial( NULL,
-                                                                      lua_tonumber( state, 1 ),
+                    new( dial_sp ) std::shared_ptr< dial >( new dial( lua_tonumber( state, 1 ),
                                                                       lua_tonumber( state, 2 ) ) );
                     break;
                 case 3:
-                    new( dial_sp ) std::shared_ptr< dial >( new dial( NULL,
-                                                                      lua_tonumber( state, 1 ),
+                    new( dial_sp ) std::shared_ptr< dial >( new dial( lua_tonumber( state, 1 ),
                                                                       lua_tonumber( state, 2 ),
                                                                       lua_toboolean( state, 3 ) ) );
                     break;
                 case 4:
-                    new( dial_sp ) std::shared_ptr< dial >( new dial( NULL,
-                                                                      lua_tonumber( state, 1 ),
+                    new( dial_sp ) std::shared_ptr< dial >( new dial( lua_tonumber( state, 1 ),
                                                                       lua_tonumber( state, 2 ),
                                                                       lua_toboolean( state, 3 ),
                                                                       lua_tonumber( state, 4 ) ) );

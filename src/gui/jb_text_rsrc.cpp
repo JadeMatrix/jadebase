@@ -214,7 +214,7 @@ namespace jade
         updatePixels();
     }
     
-    void text_rsrc::draw()
+    void text_rsrc::draw( window* w )
     {
         scoped_lock< mutex > slock( text_mutex );
         

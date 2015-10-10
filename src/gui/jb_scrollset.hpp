@@ -21,12 +21,31 @@
 
 /******************************************************************************//******************************************************************************/
 
-// TODO: Bring this up to current style standards
-
 namespace jade
 {
     class scrollset : public gui_element
     {
+    public:
+        scrollset( dpi::points,
+                   dpi::points,
+                   dpi::points,
+                   dpi::points,
+                   const std::shared_ptr< scrollable >& );
+        scrollset( dpi::points,
+                   dpi::points,
+                   const std::shared_ptr< scrollable >& );                      // Inherits width & height from contents
+        ~scrollset();
+        
+        void setRealPosition(   dpi::points, dpi::points );
+        void setRealDimensions( dpi::points, dpi::points );
+        
+        void setBarsAlwaysVisible( bool );
+        bool getBarsAlwaysVisible();
+        
+        bool acceptEvent( window_event& );
+        
+        void draw( window* );
+        
     protected:
         std::shared_ptr< scrollable > contents;
         
@@ -44,8 +63,8 @@ namespace jade
         button_state corner_state;
         
         button_state slider_state[ 2 ];                                         // horizontal, vertical
-        int          slider_pos  [ 2 ];                                         // horizontal, vertical
-        unsigned int slider_width[ 2 ];                                         // horizontal, vertical
+        dpi::points  slider_pos  [ 2 ];                                         // horizontal, vertical
+        dpi::points  slider_width[ 2 ];                                         // horizontal, vertical
         
         enum
         {
@@ -59,37 +78,13 @@ namespace jade
             CORNER
         } capturing;
         jb_platform_idevid_t captured_dev;
-        int capture_start[ 3 ];
+        dpi::points capture_start[ 3 ];
         
         bool bars_always_visible;
         
         void arrangeBars();
         
         void init();
-    public:
-        scrollset( window* parent,
-                   int x,
-                   int y,
-                   unsigned int w,
-                   unsigned int h,
-                   const std::shared_ptr< scrollable >& c );
-        scrollset( window* parent,
-                   int x,
-                   int y,
-                   const std::shared_ptr< scrollable >& c );                    // Inherits width & height from contents
-        ~scrollset();
-        
-        void setParentWindow( window* );
-        
-        void setRealPosition( int x, int y );
-        void setRealDimensions( unsigned int w, unsigned int h );
-        
-        void setBarsAlwaysVisible( bool v );
-        bool getBarsAlwaysVisible();
-        
-        bool acceptEvent( window_event& e );
-        
-        void draw();
     };
 }
 

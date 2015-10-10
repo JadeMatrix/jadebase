@@ -21,13 +21,13 @@ namespace jade
     {
     public:
         image_rsrc( std::string,                                                // Image file name
-                    unsigned int,                                               // X position on image in pixels
-                    unsigned int,                                               // Y position on image in pixels
-                    unsigned int,                                               // Width on image in pixels
-                    unsigned int );                                             // Height on image in pixels
+                    unsigned int,                                                // X position on image in pixels
+                    unsigned int,                                                // Y position on image in pixels
+                    unsigned int,                                                // Width on image in pixels
+                    unsigned int );                                              // Height on image in pixels
         ~image_rsrc();
         
-        void draw();
+        void draw( window* );
         
     protected:
         gui_texture* texture;

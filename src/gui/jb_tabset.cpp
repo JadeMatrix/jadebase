@@ -117,18 +117,17 @@ namespace jade
         parent = p;
         
         if( parent == NULL )
-            contents -> setParentWindow( NULL );
+            contents -> setParentElement( NULL );
         else
-            contents -> setParentWindow( parent -> parent );
+            contents -> setParentElement( parent -> parent );
     }
     
     // TABSET //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    tabset::tabset( window* p,
-                    int x,
-                    int y,
-                    unsigned int w,
-                    unsigned int h ) : gui_element( p, x, y, w, h )
+    tabset::tabset( dpi::points x,
+                    dpi::points y,
+                    dpi::points w,
+                    dpi::points h ) : gui_element( x, y, w, h )
     {
         current_tab = -1;
         total_tab_width = 0;
@@ -185,7 +184,7 @@ namespace jade
         
         new_state.data -> contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
         new_state.data -> contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
-        new_state.data -> contents -> setParentWindow( parent );
+        new_state.data -> contents -> setParentElement( parent );
         
         tabs.push_back( new_state );
         
@@ -308,17 +307,17 @@ namespace jade
         }
     }
     
-    void tabset::setParentWindow( window* p )
+    void tabset::setParentElement( gui_element* p )
     {
         scoped_lock< mutex > slock( element_mutex );
         
         parent = p;
         
         for( int i = 0; i < tabs.size(); ++i )
-            tabs[ i ].data -> contents -> setParentWindow( p );
+            tabs[ i ].data -> contents -> setParentElement( p );
     }
     
-    void tabset::setRealPosition( int x, int y )
+    void tabset::setRealPosition( dpi::points x, dpi::points y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -331,7 +330,7 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
-    void tabset::setRealDimensions( unsigned int w, unsigned int h )
+    void tabset::setRealDimensions( dpi::points w, dpi::points h )
     {
         scoped_lock< mutex > slock( element_mutex );
         
@@ -401,7 +400,7 @@ namespace jade
                         else
                         {
                             capturing = false;
-                            parent -> deassociateDevice( e.stroke.dev_id );
+                            deassociateDevice( e.stroke.dev_id );
                             reorganizeTabs();
                             
                             return pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
@@ -476,7 +475,7 @@ namespace jade
                                             capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
                                             capture_start[ 2 ] = tabs[ i ].position;
                                             
-                                            parent -> associateDevice( e.stroke.dev_id, this, e.offset[ 0 ], e.offset[ 1 ] );
+                                            associateDevice( e.stroke.dev_id, e.offset[ 0 ], e.offset[ 1 ] );
                                             captured_dev = e.stroke.dev_id;
                                             
                                             parent -> requestRedraw();
@@ -536,7 +535,7 @@ namespace jade
             return false;                                                       // If there is no current tab, we just let the event fall through
     }
     
-    void tabset::draw()
+    void tabset::draw( window* w )
     {
         scoped_lock< mutex > slock( element_mutex );
         tabset_rsrc_mutex.lock();                                               // We want to potentially unlock this early
@@ -562,7 +561,7 @@ namespace jade
             {
                 glScalef( dimensions[ 0 ], 1.0f, 1.0f );
                 
-                tabset_set.fill -> draw();
+                tabset_set.fill -> draw( w );
             }
             glPopMatrix();
             
@@ -585,7 +584,7 @@ namespace jade
                         else
                             c_set = &( t_set -> unsafe );
                         
-                        t_set -> left -> draw();
+                        t_set -> left -> draw( w );
                         
                         glTranslatef( 6.0f, 0.0f, 0.0f );
                         
@@ -593,13 +592,13 @@ namespace jade
                         {
                             glScalef( tabs[ i ].width - 12.0f, 1.0f, 1.0f );
                             
-                            t_set -> center -> draw();
+                            t_set -> center -> draw( w );
                         }
                         glPopMatrix();
                         
                         glTranslatef( tabs[ i ].width - 12.0f, 0.0f, 0.0f );
                         
-                        t_set -> right -> draw();
+                        t_set -> right -> draw( w );
                         
                         glPushMatrix();
                         {
@@ -608,13 +607,13 @@ namespace jade
                             switch( tabs[ i ].button_state )
                             {
                             case tab_state::UP:
-                                c_set -> up -> draw();
+                                c_set -> up -> draw( w );
                                 break;
                             case tab_state::OVER:
-                                c_set -> over -> draw();
+                                c_set -> over -> draw( w );
                                 break;
                             case tab_state::DOWN:
-                                c_set -> down -> draw();
+                                c_set -> down -> draw( w );
                                 break;
                             default:
                                 throw exception( "tabset::draw(): Unknown button state" );
@@ -627,7 +626,7 @@ namespace jade
                             glTranslatef( 9.0f - ( tabs[ i ].width - 6.0f ), 17.0f, 0.0f );
                             
                             tabs[ i ].data -> title -> setColor( 0.8f, 0.8f, 0.8f, 1.0f );
-                            tabs[ i ].data -> title -> draw();
+                            tabs[ i ].data -> title -> draw( w );
                         }
                         glPopMatrix();
                         
@@ -650,7 +649,7 @@ namespace jade
                 {
                     glTranslatef( tabs[ current_tab ].position + bar_scroll, 0.0f, 0.0f );
                     
-                    t_set -> left -> draw();
+                    t_set -> left -> draw( w );
                     
                     glTranslatef( 6.0f, 0.0f, 0.0f );
                     
@@ -658,13 +657,13 @@ namespace jade
                     {
                         glScalef( tabs[ current_tab ].width - 12.0f, 1.0f, 1.0f );
                         
-                        t_set -> center -> draw();
+                        t_set -> center -> draw( w );
                     }
                     glPopMatrix();
                     
                     glTranslatef( tabs[ current_tab ].width - 12.0f, 0.0f, 0.0f );
                     
-                    t_set -> right -> draw();
+                    t_set -> right -> draw( w );
                     
                     glPushMatrix();
                     {
@@ -673,13 +672,13 @@ namespace jade
                         switch( tabs[ current_tab ].button_state )
                         {
                         case tab_state::UP:
-                            c_set -> up -> draw();
+                            c_set -> up -> draw( w );
                             break;
                         case tab_state::OVER:
-                            c_set -> over -> draw();
+                            c_set -> over -> draw( w );
                             break;
                         case tab_state::DOWN:
-                            c_set -> down -> draw();
+                            c_set -> down -> draw( w );
                             break;
                         default:
                             throw exception( "tabset::draw(): Unknown button state for current tab" );
@@ -692,7 +691,7 @@ namespace jade
                         glTranslatef( 9.0f - ( tabs[ current_tab ].width - 6.0f ), 17.0f, 0.0f );
                         
                         tabs[ current_tab ].data -> title -> setColor( 1.0f, 1.0f, 1.0f, 1.0f );
-                        tabs[ current_tab ].data -> title -> draw();
+                        tabs[ current_tab ].data -> title -> draw( w );
                     }
                     glPopMatrix();
                 }
@@ -702,7 +701,7 @@ namespace jade
                 
                 tabset_rsrc_mutex.unlock();                                     // Unlock now as we don't know how long the contents' draw will take
                 
-                tabs[ current_tab ].data -> contents -> draw();
+                tabs[ current_tab ].data -> contents -> draw( w );
             }
             else
             {

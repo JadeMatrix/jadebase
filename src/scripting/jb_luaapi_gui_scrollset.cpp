@@ -55,8 +55,7 @@ namespace jade
                 switch( argc )
                 {
                 case 3:
-                    new( lua_newuserdata( state, sizeof( std::shared_ptr< scrollset > ) ) ) std::shared_ptr< scrollset >( new scrollset( NULL,
-                                                                                                                                         lua_tonumber( state, 1 ),
+                    new( lua_newuserdata( state, sizeof( std::shared_ptr< scrollset > ) ) ) std::shared_ptr< scrollset >( new scrollset( lua_tonumber( state, 1 ),
                                                                                                                                          lua_tonumber( state, 2 ),
                                                                                                                                          scrollable_sp ) );
                     break;
@@ -71,8 +70,7 @@ namespace jade
                         luaL_error( state, err_argtype( "new_scrollset", "", "height", 4, "number" ).c_str() );
                         return 0;
                     }
-                    new( lua_newuserdata( state, sizeof( std::shared_ptr< scrollset > ) ) ) std::shared_ptr< scrollset >( new scrollset( NULL,
-                                                                                                                                         lua_tonumber( state, 1 ),
+                    new( lua_newuserdata( state, sizeof( std::shared_ptr< scrollset > ) ) ) std::shared_ptr< scrollset >( new scrollset( lua_tonumber( state, 1 ),
                                                                                                                                          lua_tonumber( state, 2 ),
                                                                                                                                          lua_tonumber( state, 3 ),
                                                                                                                                          lua_tonumber( state, 4 ),

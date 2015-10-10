@@ -50,8 +50,7 @@ namespace jade
                     return 0;
                 }
                 
-                new( lua_newuserdata( state, sizeof( std::shared_ptr< tabset > ) ) ) std::shared_ptr< tabset >( new tabset( NULL,
-                                                                                                                            lua_tonumber( state, 1 ),
+                new( lua_newuserdata( state, sizeof( std::shared_ptr< tabset > ) ) ) std::shared_ptr< tabset >( new tabset( lua_tonumber( state, 1 ),
                                                                                                                             lua_tonumber( state, 2 ),
                                                                                                                             lua_tonumber( state, 3 ),
                                                                                                                             lua_tonumber( state, 4 ) ) );

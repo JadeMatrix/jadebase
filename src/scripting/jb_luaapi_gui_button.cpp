@@ -53,19 +53,16 @@ namespace jade
                 switch( argc )                                                  // This is set up to use default values for constructor
                 {
                 case 2:
-                    new( butt_sp ) std::shared_ptr< button >( new button( NULL,
-                                                                          lua_tonumber( state, 1 ),
+                    new( butt_sp ) std::shared_ptr< button >( new button( lua_tonumber( state, 1 ),
                                                                           lua_tonumber( state, 2 ) ) );
                     break;
                 case 3:
-                    new( butt_sp ) std::shared_ptr< button >( new button( NULL,
-                                                                          lua_tonumber( state, 1 ),
+                    new( butt_sp ) std::shared_ptr< button >( new button( lua_tonumber( state, 1 ),
                                                                           lua_tonumber( state, 2 ),
                                                                           lua_tonumber( state, 3 ) ) );
                     break;
                 case 4:
-                    new( butt_sp ) std::shared_ptr< button >( new button( NULL,
-                                                                          lua_tonumber( state, 1 ),
+                    new( butt_sp ) std::shared_ptr< button >( new button( lua_tonumber( state, 1 ),
                                                                           lua_tonumber( state, 2 ),
                                                                           lua_tonumber( state, 3 ),
                                                                           lua_tonumber( state, 4 ) ) );
