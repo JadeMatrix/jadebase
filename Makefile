@@ -17,7 +17,6 @@ $(error FASTFORMAT_ROOT must be defined)
 endif
 
 # Compiler(s)
-# CC = /usr/local/Cellar/llvm/3.4/bin/clang
 CC = clang
 CPPC = ${CC}++ -std=c++11 -stdlib=libstdc++
 OBJCC = ${CC}
@@ -75,6 +74,7 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_tabset.o \
 				${OBJDIR}/gui.jb_text_rsrc.o \
 				${OBJDIR}/gui.jb_named_resources.o \
+				${OBJDIR}/gui.jb_windowview.o \
 				${OBJDIR}/main.jb_main.o \
 				${OBJDIR}/scripting.jb_lua.o \
 				${OBJDIR}/scripting.jb_lua_initapi.o \
@@ -133,7 +133,7 @@ FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 
 test:
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
 	mkdir -p ${BUILDDIR}
 	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
 
@@ -183,63 +183,63 @@ fastformat:
 
 ${OBJDIR}/unix_%.o: ${SOURCEDIR}/unix_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/unix_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/unix_$*.o
 
 ${OBJDIR}/main.cocoa_%.o: ${SOURCEDIR}/main/cocoa_%.m
 	mkdir -p ${OBJDIR}
-	${OBJCC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.cocoa_$*.o
+	${OBJCC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.cocoa_$*.o
 
 ${OBJDIR}/windowsys.x_%.o: ${SOURCEDIR}/windowsys/x_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.x_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.x_$*.o
 
 
 
 ${OBJDIR}/main.x_%.o: ${SOURCEDIR}/main/x_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.x_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.x_$*.o
 
 
 
 ${OBJDIR}/jb_%.o: ${SOURCEDIR}/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.o
 
 ${OBJDIR}/filetypes.jb_%.o: ${SOURCEDIR}/filetypes/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/filetypes.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/filetypes.jb_$*.o
 
 ${OBJDIR}/gui.jb_%.o: ${SOURCEDIR}/gui/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/gui.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/gui.jb_$*.o
 
 ${OBJDIR}/main.jb_%.o: ${SOURCEDIR}/main/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.jb_$*.o
 
 ${OBJDIR}/scripting.jb_%.o: ${SOURCEDIR}/scripting/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/scripting.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/scripting.jb_$*.o
 
 ${OBJDIR}/tasking.jb_%.o: ${SOURCEDIR}/tasking/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/tasking.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/tasking.jb_$*.o
 
 ${OBJDIR}/threading.jb_%.o: ${SOURCEDIR}/threading/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/threading.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/threading.jb_$*.o
 
 ${OBJDIR}/utility.jb_%.o: ${SOURCEDIR}/utility/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.o
 
 ${OBJDIR}/utility.jb_%.c.o: ${SOURCEDIR}/utility/jb_%.c
 	mkdir -p ${OBJDIR}
-	${CC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.c.o
+	${CC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.c.o
 
 ${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
 	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.jb_$*.o
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.jb_$*.o
 
 ################################################################################
 
