@@ -46,6 +46,7 @@ namespace jade
         virtual std::pair< dpi::points, dpi::points > getRealDimensions();      // Used to arrange elements
         virtual std::pair< dpi::points, dpi::points > getVisualDimensions();    // Used to generate area for event capturing
         
+        // TODO: Put elements in charge of normalizing event offsets to their own position
         virtual bool acceptEvent( window_event& ) = 0;                          // If the event was accepted, returns true, else returns false.  If
                                                                                 // event_fallthrough is false should always return true.
         
@@ -58,19 +59,6 @@ namespace jade
                                                                                 // their parent, but can be called directly on any element.  Most elements will
                                                                                 // not need to supply a custom implementation.
         
-        // TODO: protected?
-        virtual void associateDevice( jb_platform_idevid_t,                     // ID of the device to associate
-                                      std::list< gui_element* >&,               // Capturing element chain
-                                      dpi::points,                              // X event offset
-                                      dpi::points );                            // Y event offset
-                                                                                // Begins sending input events from the device directly to the element without
-                                                                                // passing through the element tree, using the given event offsets.
-        virtual void associateDevice( jb_platform_idevid_t,
-                                      dpi::points,
-                                      dpi::points );                            // Overload for when capturing element is initial caller
-        virtual void deassociateDevice( jb_platform_idevid_t );                 // Called when an association is no longer necessary; elements must deassociate
-                                                                                // all associated devices before destruction.
-        
     protected:
         mutex element_mutex;
         gui_element* parent;
@@ -78,7 +66,19 @@ namespace jade
         dpi::points position[   2 ];
         dpi::points dimensions[ 2 ];
         
-        virtual void setRealDimensions( dpi::points, dpi::points );               // Width, height; virtual as not all elements have flexible dimensions
+        virtual void setRealDimensions( dpi::points, dpi::points );             // Width, height; virtual as not all elements have flexible dimensions
+        
+        virtual void   associateDevice( jb_platform_idevid_t,                   // ID of the device to associate
+                                        std::list< gui_element* >& );           // Capturing element chain
+                                                                                // Begins sending input events from the device directly to the element without
+                                                                                // passing through the element tree, using the given event offsets.
+        virtual void   associateDevice( jb_platform_idevid_t );                 // Overload for when capturing element is initial caller
+        virtual void deassociateDevice( jb_platform_idevid_t );                 // Called when an association is no longer necessary; elements must deassociate
+                                                                                // all associated devices before destruction.
+        // TODO: this etc. IMPORTANT:
+        // virtual void clearAssociatedDevices();                                  // Utility function, to be called by setParentElement() when the new parent !=
+                                                                                // the old one, so that we release all associated devices.  No-op for elements
+                                                                                // that don't need it.
     };
 }
 

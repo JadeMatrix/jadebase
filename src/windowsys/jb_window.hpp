@@ -16,18 +16,23 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <list>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "jb_windowevent.hpp"
-#include "../gui/jb_group.hpp"
+#include "../gui/jb_windowview.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_container.hpp"
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
+
+#ifdef PLATFORM_XWS_GNUPOSIX
+#include "x_inputdevices.hpp"
+#endif
 
 /******************************************************************************//******************************************************************************/
 
@@ -45,6 +50,11 @@ namespace jade
     class window
     {
         friend class container< window >;
+        friend class windowview;
+        
+        #ifdef PLATFORM_XWS_GNUPOSIX
+        friend void handleStrokeEvent( XEvent& );                               // Needs access to change protected data (position, dimensions, etc.)
+        #endif
         
     public:
         window();
@@ -56,21 +66,12 @@ namespace jade
         
         jb_platform_window_t& getPlatformWindow();                              // TODO: make this const-correct
         
-        // FIXME: What happens if the GUI layout changes and the offset to the capturing element needs updating, huh? (Gonna get ugly)
-        void associateDevice( jb_platform_idevid_t,                             // ID of the device to associate
-                              gui_element*,                                     // Pointer to the capturing element
-                              float,                                            // X event offset
-                              float );                                          // Y event offset
-                                                                                // Begins sending input events from the device directly to the element without
-                                                                                // passing through the element tree, using the given event offsets.
-        void deassociateDevice( jb_platform_idevid_t dev_id );                  // Called when an association is no longer necessary; elements must deassociate
-                                                                                // all associated devices before destruction.
-        
         std::string getTitle();
         
-        std::shared_ptr< group > getTopGroup();                                 // Get top-level GUI group element (returns std::shared_ptr for integration with
-                                                                                // GCed scripting languages)
+        std::shared_ptr< windowview > getTopElement();                          // Get top-level GUI windowview element (returns std::shared_ptr for integration
+                                                                                // with GCed scripting languages)
         
+        // TODO: Are these supposed to be public?
         void register_container( container< window >* );
         void deregister_container( container< window >* );
         
@@ -142,18 +143,6 @@ namespace jade
             bool redraw     : 1;
         } updates;
         
-        /* GUI infrastructure *************************************************//******************************************************************************/
-        
-        struct idev_assoc
-        {
-            gui_element* element;
-            float offset[ 2 ];
-        };
-        
-        std::map< jb_platform_idevid_t,
-                  idev_assoc > input_assoc;
-        std::shared_ptr< group > top_group;
-        
         /* Container infrastructure *******************************************//******************************************************************************/
         
         bool can_add_containers;
@@ -184,6 +173,27 @@ namespace jade
         protected:
             window& target;
         };
+        
+        /* Device association infrastructure **********************************//******************************************************************************/
+        
+        // TODO: Move to jade::windowview
+        
+        struct idev_assoc
+        {
+            std::list< gui_element* > chain;
+            // This used to hold other metadata and may again in the future
+        };
+        
+        std::map< jb_platform_idevid_t,
+                  idev_assoc > input_assoc;
+        std::shared_ptr< windowview > top_element;
+        
+        void associateDevice( jb_platform_idevid_t,                             // ID of the device to associate
+                              std::list< gui_element* >& );                     // Capturing element chain
+                                                                                // Begins sending input events from the device directly to the element without
+                                                                                // passing through the element tree, using the given event offsets.
+        void deassociateDevice( jb_platform_idevid_t dev_id );                  // Called when an association is no longer necessary; elements must deassociate
+                                                                                // all associated devices before destruction.
     };
 }
 

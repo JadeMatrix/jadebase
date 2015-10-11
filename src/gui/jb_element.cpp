@@ -79,50 +79,6 @@ namespace jade
         
         if( parent != NULL )
             parent -> requestRedraw();
-        else
-            // DEBUG:
-            throw exception( "element::requestRedraw(): NULL parent" );
-    }
-    
-    void gui_element::associateDevice( jb_platform_idevid_t dev_id,
-                                       std::list< gui_element* >& chain,
-                                       dpi::points x,
-                                       dpi::points y )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        chain.push_front( this );
-        
-        if( parent != NULL )
-            parent -> associateDevice( dev_id, chain, x, y );
-        else
-            // DEBUG:
-            throw exception( "element::associateDevice(): NULL parent" );
-    }
-    void gui_element::associateDevice( jb_platform_idevid_t dev_id,
-                                       dpi::points x,
-                                       dpi::points y )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        std::list< gui_element* > chain;                                        // Stack allocated OK - will be copied/swapped by window
-        chain.push_front( this );
-        
-        if( parent != NULL )
-            parent -> associateDevice( dev_id, chain, x, y );
-        else
-            // DEBUG:
-            throw exception( "element::associateDevice() nochain: NULL parent" );
-    }
-    void gui_element::deassociateDevice( jb_platform_idevid_t dev_id )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        if( parent != NULL )
-            parent -> deassociateDevice( dev_id );
-        else
-            // DEBUG:
-            throw exception( "element::deassociateDevice(): NULL parent" );
     }
     
     void gui_element::setRealDimensions( dpi::points w, dpi::points h )
@@ -135,6 +91,45 @@ namespace jade
         if( parent != NULL )
             parent -> requestRedraw();
     }
+    
+    void gui_element::associateDevice( jb_platform_idevid_t dev_id,
+                                       std::list< gui_element* >& chain )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        chain.push_front( this );
+        
+        if( parent != NULL )
+            parent -> associateDevice( dev_id, chain );
+        else
+            throw exception( "element::associateDevice(): NULL parent" );
+    }
+    void gui_element::associateDevice( jb_platform_idevid_t dev_id )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        std::list< gui_element* > chain;                                        // Stack allocated OK - will be copied/swapped by window
+        chain.push_front( this );
+        
+        if( parent != NULL )
+            parent -> associateDevice( dev_id, chain );
+        else
+            throw exception( "element::associateDevice() nochain: NULL parent" );
+    }
+    void gui_element::deassociateDevice( jb_platform_idevid_t dev_id )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        if( parent != NULL )
+            parent -> deassociateDevice( dev_id );
+        else
+            throw exception( "element::deassociateDevice(): NULL parent" );
+    }
+    
+    // void gui_element::clearAssociatedDevices()
+    // {
+    //     // No-op for elements that don't need it
+    // }
 }
 
 

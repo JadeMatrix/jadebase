@@ -36,9 +36,9 @@
 
 namespace jade
 {
-    // WINDOW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                         // FIXME: yeah no, that don't werk
-    window::window() : top_group( new group( NULL, 0, 0, dimensions[ 0 ], dimensions[ 1 ] ) )
+    /* window *****************************************************************//******************************************************************************/
+    
+    window::window() : top_element( new windowview( this ) )
     {
         // We create the top_group on construction rather than init() as we
         // might get a call for getTopGroup() before init().
@@ -95,13 +95,15 @@ namespace jade
     {
         scoped_lock< mutex > slock( window_mutex );
         
-////////// Devel  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////// DEVEL: //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
         {
             jb_setQuitFlag();
             return;
         }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        // TODO: Move to jade::windowview
         
         bool no_position = false;
         
@@ -148,20 +150,29 @@ namespace jade
             break;
         }
         
-        if( e.type == STROKE
-            && input_assoc.count( e.stroke.dev_id ) )                           // Check elements in device association list first
+        if( e.type == STROKE )                                                  // Check elements in device association list first
         {
-            idev_assoc& assoc( input_assoc[ e.stroke.dev_id ] );
-            
-            e.offset[ 0 ] = assoc.offset[ 0 ];
-            e.offset[ 1 ] = assoc.offset[ 1 ];
-            
-            assoc.element -> acceptEvent( e );
-            
-            return;
+            auto finder = input_assoc.find( e.stroke.dev_id );
+            if( finder != input_assoc.end() )
+            {
+                auto iter = finder -> second.chain.begin();
+                
+                while( iter != finder -> second.chain.end() )
+                {
+                    auto pos = ( *iter ) -> getRealPosition();
+                    e.offset[ 0 ] = pos.first;
+                    e.offset[ 1 ] = pos.second;
+                    ++iter;
+                }
+                
+                --iter;
+                ( *iter ) -> acceptEvent( e );
+                
+                return;
+            }
         }
         
-        top_group -> acceptEvent( e );                                          // Send event to top-level group (at 0,0; dimensions match window)
+        top_element -> acceptEvent( e );                                        // Send event to top-level group (at 0,0; dimensions match window)
     }
     
     jb_platform_window_t& window::getPlatformWindow()
@@ -174,30 +185,6 @@ namespace jade
             return platform_window;
     }
     
-    void window::associateDevice( jb_platform_idevid_t dev_id,
-                                  gui_element* element,
-                                  float off_x,
-                                  float off_y )
-    {
-        scoped_lock< mutex > scoped_lock( window_mutex );
-        
-        idev_assoc& assoc( input_assoc[ dev_id ] );
-        
-        if( element == NULL )
-            throw exception( "window::associateDevice(): Attempt to associate a device with a NULL element" );
-        
-        assoc.element = element;
-        assoc.offset[ 0 ] = off_x;
-        assoc.offset[ 1 ] = off_y;
-    }
-    void window::deassociateDevice( jb_platform_idevid_t dev_id )
-    {
-        scoped_lock< mutex > scoped_lock( window_mutex );
-        
-        if( !input_assoc.erase( dev_id ) && getDevMode() )
-            ff::write( jb_out, "Warning: Attempt to deassociate a non-associated device\n" );
-    }
-    
     std::string window::getTitle()
     {
         scoped_lock< mutex > scoped_lock( window_mutex );
@@ -205,9 +192,9 @@ namespace jade
         return title;
     }
     
-    std::shared_ptr< group > window::getTopGroup()
+    std::shared_ptr< windowview > window::getTopElement()
     {
-        return top_group;                                                       // No thread safety required: the top group has the same lifetime as the window
+        return top_element;                                                     // No thread safety required, as it has the same lifetime as the window
     }
     
     void window::requestRedraw()
@@ -377,9 +364,8 @@ namespace jade
         
         registerWindow( *this );
         
-        top_group -> setParentWindow( this );
-        top_group -> setDrawBackground( false );
-        top_group -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] );
+        top_element -> setDrawBackground( false );
+        top_element -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] );
     }
     
     void window::makeContextCurrent()
@@ -416,7 +402,32 @@ namespace jade
         #endif
     }
     
-    // WINDOW::MANIPULATE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void window::associateDevice( jb_platform_idevid_t dev_id,
+                                  std::list< gui_element* >& chain )
+    {
+        scoped_lock< mutex > scoped_lock( window_mutex );
+        
+        if( chain.empty() )
+        {
+            if( getDevMode() )
+                ff::write( jb_out,
+                           "Notice: window::associateDevice(): Empty assoc chain" );
+            return;
+        }
+        
+        idev_assoc& assoc( input_assoc[ dev_id ] );
+        
+        std::swap( assoc.chain, chain );
+    }
+    void window::deassociateDevice( jb_platform_idevid_t dev_id )
+    {
+        scoped_lock< mutex > scoped_lock( window_mutex );
+        
+        if( !input_assoc.erase( dev_id ) && getDevMode() )
+            ff::write( jb_out, "Warning: Attempt to deassociate a non-associated device\n" );
+    }
+    
+    /* window::manipulate *****************************************************//******************************************************************************/
     
     window::manipulate::manipulate( window* t )
     {
@@ -453,8 +464,7 @@ namespace jade
             
             /* GUI CLEANUP ****************************************************//******************************************************************************/
             
-            target -> top_group -> closed();                                    // Close first in case the closed callback wants parent window
-            target -> top_group -> setParentWindow( NULL );                     // Now safe to delete window
+            target -> top_element -> closed();                                  // This is essentially the point where children elements think the window closes
             // Window will destroy std::shared_ptr when deleted
             
             /* WINDOW CLEANUP *************************************************//******************************************************************************/
@@ -485,13 +495,13 @@ namespace jade
                     new_dimensions[ 0 ] = target -> dimensions[ 0 ];
                     new_dimensions[ 1 ] = target -> dimensions[ 1 ];
                     
-                    // TODO: Fluid syncing of window & top_group dimensions:
+                    // TODO: Fluid syncing of window & top_element dimensions:
                     //         1. Window gets dimension changed
-                    //         2. If good, window sets top_group dimensions
-                    //         3. top_group clips dimensions to calculated mins
-                    //            (if any)
-                    //         4. Window then gets top_group dimensions and sets
-                    //            self dimensions from those
+                    //         2. If good, window sets top_element dimensions
+                    //         3. top_element clips dimensions to calculated
+                    //            mins (if any)
+                    //         4. Window then gets top_element dimensions and
+                    //            sets self dimensions from those
                     //         No min window dimensions (X will be happier)
                     
                     if( target -> dimensions[ 0 ] < JADEBASE_WINDOW_MIN_WIDTH )
@@ -516,8 +526,8 @@ namespace jade
                     }
                     else                                                        // Window size change OK, so update top_group
                     {
-                        target -> top_group -> setRealDimensions( target -> dimensions[ 0 ],
-                                                                  target -> dimensions[ 1 ] );
+                        target -> top_element -> setRealDimensions( target -> dimensions[ 0 ],
+                                                                    target -> dimensions[ 1 ] );
                         
                         redraw_window = true;
                     }
@@ -717,7 +727,7 @@ namespace jade
         target -> updates.changed = true;
     }
     
-    // WINDOW::REDRAW //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* window::redraw *********************************************************//******************************************************************************/
     
     window::redraw::redraw( window& t ) : target( t )
     {
@@ -760,7 +770,7 @@ namespace jade
             
             glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
             
-            target.top_group -> draw();
+            target.top_element -> draw( &target );
             
             #if defined PLATFORM_XWS_GNUPOSIX
             

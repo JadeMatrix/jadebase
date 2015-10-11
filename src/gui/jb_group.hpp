@@ -60,7 +60,7 @@ namespace jade
         
         // GUI_ELEMENT /////////////////////////////////////////////////////////
         
-        void setParentElement( gui_element* );
+        virtual void setParentElement( gui_element* );                          // Virtual for windowview
         
         void setRealPosition(   dpi::points, dpi::points );                     // X, Y
         void setRealDimensions( dpi::points, dpi::points );                     // Width, height

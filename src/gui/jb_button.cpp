@@ -240,7 +240,7 @@ namespace jade
                                         dimensions[ 1 ] ) )
                 {
                     setState( OFF_DOWN );
-                    associateDevice( e.stroke.dev_id, e.offset[ 0 ], e.offset[ 1 ] );
+                    associateDevice( e.stroke.dev_id );
                     captured_dev = e.stroke.dev_id;
                 }
                 break;
@@ -275,7 +275,7 @@ namespace jade
                                         dimensions[ 1 ] ) )
                 {
                     setState( ON_DOWN );
-                    associateDevice( e.stroke.dev_id, e.offset[ 0 ], e.offset[ 1 ] );
+                    associateDevice( e.stroke.dev_id );
                     captured_dev = e.stroke.dev_id;
                 }
                 break;

@@ -475,7 +475,7 @@ namespace jade
                                             capture_start[ 1 ] = e.stroke.position[ 1 ] - e.offset[ 1 ];
                                             capture_start[ 2 ] = tabs[ i ].position;
                                             
-                                            associateDevice( e.stroke.dev_id, e.offset[ 0 ], e.offset[ 1 ] );
+                                            associateDevice( e.stroke.dev_id );
                                             captured_dev = e.stroke.dev_id;
                                             
                                             parent -> requestRedraw();

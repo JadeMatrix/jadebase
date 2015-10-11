@@ -38,8 +38,8 @@ namespace jade
                 
                 lua_newtable( state );                                          // Create metatable
                 {
-                    lua_pushcfunction( state, jade_windowsys_window_getTopGroup );
-                    lua_setfield( state, -2, "top_group" );
+                    lua_pushcfunction( state, jade_windowsys_window_getTopElement );
+                    lua_setfield( state, -2, "top_element" );
                     lua_pushcfunction( state, jade_windowsys_window_setTitle );
                     lua_setfield( state, -2, "set_title" );
                     lua_pushcfunction( state, jade_windowsys_window_close );
@@ -69,7 +69,7 @@ namespace jade
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
-        int jade_windowsys_window_getTopGroup( lua_State* state )
+        int jade_windowsys_window_getTopElement( lua_State* state )
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,13 +78,13 @@ namespace jade
                 if( argc < 1
                     || getUDataType( state, 1 ) != JADE_WINDOW )
                 {
-                    luaL_error( state, err_objtype( "top_group", "window" ).c_str() );
+                    luaL_error( state, err_objtype( "top_element", "window" ).c_str() );
                     return 0;
                 }
                 
                 if( argc > 1 )
                 {
-                    luaL_error( state, err_argcount( "top_group", "window", 0 ).c_str() );
+                    luaL_error( state, err_argcount( "top_element", "window", 0 ).c_str() );
                     return 0;
                 }
                 
@@ -92,14 +92,14 @@ namespace jade
                 
                 if( *slock )
                 {
-                    groupToUData( state, ( *slock ) -> getTopGroup() );
+                    groupToUData( state, ( *slock ) -> getTopElement() );
                     return 1;
                 }
                 else
                 {
                     if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
                     {
-                        luaL_error( state, "Call of window:top_group() on a closed window" );
+                        luaL_error( state, "Call of window:top_element() on a closed window" );
                         return 0;
                     }
                     else
