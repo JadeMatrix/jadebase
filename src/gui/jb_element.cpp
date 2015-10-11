@@ -17,6 +17,7 @@ namespace jade
 {
     gui_element::gui_element( dpi::points x, dpi::points y, dpi::points w, dpi::points h )
     {
+        parent = NULL;
         setRealPosition( x, y );
         setRealDimensions( w, h );
     }
