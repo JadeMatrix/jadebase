@@ -72,6 +72,7 @@ namespace jade
         updates.position   = false;
         updates.fullscreen = false;
         updates.title      = false;
+        updates.center     = false;
         updates.minimize   = false;
         updates.maximize   = false;
         updates.restore    = false;
