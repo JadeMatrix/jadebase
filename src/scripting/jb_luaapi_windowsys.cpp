@@ -38,8 +38,6 @@ namespace jade
                 
                 lua_newtable( state );                                          // Create metatable
                 {
-                    lua_pushcfunction( state, jade_windowsys_window_getTopElement );
-                    lua_setfield( state, -2, "top_element" );
                     lua_pushcfunction( state, jade_windowsys_window_setTitle );
                     lua_setfield( state, -2, "set_title" );
                     lua_pushcfunction( state, jade_windowsys_window_close );
@@ -48,6 +46,18 @@ namespace jade
                     lua_setfield( state, -2, "request_redraw" );
                     lua_pushcfunction( state, jade_windowsys_window_isOpen );
                     lua_setfield( state, -2, "is_open" );
+                    
+                    lua_pushcfunction( state, jade_windowsys_window_addElement );
+                    lua_setfield( state, -2, "add_element" );
+                    lua_pushcfunction( state, jade_windowsys_window_removeElement );
+                    lua_setfield( state, -2, "remove_element" );
+                    lua_pushcfunction( state, jade_windowsys_window_setShownCallback );
+                    lua_setfield( state, -2, "set_shown_callback" );
+                    lua_pushcfunction( state, jade_windowsys_window_setHiddenCallback );
+                    lua_setfield( state, -2, "set_hidden_callback" );
+                    lua_pushcfunction( state, jade_windowsys_window_setClosedCallback );
+                    lua_setfield( state, -2, "set_closed_callback" );
+                    
                     lua_pushcfunction( state, jade_windowsys_window_gc );
                     lua_setfield( state, -2, "__gc" );
                     lua_pushcfunction( state, jade_windowsys_window_toString );
@@ -66,48 +76,6 @@ namespace jade
                 lua_setmetatable( state, -2 );
                 
                 return 1;
-            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            LUA_API_SAFETY_BLOCK_END
-        }
-        int jade_windowsys_window_getTopElement( lua_State* state )
-        {
-            LUA_API_SAFETY_BLOCK_BEGIN
-            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                int argc = lua_gettop( state );
-                
-                if( argc < 1
-                    || getUDataType( state, 1 ) != JADE_WINDOW )
-                {
-                    luaL_error( state, err_objtype( "top_element", "window" ).c_str() );
-                    return 0;
-                }
-                
-                if( argc > 1 )
-                {
-                    luaL_error( state, err_argcount( "top_element", "window", 0 ).c_str() );
-                    return 0;
-                }
-                
-                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
-                
-                if( *slock )
-                {
-                    groupToUData( state, ( *slock ) -> getTopElement() );
-                    return 1;
-                }
-                else
-                {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
-                    {
-                        luaL_error( state, "Call of window:top_element() on a closed window" );
-                        return 0;
-                    }
-                    else
-                    {
-                        lua_pushnil( state );
-                        return 1;
-                    }
-                }
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
@@ -245,6 +213,97 @@ namespace jade
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
+        
+        int jade_windowsys_window_addElement( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
+                
+                if( argc < 1
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
+                {
+                    luaL_error( state, err_objtype( "add_element", "window" ).c_str() );
+                    return 0;
+                }
+                
+                if( argc != 2 )
+                {
+                    luaL_error( state, err_argcount( "add_element", "window", 1, 1 ).c_str() );
+                    return 0;
+                }
+                
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
+                
+                if( *slock )
+                {
+                    std::shared_ptr< windowview > view = ( *slock ) -> getTopElement();
+                    
+                    switch( getUDataType( state, 2 ) )
+                    {
+                    case JADE_BUTTON:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< button >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_DIAL:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< dial >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_GROUP:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< group >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_SCROLLSET:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< scrollset >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_TABSET:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< tabset >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    default:
+                        luaL_error( state, err_argtype( "add_element", "window", "element", 1, "gui_element" ).c_str() );
+                        break;
+                    }
+                }
+                else
+                {
+                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                        luaL_error( state, "Call of window:top_element() on a closed window" );
+                }
+                
+                return 0;
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_removeElement( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_setShownCallback( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_setHiddenCallback( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        int jade_windowsys_window_setClosedCallback( lua_State* state )
+        {
+            LUA_API_SAFETY_BLOCK_BEGIN
+            {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+            }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            LUA_API_SAFETY_BLOCK_END
+        }
+        
         int jade_windowsys_window_gc( lua_State* state )
         {
             LUA_API_SAFETY_BLOCK_BEGIN

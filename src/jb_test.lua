@@ -48,6 +48,6 @@ test_tabset:add_tab( tab_c )
 
 -- Add to window
 
-test_window:top_element():add_element( test_tabset )
+test_window:add_element( test_tabset )
 
--- test_window:top_element():add_element( b )
+-- test_window:add_element( b )

@@ -67,31 +67,31 @@ namespace jade
             
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
                 
-                window* test_window = new window();
+                // window* test_window = new window();
                 
-                window::manipulate* manip = new window::manipulate( test_window );
+                // window::manipulate* manip = new window::manipulate( test_window );
                 
-                manip -> setTitle( getProgramVersionString() + " (C++)" );
+                // manip -> setTitle( getProgramVersionString() + " (C++)" );
                 
-                submitTask( new window::manipulate( test_window ) );
+                // submitTask( new window::manipulate( test_window ) );
                 
-                std::shared_ptr< button > butt_sp = std::make_shared< button >( 10, 10, 150, 27 );
-                test_window -> getTopElement() -> addElement( std::dynamic_pointer_cast< gui_element >( butt_sp ) );
+                // std::shared_ptr< button > butt_sp = std::make_shared< button >( 10, 10, 150, 27 );
+                // test_window -> getTopElement() -> addElement( std::dynamic_pointer_cast< gui_element >( butt_sp ) );
                 
                 // std::shared_ptr< dial > dial_sp = std::make_shared< dial >( 180, 10 );
-                // test_window -> getTopGroup() -> addElement( std::dynamic_pointer_cast< gui_element >( dial_sp ) );
+                // test_window -> getTopElement() -> addElement( std::dynamic_pointer_cast< gui_element >( dial_sp ) );
                 
+                // test_window -> requestRedraw();
                 
-                test_window -> requestRedraw();
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            // std::string main_script_file= getMainScriptFileName();
-            // if( main_script_file.length() != 0 )
-            // {
-            //     lua_state& global_lua_state( getGlobalLuaState() );
-            //     global_lua_state.open( main_script_file );
-            //     global_lua_state.run();
-            // }
+            std::string main_script_file= getMainScriptFileName();
+            if( main_script_file.length() != 0 )
+            {
+                lua_state& global_lua_state( getGlobalLuaState() );
+                global_lua_state.open( main_script_file );
+                global_lua_state.run();
+            }
             
             return true;
         }

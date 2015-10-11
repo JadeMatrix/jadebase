@@ -252,12 +252,19 @@ namespace jade
         // WINDOWSYS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         int jade_windowsys_newWindow( lua_State* );                             // Creates a new window; note that windows do not use Lua's GC
-        int jade_windowsys_window_getTopElement( lua_State* );
         // int jade_windowsys_window_setFullscreen( lua_State* );
         int jade_windowsys_window_setTitle( lua_State* );
         int jade_windowsys_window_close( lua_State* );
         int jade_windowsys_window_requestRedraw( lua_State* );
         int jade_windowsys_window_isOpen( lua_State* );
+        
+        // These transparently operate on the top-level windowview element
+        int jade_windowsys_window_addElement( lua_State* );
+        int jade_windowsys_window_removeElement( lua_State* );
+        int jade_windowsys_window_setShownCallback( lua_State* );
+        int jade_windowsys_window_setHiddenCallback( lua_State* );
+        int jade_windowsys_window_setClosedCallback( lua_State* );
+        
         int jade_windowsys_window_gc( lua_State* );
         int jade_windowsys_window_toString( lua_State* );
     }
