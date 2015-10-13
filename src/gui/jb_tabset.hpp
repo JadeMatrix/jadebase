@@ -78,14 +78,14 @@ namespace jade
         void moveTabLeft(    std::shared_ptr< tab >& );
         void moveTabRight(   std::shared_ptr< tab >& );
         
-        void setParentElement( gui_element* );
-        
         void setRealPosition(   dpi::points, dpi::points );                     // x, y
         void setRealDimensions( dpi::points, dpi::points );                     // w, h
         
         bool acceptEvent( window_event& );
         
         void draw( window* );
+        
+        void clearDeviceAssociations();
         
     protected:
         struct tab_state

@@ -60,8 +60,6 @@ namespace jade
         
         // GUI_ELEMENT /////////////////////////////////////////////////////////
         
-        virtual void setParentElement( gui_element* );                          // Virtual for windowview
-        
         void setRealPosition(   dpi::points, dpi::points );                     // X, Y
         void setRealDimensions( dpi::points, dpi::points );                     // Width, height
         
@@ -71,6 +69,8 @@ namespace jade
         bool acceptEvent( window_event& );
         
         void draw( window* );
+        
+        void clearDeviceAssociations();
         
         // SCROLLABLE //////////////////////////////////////////////////////////
         

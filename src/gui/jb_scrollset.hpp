@@ -46,6 +46,8 @@ namespace jade
         
         void draw( window* );
         
+        void clearDeviceAssociations();
+        
     protected:
         std::shared_ptr< scrollable > contents;
         

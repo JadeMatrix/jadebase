@@ -59,6 +59,10 @@ namespace jade
                                                                                 // their parent, but can be called directly on any element.  Most elements will
                                                                                 // not need to supply a custom implementation.
         
+        virtual void clearDeviceAssociations();                                 // Utility function, to be called by setParentElement() when the new parent !=
+                                                                                // the old one, so that we release all associated devices.  No-op for elements
+                                                                                // that don't need it.  Does not need to be thread-safe.
+        
     protected:
         mutex element_mutex;
         gui_element* parent;
@@ -75,10 +79,6 @@ namespace jade
         virtual void   associateDevice( jb_platform_idevid_t );                 // Overload for when capturing element is initial caller
         virtual void deassociateDevice( jb_platform_idevid_t );                 // Called when an association is no longer necessary; elements must deassociate
                                                                                 // all associated devices before destruction.
-        // TODO: this etc. IMPORTANT:
-        // virtual void clearAssociatedDevices();                                  // Utility function, to be called by setParentElement() when the new parent !=
-                                                                                // the old one, so that we release all associated devices.  No-op for elements
-                                                                                // that don't need it.
     };
 }
 

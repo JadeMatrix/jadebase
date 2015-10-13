@@ -47,6 +47,8 @@ namespace jade
         
         void draw( window* );
         
+        void clearDeviceAssociations();
+        
     protected:
         float value;
         bool small;

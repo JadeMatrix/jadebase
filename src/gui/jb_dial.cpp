@@ -250,6 +250,21 @@ namespace jade
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
     }
+    
+    void dial::clearDeviceAssociations()                                        // clearDeviceAssociations() is not required to be thread-safe
+    {
+        switch( capturing )
+        {
+        case NONE:
+            break;
+        case VERTICAL:
+        case CIRCULAR:
+            deassociateDevice( captured_dev );
+            break;
+        default:
+            throw exception( "dial::clearDeviceAssociations(): Unknown capturing state" );
+        }
+    }
 }
 
 

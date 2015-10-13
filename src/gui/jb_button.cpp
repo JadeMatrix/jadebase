@@ -441,6 +441,22 @@ namespace jade
         }
     }
     
+    void button::clearDeviceAssociations()                                      // clearDeviceAssociations() is not required to be thread-safe
+    {
+        switch( state )
+        {
+        case OFF_DOWN:
+        case ON_DOWN:
+            deassociateDevice( captured_dev );
+            break;
+        case OFF_UP:
+        case ON_UP:
+            break;
+        default:
+            throw exception( "button::clearDeviceAssociations(): Unknown button state" );
+        }
+    }
+    
     void button::setState( button_state s )
     {
         switch( s )

@@ -63,6 +63,8 @@ namespace jade
         
         void draw( window* );
         
+        void clearDeviceAssociations();
+        
     protected:
         button_state state;
         jb_platform_idevid_t captured_dev;

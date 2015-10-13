@@ -114,12 +114,12 @@ namespace jade
     {
         scoped_lock< mutex > slock( tab_mutex );
         
+        if( parent != p )
+            contents -> clearDeviceAssociations();
+        
         parent = p;
         
-        if( parent == NULL )
-            contents -> setParentElement( NULL );
-        else
-            contents -> setParentElement( parent -> parent );
+        contents -> setParentElement( parent );
     }
     
     // TABSET //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -305,16 +305,6 @@ namespace jade
                 }
             }
         }
-    }
-    
-    void tabset::setParentElement( gui_element* p )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        parent = p;
-        
-        for( int i = 0; i < tabs.size(); ++i )
-            tabs[ i ].data -> contents -> setParentElement( p );
     }
     
     void tabset::setRealPosition( dpi::points x, dpi::points y )
@@ -711,6 +701,12 @@ namespace jade
             }
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
+    }
+    
+    void tabset::clearDeviceAssociations()                                      // clearDeviceAssociations() is not required to be thread-safe
+    {
+        if( capturing )
+            deassociateDevice( captured_dev );
     }
     
     int tabset::getTabIndex( std::shared_ptr< tab > t )

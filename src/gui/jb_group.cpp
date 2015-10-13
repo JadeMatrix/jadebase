@@ -151,16 +151,6 @@ namespace jade
     
     // GUI_ELEMENT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    void group::setParentElement( gui_element* p )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        parent = p;
-        
-        for( int i = 0; i < elements.size(); ++i )
-            elements[ i ] -> setParentElement( p );
-    }
-    
     void group::setRealPosition( dpi::points x, dpi::points y )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -271,6 +261,12 @@ namespace jade
             clearDrawMasks();
         }
         glTranslatef( position[ 0 ] * -1.0f, position[ 1 ] * -1.0f, 0.0f );
+    }
+    
+    void group::clearDeviceAssociations()                                       // clearDeviceAssociations() is not required to be thread-safe
+    {
+        for( int i = 0; i < elements.size(); ++i )
+            elements[ i ] -> clearDeviceAssociations();
     }
     
     // SCROLLABLE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ namespace jade
     }
     gui_element::~gui_element()
     {
-        /* Empty */
+        clearDeviceAssociations();
     }
     
     gui_element* gui_element::getParentElement()
@@ -35,6 +35,9 @@ namespace jade
     void gui_element::setParentElement( gui_element* p )
     {
         scoped_lock< mutex > slock( element_mutex );
+        
+        if( parent != p )
+            clearDeviceAssociations();
         
         parent = p;
         
@@ -82,6 +85,11 @@ namespace jade
             parent -> requestRedraw();
     }
     
+    void gui_element::clearDeviceAssociations()
+    {
+        // No-op for elements that don't need it
+    }
+    
     void gui_element::setRealDimensions( dpi::points w, dpi::points h )
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -126,11 +134,6 @@ namespace jade
         else
             throw exception( "element::deassociateDevice(): NULL parent" );
     }
-    
-    // void gui_element::clearAssociatedDevices()
-    // {
-    //     // No-op for elements that don't need it
-    // }
 }
 
 

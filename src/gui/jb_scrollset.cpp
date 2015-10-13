@@ -644,6 +644,26 @@ namespace jade
         contents -> draw( w );                                                  // Contents keep track of their own position & dimensions
     }
     
+    void scrollset::clearDeviceAssociations()                                   // clearDeviceAssociations() is not required to be thread-safe
+    {
+        switch( capturing )
+        {
+        case NONE:
+            break;
+        case HORIZONTAL_BAR:
+        case VERTICAL_BAR:
+        case LEFT_BUTTON:
+        case RIGHT_BUTTON:
+        case TOP_BUTTON:
+        case BOTTOM_BUTTON:
+        case CORNER:
+            deassociateDevice( captured_dev );
+            break;
+        default:
+            throw exception( "scrollset::clearDeviceAssociations(): Unknown capturing state" );
+        }
+    }
+    
     void scrollset::arrangeBars()
     {
         scoped_lock< mutex > slock( element_mutex );
