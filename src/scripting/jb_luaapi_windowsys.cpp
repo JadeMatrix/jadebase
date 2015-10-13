@@ -275,7 +275,56 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
                 
+                if( argc < 1
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
+                {
+                    luaL_error( state, err_objtype( "add_element", "window" ).c_str() );
+                    return 0;
+                }
+                
+                if( argc != 2 )
+                {
+                    luaL_error( state, err_argcount( "add_element", "window", 1, 1 ).c_str() );
+                    return 0;
+                }
+                
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
+                
+                if( *slock )
+                {
+                    std::shared_ptr< windowview > view = ( *slock ) -> getTopElement();
+                    
+                    switch( getUDataType( state, 2 ) )
+                    {
+                    case JADE_BUTTON:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< button >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_DIAL:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< dial >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_GROUP:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< group >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_SCROLLSET:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< scrollset >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    case JADE_TABSET:
+                        view -> addElement( std::dynamic_pointer_cast< gui_element >( *( std::shared_ptr< tabset >* )lua_touserdata( state, 2 ) ) );
+                        break;
+                    default:
+                        luaL_error( state, err_argtype( "add_element", "window", "element", 1, "gui_element" ).c_str() );
+                        break;
+                    }
+                }
+                else
+                {
+                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                        luaL_error( state, "Call of window:add_element() on a closed window" );
+                }
+                
+                return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
@@ -283,7 +332,44 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
                 
+                if( argc < 1
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
+                {
+                    luaL_error( state, err_objtype( "set_shown_callback", "window" ).c_str() );
+                    return 0;
+                }
+                
+                if( argc != 2 )
+                {
+                    luaL_error( state, err_argcount( "set_shown_callback", "window", 1, 1 ).c_str() );
+                    return 0;
+                }
+                
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
+                
+                if( *slock )
+                {
+                    std::shared_ptr< windowview > view = ( *slock ) -> getTopElement();
+                    
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
+                    {
+                        luaL_error( state, err_argtype( "set_shown_callback", "window", "callback", 1, "callback" ).c_str() );
+                        return 0;
+                    }
+                    
+                    std::shared_ptr< lua_callback > cb_sp = *( std::shared_ptr< lua_callback >* )lua_touserdata( state, 2 );
+                    
+                    view -> setShownCallback( std::dynamic_pointer_cast< callback >( cb_sp ) );
+                }
+                else
+                {
+                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                        luaL_error( state, "Call of window:set_shown_callback() on a closed window" );
+                }
+                
+                return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
@@ -291,7 +377,44 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
                 
+                if( argc < 1
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
+                {
+                    luaL_error( state, err_objtype( "set_hidden_callback", "window" ).c_str() );
+                    return 0;
+                }
+                
+                if( argc != 2 )
+                {
+                    luaL_error( state, err_argcount( "set_hidden_callback", "window", 1, 1 ).c_str() );
+                    return 0;
+                }
+                
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
+                
+                if( *slock )
+                {
+                    std::shared_ptr< windowview > view = ( *slock ) -> getTopElement();
+                    
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
+                    {
+                        luaL_error( state, err_argtype( "set_hidden_callback", "window", "callback", 1, "callback" ).c_str() );
+                        return 0;
+                    }
+                    
+                    std::shared_ptr< lua_callback > cb_sp = *( std::shared_ptr< lua_callback >* )lua_touserdata( state, 2 );
+                    
+                    view -> setHiddenCallback( std::dynamic_pointer_cast< callback >( cb_sp ) );
+                }
+                else
+                {
+                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                        luaL_error( state, "Call of window:set_hidden_callback() on a closed window" );
+                }
+                
+                return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
@@ -299,7 +422,44 @@ namespace jade
         {
             LUA_API_SAFETY_BLOCK_BEGIN
             {///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                int argc = lua_gettop( state );
                 
+                if( argc < 1
+                    || getUDataType( state, 1 ) != JADE_WINDOW )
+                {
+                    luaL_error( state, err_objtype( "set_closed_callback", "window" ).c_str() );
+                    return 0;
+                }
+                
+                if( argc != 2 )
+                {
+                    luaL_error( state, err_argcount( "set_closed_callback", "window", 1, 1 ).c_str() );
+                    return 0;
+                }
+                
+                scoped_lock< container< window > > slock( *( container< window >* )lua_touserdata( state, 1 ) );
+                
+                if( *slock )
+                {
+                    std::shared_ptr< windowview > view = ( *slock ) -> getTopElement();
+                    
+                    if( getUDataType( state, 2 ) != JADE_CALLBACK )
+                    {
+                        luaL_error( state, err_argtype( "set_closed_callback", "window", "callback", 1, "callback" ).c_str() );
+                        return 0;
+                    }
+                    
+                    std::shared_ptr< lua_callback > cb_sp = *( std::shared_ptr< lua_callback >* )lua_touserdata( state, 2 );
+                    
+                    view -> setClosedCallback( std::dynamic_pointer_cast< callback >( cb_sp ) );
+                }
+                else
+                {
+                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                        luaL_error( state, "Call of window:set_closed_callback() on a closed window" );
+                }
+                
+                return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
         }
