@@ -34,20 +34,22 @@ BUILDDIR = ${MAKEDIR}/build
 FFBUILD = gcc47.unix
 FFOBJDIR = ${FASTFORMAT_ROOT}/build/${FFBUILD}
 
-# Headers & librarires
+# Headers, links, flags, etc.
 INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.2 libpng gl glew pangocairo`
-LINKS = -lm `pkg-config --libs lua5.2 libpng gl glew pangocairo`
+LINKS = -lm -lpthread `pkg-config --libs lua5.2 libpng gl glew pangocairo`
 FRAMEWORKS = -framework Foundation -framework AppKit
 DEFINES = -g -DDEBUG -DPLATFORM_XWS_GNUPOSIX
+WARNS = -Wall -Wno-unused-local-typedef
 
 PROJNAME = jadebase
 
 INSTALL_LOC = /usr/local
 
-################################################################################
+
+# Utilities ####################################################################
 
 clean:
-	rm -rf ${MAKEDIR}
+	@rm -rf ${MAKEDIR}
 
 # TODO: Consider using a perl script for nicer output
 #| awk -F: '{ print $$1":"$$2":\n    "; for(i=3;i<NF;i++){printf " %s", $$i} printf "\n" }'
@@ -55,14 +57,97 @@ todo:
 	@grep -nr --include \* --exclude-dir=make "\(TODO\|WARNING\|FIXME\):[ ]\+" .  # Using '[ ]' so the grep line is ignored by grep
 
 linecount:
-	wc -l `find ./src -type f`
+	@wc -l `find ./src -type f`
 
-# linux_profile: linux
-# 	valgrind --tool=callgrind "${MAKEDIR}/${PROJNAME}/Linux/${PROJNAME}" -d
 
-################################################################################
+# FastFormat ###################################################################
 
-# TODO: consider using macro(s)
+# FastFormat is statically linked due to the non-standard build methods the
+# project uses.  Until there is an official dynamic installation it should
+# remain statically linked for ease of (precompiled binary) distribution.
+
+# Single rule to build all FastFormat object files
+${FFOBJDIR}/%:
+	@echo Trying to automatically build FastFormat\; makefile may need manual editing to compile on some platforms
+	cd ${FFOBJDIR}; make build.libs.core
+
+# Not sure how many of these we need, so include all of them
+FF_OBJECTS =	${FFOBJDIR}/core.api.o \
+				${FFOBJDIR}/core.fmt_cache.o \
+				${FFOBJDIR}/core.fmt_spec_defect_handlers.o \
+				${FFOBJDIR}/core.init_code_strings.o \
+				${FFOBJDIR}/core.mempool.o \
+				${FFOBJDIR}/core.replacements.o \
+				${FFOBJDIR}/core.snprintf.o
+
+
+# Core jadebase header chains ##################################################
+
+
+
+
+# Core jadebase objects ########################################################
+
+${OBJDIR}/unix_%.o: ${SOURCEDIR}/unix_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/unix_$*.o
+
+${OBJDIR}/main.cocoa_%.o: ${SOURCEDIR}/main/cocoa_%.m
+	@mkdir -p ${OBJDIR}
+	${OBJCC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/main.cocoa_$*.o
+
+${OBJDIR}/windowsys.x_%.o: ${SOURCEDIR}/windowsys/x_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/windowsys.x_$*.o
+
+
+
+${OBJDIR}/main.x_%.o: ${SOURCEDIR}/main/x_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/main.x_$*.o
+
+
+
+${OBJDIR}/jb_%.o: ${SOURCEDIR}/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/jb_$*.o
+
+${OBJDIR}/filetypes.jb_%.o: ${SOURCEDIR}/filetypes/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/filetypes.jb_$*.o
+
+${OBJDIR}/gui.jb_%.o: ${SOURCEDIR}/gui/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/gui.jb_$*.o
+
+${OBJDIR}/main.jb_%.o: ${SOURCEDIR}/main/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/main.jb_$*.o
+
+${OBJDIR}/scripting.jb_%.o: ${SOURCEDIR}/scripting/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/scripting.jb_$*.o
+
+${OBJDIR}/tasking.jb_%.o: ${SOURCEDIR}/tasking/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/tasking.jb_$*.o
+
+${OBJDIR}/threading.jb_%.o: ${SOURCEDIR}/threading/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/threading.jb_$*.o
+
+${OBJDIR}/utility.jb_%.o: ${SOURCEDIR}/utility/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/utility.jb_$*.o
+
+${OBJDIR}/utility.jb_%.c.o: ${SOURCEDIR}/utility/jb_%.c
+	@mkdir -p ${OBJDIR}
+	${CC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/utility.jb_$*.c.o
+
+${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/windowsys.jb_$*.o
+
 CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/gui.jb_button.o \
 				${OBJDIR}/gui.jb_dial.o \
@@ -111,42 +196,18 @@ CORE_OBJECTS =	${OBJDIR}/filetypes.jb_png.o \
 				${OBJDIR}/windowsys.jb_windowevent.o \
 				${OBJDIR}/windowsys.jb_windowmanagement.o
 
-OSX_OBJECTS =	${OBJDIR}/main.cocoa_appdelegate.o \
-				${OBJDIR}/main.cocoa_main.o
+
+# Linux ########################################################################
 
 LINUX_OBJECTS = ${OBJDIR}/main.x_main.o \
 				${OBJDIR}/windowsys.x_inputdevices.o
 
-# FastFormat is statically linked due to the non-standard build methods the
-# project uses.  Until there is an official dynamic installation it should
-# remain statically linked for ease of (precompiled binary) distribution.
-# Not sure how many of these we need, so include all of them
-FF_OBJECTS =	${FFOBJDIR}/core.api.o \
-				${FFOBJDIR}/core.fmt_cache.o \
-				${FFOBJDIR}/core.fmt_spec_defect_handlers.o \
-				${FFOBJDIR}/core.init_code_strings.o \
-				${FFOBJDIR}/core.mempool.o \
-				${FFOBJDIR}/core.replacements.o \
-				${FFOBJDIR}/core.snprintf.o
+${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1: ${CORE_OBJECTS} ${LINUX_OBJECTS} ${FF_OBJECTS}
+	@mkdir -p ${BUILDDIR}
+	${CPPC} -shared -Wl,-soname,lib${PROJNAME}-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lX11 -lXext -lXi $^
 
-################################################################################
-
-test:
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
-	mkdir -p ${BUILDDIR}
-	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
-
-################################################################################
-
-osx_install:
-	@echo "No working OS X build yet"
-
-osx_uninstall:
-	@echo "No working OS X build yet"
-
-linux_install: linux_build
-	sudo mkdir -p ${INSTALL_LOC}/lib
+linux_install: ${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1
+	@sudo mkdir -p ${INSTALL_LOC}/lib
 	sudo cp "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${INSTALL_LOC}/lib/
 	sudo ln -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0.1" "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0"
 	sudo ln -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so.0" "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so"
@@ -159,99 +220,47 @@ linux_uninstall:
 	sudo rm -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so"
 	sudo rm -rf "${INSTALL_LOC}/include/jadebase"
 
-################################################################################
+# linux_profile: linux
+# 	valgrind --tool=callgrind "${MAKEDIR}/${PROJNAME}/Linux/${PROJNAME}" -d
 
-# ${OBJDIR}/jb_.o
 
+# OS X #########################################################################
+
+OSX_OBJECTS =	${OBJDIR}/main.cocoa_appdelegate.o \
+				${OBJDIR}/main.cocoa_main.o
+
+# Bleh...
 # osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS}
-# 	make fastformat
-# 	# mkdir -p ${BUILDDIR}
-# 	# ${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${FRAMEWORKS} ${LINKS} -lobjc $? ${FF_OBJECTS}
+# 	mkdir -p ${BUILDDIR}
+# 	${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${FRAMEWORKS} ${LINKS} -lobjc $^ ${FF_OBJECTS}
 
-linux_build: ${CORE_OBJECTS} ${LINUX_OBJECTS}
-	make fastformat
-	mkdir -p ${BUILDDIR}
-	${CPPC} -shared -Wl,-soname,lib${PROJNAME}-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lpthread -lX11 -lXext -lXi $? ${FF_OBJECTS}
+osx_install:
+	@echo "No working OS X build yet"
 
-fastformat:
-	@echo Trying to automatically build FastFormat\; makefile may need manual editing to compile on some platforms
-	cd ${FFOBJDIR}; make build.libs.core
+osx_uninstall:
+	@echo "No working OS X build yet"
 
-################################################################################
 
-# TODO: fix this utter mess
-
-${OBJDIR}/unix_%.o: ${SOURCEDIR}/unix_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/unix_$*.o
-
-${OBJDIR}/main.cocoa_%.o: ${SOURCEDIR}/main/cocoa_%.m
-	mkdir -p ${OBJDIR}
-	${OBJCC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.cocoa_$*.o
-
-${OBJDIR}/windowsys.x_%.o: ${SOURCEDIR}/windowsys/x_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.x_$*.o
+# Windows ######################################################################
 
 
 
-${OBJDIR}/main.x_%.o: ${SOURCEDIR}/main/x_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.x_$*.o
 
+# Test program(s) ##############################################################
 
+test:
+	@mkdir -p ${OBJDIR}
+	${CPPC} ${DEFINES} ${WARNS} -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
+	@mkdir -p ${BUILDDIR}
+	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
 
-${OBJDIR}/jb_%.o: ${SOURCEDIR}/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/jb_$*.o
-
-${OBJDIR}/filetypes.jb_%.o: ${SOURCEDIR}/filetypes/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/filetypes.jb_$*.o
-
-${OBJDIR}/gui.jb_%.o: ${SOURCEDIR}/gui/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/gui.jb_$*.o
-
-${OBJDIR}/main.jb_%.o: ${SOURCEDIR}/main/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/main.jb_$*.o
-
-${OBJDIR}/scripting.jb_%.o: ${SOURCEDIR}/scripting/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/scripting.jb_$*.o
-
-${OBJDIR}/tasking.jb_%.o: ${SOURCEDIR}/tasking/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/tasking.jb_$*.o
-
-${OBJDIR}/threading.jb_%.o: ${SOURCEDIR}/threading/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/threading.jb_$*.o
-
-${OBJDIR}/utility.jb_%.o: ${SOURCEDIR}/utility/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.o
-
-${OBJDIR}/utility.jb_%.c.o: ${SOURCEDIR}/utility/jb_%.c
-	mkdir -p ${OBJDIR}
-	${CC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/utility.jb_$*.c.o
-
-${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
-	mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $? -o ${OBJDIR}/windowsys.jb_$*.o
-
-################################################################################
+# PHONY ########################################################################
 
 .PHONY:	clean \
 		fastformat \
 		linecount \
-		linux \
-		linux_build \
 		linux_install \
 		linux_uninstall \
-		osx \
-		osx_build \
 		osx_install \
 		osx_uninstall \
 		todo \
