@@ -112,10 +112,8 @@ namespace jade
     {
         scoped_lock< mutex > slock( global_state_mutex );
         
-        if( global_state == NULL )
-            throw exception( "deinitGlobalLuaState(): No global Lua state" );
-        
-        delete global_state;
+        if( global_state != NULL )
+            delete global_state;
     }
     lua_state& getGlobalLuaState()
     {
