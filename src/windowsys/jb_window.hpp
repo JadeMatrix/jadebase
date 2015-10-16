@@ -30,6 +30,7 @@
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
 
+// TODO: Figure out a way to keep this out of here
 #ifdef PLATFORM_XWS_GNUPOSIX
 #include "x_inputdevices.hpp"
 #endif

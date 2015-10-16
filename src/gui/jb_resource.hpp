@@ -23,6 +23,7 @@ namespace jade
     class gui_resource
     {
     public:
+        // TODO: Figure out which dpi:: things this should use
         gui_resource( unsigned int,                                               // Width
                       unsigned int );                                             // Height
         virtual ~gui_resource();
