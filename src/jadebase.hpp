@@ -13,7 +13,6 @@
 #include "filetypes/jb_png.hpp"
 
 #include "gui/jb_button.hpp"
-// #include "gui/jb_canvasview.hpp"
 #include "gui/jb_dial.hpp"
 #include "gui/jb_element.hpp"
 #include "gui/jb_group.hpp"
@@ -26,6 +25,7 @@
 #include "gui/jb_tabset.hpp"
 #include "gui/jb_text_rsrc.hpp"
 #include "gui/jb_texture.hpp"
+#include "gui/jb_windowview.hpp"
 
 #include "main/jb_main.h"
 

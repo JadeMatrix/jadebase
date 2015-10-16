@@ -23,8 +23,8 @@
 #include <cmath>
 
 #include "jb_windowmanagement.hpp"
-#include "../gui/jb_group.hpp"
 #include "../gui/jb_named_resources.hpp"
+#include "../gui/jb_windowview.hpp"
 #include "../tasking/jb_taskexec.hpp"
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_gl.hpp"
@@ -40,7 +40,7 @@ namespace jade
     
     window::window() : top_element( new windowview( this ) )
     {
-        // We create the top_group on construction rather than init() as we
+        // We create the top_element on construction rather than init() as we
         // might get a call for getTopGroup() before init().
         
         platform_window.good = false;
@@ -173,7 +173,7 @@ namespace jade
             }
         }
         
-        top_element -> acceptEvent( e );                                        // Send event to top-level group (at 0,0; dimensions match window)
+        top_element -> acceptEvent( e );                                        // Send event to top-level element (at 0,0; dimensions match window)
     }
     
     jb_platform_window_t& window::getPlatformWindow()
@@ -525,7 +525,7 @@ namespace jade
                         
                         redraw_window = false;
                     }
-                    else                                                        // Window size change OK, so update top_group
+                    else                                                        // Window size change OK, so update top_element
                     {
                         target -> top_element -> setRealDimensions( target -> dimensions[ 0 ],
                                                                     target -> dimensions[ 1 ] );

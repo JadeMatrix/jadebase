@@ -10,7 +10,7 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include "jb_element.hpp"
+#include "jb_windowview.hpp"
 
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_launchargs.hpp"

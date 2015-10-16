@@ -9,8 +9,8 @@
 
 #include "jb_version.hpp"
 
+#include "jb_log.hpp"
 #include "../threading/jb_mutex.hpp"
-#include "../utility/jb_log.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 

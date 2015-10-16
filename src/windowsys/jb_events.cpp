@@ -23,8 +23,8 @@
 
 #include "jb_keycode.hpp"
 #include "jb_window.hpp"
-#include "jb_windowmanagement.hpp"
 #include "jb_windowevent.hpp"
+#include "jb_windowmanagement.hpp"
 #include "../gui/jb_named_resources.hpp"
 #include "../tasking/jb_taskexec.hpp"
 #include "../threading/jb_mutex.hpp"
