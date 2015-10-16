@@ -140,58 +140,58 @@ X_INPUTDEVICES_HPP = src/windowsys/x_inputdevices.hpp ${JADEBASE_PLATFORM_H}
 
 # Core jadebase objects ########################################################
 
-FILETYPES_OBJECTS =	${OBJDIR}/filetypes.jb_png.o
+FILETYPES_OBJECTS =	${OBJDIR}/jb_png.o
 
-GUI_OBJECTS =	${OBJDIR}/gui.jb_button.o \
-				${OBJDIR}/gui.jb_dial.o \
-				${OBJDIR}/gui.jb_element.o \
-				${OBJDIR}/gui.jb_group.o \
-				${OBJDIR}/gui.jb_image_rsrc.o \
-				${OBJDIR}/gui.jb_resource.o \
-				${OBJDIR}/gui.jb_scrollset.o \
-				${OBJDIR}/gui.jb_tabset.o \
-				${OBJDIR}/gui.jb_text_rsrc.o \
-				${OBJDIR}/gui.jb_named_resources.o \
-				${OBJDIR}/gui.jb_windowview.o
+GUI_OBJECTS =	${OBJDIR}/jb_button.o \
+				${OBJDIR}/jb_dial.o \
+				${OBJDIR}/jb_element.o \
+				${OBJDIR}/jb_group.o \
+				${OBJDIR}/jb_image_rsrc.o \
+				${OBJDIR}/jb_resource.o \
+				${OBJDIR}/jb_scrollset.o \
+				${OBJDIR}/jb_tabset.o \
+				${OBJDIR}/jb_text_rsrc.o \
+				${OBJDIR}/jb_named_resources.o \
+				${OBJDIR}/jb_windowview.o
 
-SCRIPTING_OBJECTS =	${OBJDIR}/scripting.jb_lua.o \
-					${OBJDIR}/scripting.jb_lua_initapi.o \
-					${OBJDIR}/scripting.jb_luaapi.o \
-					${OBJDIR}/scripting.jb_luaapi_filetypes.o \
-					${OBJDIR}/scripting.jb_luaapi_gui_imgrsrc.o \
-					${OBJDIR}/scripting.jb_luaapi_gui_textrsrc.o \
-					${OBJDIR}/scripting.jb_luaapi_gui_button.o \
-					${OBJDIR}/scripting.jb_luaapi_gui_dial.o \
-					${OBJDIR}/scripting.jb_luaapi_gui_group.o \
-					${OBJDIR}/scripting.jb_luaapi_gui_scrollset.o \
-					${OBJDIR}/scripting.jb_luaapi_gui_tabset.o \
-					${OBJDIR}/scripting.jb_luaapi_tasking.o \
-					${OBJDIR}/scripting.jb_luaapi_utility.o \
-					${OBJDIR}/scripting.jb_luaapi_windowsys.o
+SCRIPTING_OBJECTS =	${OBJDIR}/jb_lua.o \
+					${OBJDIR}/jb_lua_initapi.o \
+					${OBJDIR}/jb_luaapi.o \
+					${OBJDIR}/jb_luaapi_filetypes.o \
+					${OBJDIR}/jb_luaapi_gui_imgrsrc.o \
+					${OBJDIR}/jb_luaapi_gui_textrsrc.o \
+					${OBJDIR}/jb_luaapi_gui_button.o \
+					${OBJDIR}/jb_luaapi_gui_dial.o \
+					${OBJDIR}/jb_luaapi_gui_group.o \
+					${OBJDIR}/jb_luaapi_gui_scrollset.o \
+					${OBJDIR}/jb_luaapi_gui_tabset.o \
+					${OBJDIR}/jb_luaapi_tasking.o \
+					${OBJDIR}/jb_luaapi_utility.o \
+					${OBJDIR}/jb_luaapi_windowsys.o
 
-TASKING_OBJECTS =	${OBJDIR}/tasking.jb_taskexec.o \
-					${OBJDIR}/tasking.jb_taskqueue.o
+TASKING_OBJECTS =	${OBJDIR}/jb_taskexec.o \
+					${OBJDIR}/jb_taskqueue.o
 
-THREADING_OBJECTS =	${OBJDIR}/threading.jb_condition.o \
-					${OBJDIR}/threading.jb_mutex.o \
-					${OBJDIR}/threading.jb_semaphore.o \
-					${OBJDIR}/threading.jb_threadutil.o \
-					${OBJDIR}/threading.jb_thread.o
+THREADING_OBJECTS =	${OBJDIR}/jb_condition.o \
+					${OBJDIR}/jb_mutex.o \
+					${OBJDIR}/jb_semaphore.o \
+					${OBJDIR}/jb_threadutil.o \
+					${OBJDIR}/jb_thread.o
 
-UTILITY_OBJECTS =	${OBJDIR}/utility.jb_exception.o \
-					${OBJDIR}/utility.jb_gl.o \
-					${OBJDIR}/utility.jb_launchargs.o \
-					${OBJDIR}/utility.jb_platform.c.o \
-					${OBJDIR}/utility.jb_settings.o \
-					${OBJDIR}/utility.jb_timestamp.o \
-					${OBJDIR}/utility.jb_trackable.o \
-					${OBJDIR}/utility.jb_version.o
+UTILITY_OBJECTS =	${OBJDIR}/jb_exception.o \
+					${OBJDIR}/jb_gl.o \
+					${OBJDIR}/jb_launchargs.o \
+					${OBJDIR}/jb_platform.o \
+					${OBJDIR}/jb_settings.o \
+					${OBJDIR}/jb_timestamp.o \
+					${OBJDIR}/jb_trackable.o \
+					${OBJDIR}/jb_version.o
 
-WINDOWSYS_OBJECTS =	${OBJDIR}/windowsys.jb_events.o \
-					${OBJDIR}/windowsys.jb_keycode.o \
-					${OBJDIR}/windowsys.jb_window.o \
-					${OBJDIR}/windowsys.jb_windowevent.o \
-					${OBJDIR}/windowsys.jb_windowmanagement.o
+WINDOWSYS_OBJECTS =	${OBJDIR}/jb_events.o \
+					${OBJDIR}/jb_keycode.o \
+					${OBJDIR}/jb_window.o \
+					${OBJDIR}/jb_windowevent.o \
+					${OBJDIR}/jb_windowmanagement.o
 
 CORE_OBJECTS =	${FILETYPES_OBJECTS} \
 				${GUI_OBJECTS} \
@@ -202,45 +202,154 @@ CORE_OBJECTS =	${FILETYPES_OBJECTS} \
 				${WINDOWSYS_OBJECTS} \
 				${OBJDIR}/main.jb_main.o
 
-${OBJDIR}/jb_%.o: ${SOURCEDIR}/jb_%.cpp
-	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/jb_$*.o
 
-${OBJDIR}/filetypes.jb_%.o: ${SOURCEDIR}/filetypes/jb_%.cpp
-	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/filetypes.jb_$*.o
+# Core jadebase recipes ########################################################
 
-${OBJDIR}/gui.jb_%.o: ${SOURCEDIR}/gui/jb_%.cpp
+${OBJDIR}/jb_png.o: ${SOURCEDIR}/filetypes/jb_png.cpp ${JADEBASE_PNG_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LOG_HPP}
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/gui.jb_$*.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/filetypes/jb_png.cpp -o ${OBJDIR}/jb_png.o
 
-${OBJDIR}/main.jb_%.o: ${SOURCEDIR}/main/jb_%.cpp
+${OBJDIR}/jb_button.o: ${SOURCEDIR}/gui/jb_button.cpp
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/main.jb_$*.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_button.cpp -o ${OBJDIR}/jb_button.o
+${OBJDIR}/jb_dial.o: ${SOURCEDIR}/gui/jb_dial.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_dial.cpp -o ${OBJDIR}/jb_dial.o
+${OBJDIR}/jb_element.o: ${SOURCEDIR}/gui/jb_element.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_element.cpp -o ${OBJDIR}/jb_element.o
+${OBJDIR}/jb_group.o: ${SOURCEDIR}/gui/jb_group.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_group.cpp -o ${OBJDIR}/jb_group.o
+${OBJDIR}/jb_image_rsrc.o: ${SOURCEDIR}/gui/jb_image_rsrc.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_image_rsrc.cpp -o ${OBJDIR}/jb_image_rsrc.o
+${OBJDIR}/jb_resource.o: ${SOURCEDIR}/gui/jb_resource.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_resource.cpp -o ${OBJDIR}/jb_resource.o
+${OBJDIR}/jb_scrollset.o: ${SOURCEDIR}/gui/jb_scrollset.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_scrollset.cpp -o ${OBJDIR}/jb_scrollset.o
+${OBJDIR}/jb_tabset.o: ${SOURCEDIR}/gui/jb_tabset.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_tabset.cpp -o ${OBJDIR}/jb_tabset.o
+${OBJDIR}/jb_text_rsrc.o: ${SOURCEDIR}/gui/jb_text_rsrc.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_text_rsrc.cpp -o ${OBJDIR}/jb_text_rsrc.o
+${OBJDIR}/jb_named_resources.o: ${SOURCEDIR}/gui/jb_named_resources.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_named_resources.cpp -o ${OBJDIR}/jb_named_resources.o
+${OBJDIR}/jb_windowview.o: ${SOURCEDIR}/gui/jb_windowview.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/gui/jb_windowview.cpp -o ${OBJDIR}/jb_windowview.o
 
-${OBJDIR}/scripting.jb_%.o: ${SOURCEDIR}/scripting/jb_%.cpp
+${OBJDIR}/jb_lua.o: ${SOURCEDIR}/scripting/jb_lua.cpp
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/scripting.jb_$*.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_lua.cpp -o ${OBJDIR}/jb_lua.o
+${OBJDIR}/jb_lua_initapi.o: ${SOURCEDIR}/scripting/jb_lua_initapi.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_lua_initapi.cpp -o ${OBJDIR}/jb_lua_initapi.o
+${OBJDIR}/jb_luaapi.o: ${SOURCEDIR}/scripting/jb_luaapi.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi.cpp -o ${OBJDIR}/jb_luaapi.o
+${OBJDIR}/jb_luaapi_filetypes.o: ${SOURCEDIR}/scripting/jb_luaapi_filetypes.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_filetypes.cpp -o ${OBJDIR}/jb_luaapi_filetypes.o
+${OBJDIR}/jb_luaapi_gui_imgrsrc.o: ${SOURCEDIR}/scripting/jb_luaapi_gui_imgrsrc.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_gui_imgrsrc.cpp -o ${OBJDIR}/jb_luaapi_gui_imgrsrc.o
+${OBJDIR}/jb_luaapi_gui_textrsrc.o: ${SOURCEDIR}/scripting/jb_luaapi_gui_textrsrc.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_gui_textrsrc.cpp -o ${OBJDIR}/jb_luaapi_gui_textrsrc.o
+${OBJDIR}/jb_luaapi_gui_button.o: ${SOURCEDIR}/scripting/jb_luaapi_gui_button.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_gui_button.cpp -o ${OBJDIR}/jb_luaapi_gui_button.o
+${OBJDIR}/jb_luaapi_gui_dial.o: ${SOURCEDIR}/scripting/jb_luaapi_gui_dial.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_gui_dial.cpp -o ${OBJDIR}/jb_luaapi_gui_dial.o
+${OBJDIR}/jb_luaapi_gui_group.o: ${SOURCEDIR}/scripting/jb_luaapi_gui_group.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_gui_group.cpp -o ${OBJDIR}/jb_luaapi_gui_group.o
+${OBJDIR}/jb_luaapi_gui_scrollset.o: ${SOURCEDIR}/scripting/jb_luaapi_gui_scrollset.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_gui_scrollset.cpp -o ${OBJDIR}/jb_luaapi_gui_scrollset.o
+${OBJDIR}/jb_luaapi_gui_tabset.o: ${SOURCEDIR}/scripting/jb_luaapi_gui_tabset.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_gui_tabset.cpp -o ${OBJDIR}/jb_luaapi_gui_tabset.o
+${OBJDIR}/jb_luaapi_tasking.o: ${SOURCEDIR}/scripting/jb_luaapi_tasking.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_tasking.cpp -o ${OBJDIR}/jb_luaapi_tasking.o
+${OBJDIR}/jb_luaapi_utility.o: ${SOURCEDIR}/scripting/jb_luaapi_utility.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_utility.cpp -o ${OBJDIR}/jb_luaapi_utility.o
+${OBJDIR}/jb_luaapi_windowsys.o: ${SOURCEDIR}/scripting/jb_luaapi_windowsys.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_windowsys.cpp -o ${OBJDIR}/jb_luaapi_windowsys.o
 
-${OBJDIR}/tasking.jb_%.o: ${SOURCEDIR}/tasking/jb_%.cpp
+${OBJDIR}/jb_taskexec.o: ${SOURCEDIR}/tasking/jb_taskexec.cpp
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/tasking.jb_$*.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/tasking/jb_taskexec.cpp -o ${OBJDIR}/jb_taskexec.o
+${OBJDIR}/jb_taskqueue.o: ${SOURCEDIR}/tasking/jb_taskqueue.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/tasking/jb_taskqueue.cpp -o ${OBJDIR}/jb_taskqueue.o
 
-${OBJDIR}/threading.jb_%.o: ${SOURCEDIR}/threading/jb_%.cpp
+${OBJDIR}/jb_condition.o: ${SOURCEDIR}/threading/jb_condition.cpp
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/threading.jb_$*.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/threading/jb_condition.cpp -o ${OBJDIR}/jb_condition.o
+${OBJDIR}/jb_mutex.o: ${SOURCEDIR}/threading/jb_mutex.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/threading/jb_mutex.cpp -o ${OBJDIR}/jb_mutex.o
+${OBJDIR}/jb_semaphore.o: ${SOURCEDIR}/threading/jb_semaphore.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/threading/jb_semaphore.cpp -o ${OBJDIR}/jb_semaphore.o
+${OBJDIR}/jb_threadutil.o: ${SOURCEDIR}/threading/jb_threadutil.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/threading/jb_threadutil.cpp -o ${OBJDIR}/jb_threadutil.o
+${OBJDIR}/jb_thread.o: ${SOURCEDIR}/threading/jb_thread.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/threading/jb_thread.cpp -o ${OBJDIR}/jb_thread.o
 
-${OBJDIR}/utility.jb_%.o: ${SOURCEDIR}/utility/jb_%.cpp
+${OBJDIR}/jb_exception.o: ${SOURCEDIR}/utility/jb_exception.cpp
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/utility.jb_$*.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_exception.cpp -o ${OBJDIR}/jb_exception.o
+${OBJDIR}/jb_gl.o: ${SOURCEDIR}/utility/jb_gl.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_gl.cpp -o ${OBJDIR}/jb_gl.o
+${OBJDIR}/jb_launchargs.o: ${SOURCEDIR}/utility/jb_launchargs.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_launchargs.cpp -o ${OBJDIR}/jb_launchargs.o
+# This is an odd one out, as it's C:
+${OBJDIR}/jb_platform.o: ${SOURCEDIR}/utility/jb_platform.cpp
+	@mkdir -p ${OBJDIR}
+	${CC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_platform.cpp -o ${OBJDIR}/jb_platform.o
+${OBJDIR}/jb_settings.o: ${SOURCEDIR}/utility/jb_settings.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_settings.cpp -o ${OBJDIR}/jb_settings.o
+${OBJDIR}/jb_timestamp.o: ${SOURCEDIR}/utility/jb_timestamp.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_timestamp.cpp -o ${OBJDIR}/jb_timestamp.o
+${OBJDIR}/jb_trackable.o: ${SOURCEDIR}/utility/jb_trackable.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_trackable.cpp -o ${OBJDIR}/jb_trackable.o
+${OBJDIR}/version.o: ${SOURCEDIR}/utility/version.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/version.cpp -o ${OBJDIR}/version.o
 
-${OBJDIR}/utility.jb_%.c.o: ${SOURCEDIR}/utility/jb_%.c
+${OBJDIR}/jb_events.o: ${SOURCEDIR}/windowsys/jb_events.cpp
 	@mkdir -p ${OBJDIR}
-	${CC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/utility.jb_$*.c.o
-
-${OBJDIR}/windowsys.jb_%.o: ${SOURCEDIR}/windowsys/jb_%.cpp
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_events.cpp -o ${OBJDIR}/jb_events.o
+${OBJDIR}/jb_keycode.o: ${SOURCEDIR}/windowsys/jb_keycode.cpp
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/windowsys.jb_$*.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_keycode.cpp -o ${OBJDIR}/jb_keycode.o
+${OBJDIR}/jb_window.o: ${SOURCEDIR}/windowsys/jb_window.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_window.cpp -o ${OBJDIR}/jb_window.o
+${OBJDIR}/jb_windowevent.o: ${SOURCEDIR}/windowsys/jb_windowevent.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_windowevent.cpp -o ${OBJDIR}/jb_windowevent.o
+${OBJDIR}/jb_windowmanagement.o: ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp -o ${OBJDIR}/jb_windowmanagement.o
 
 
 # Linux ########################################################################
@@ -252,11 +361,11 @@ LINUX_OBJECTS = ${OBJDIR}/main.x_main.o \
 
 ${OBJDIR}/main.x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/main.x_main.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} $^ -o ${OBJDIR}/main.x_main.o
 
 ${OBJDIR}/windowsys.x_inputdevices.o: ${SOURCEDIR}/windowsys/x_inputdevices.cpp ${X_INPUTDEVICES_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP}
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/windowsys.x_inputdevices.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} $^ -o ${OBJDIR}/windowsys.x_inputdevices.o
 
 ${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1: ${CORE_OBJECTS} ${LINUX_OBJECTS} ${FF_OBJECTS}
 	@mkdir -p ${BUILDDIR}
@@ -291,11 +400,11 @@ OSX_OBJECTS =	${OBJDIR}/main.cocoa_appdelegate.o \
 
 ${OBJDIR}/main.cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.m ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H}
 	@mkdir -p ${OBJDIR}
-	${OBJCC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/main.cocoa_appdelegate.o
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} $^ -o ${OBJDIR}/main.cocoa_appdelegate.o
 
 ${OBJDIR}/main.cocoa_main.o: ${SOURCEDIR}/main/cocoa_main.m ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H}
 	@mkdir -p ${OBJDIR}
-	${OBJCC} ${DEFINES} -Wall -Wno-unused-local-typedef -fPIC -c ${INCLUDE} $^ -o ${OBJDIR}/main.cocoa_main.o
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} $^ -o ${OBJDIR}/main.cocoa_main.o
 
 # Bleh...
 # osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}
@@ -318,7 +427,7 @@ osx_uninstall:
 
 test:
 	@mkdir -p ${OBJDIR}
-	${CPPC} ${DEFINES} ${WARNS} -c ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
+	${CPPC} -c ${DEFINES} ${WARNS} ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
 	@mkdir -p ${BUILDDIR}
 	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
 
