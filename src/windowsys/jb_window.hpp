@@ -27,6 +27,7 @@
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_container.hpp"
+#include "../utility/jb_dpi.hpp"
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
 
@@ -60,8 +61,12 @@ namespace jade
     public:
         window();
         
-        std::pair< unsigned int, unsigned int > getDimensions();
-        std::pair< int, int > getPosition();
+        std::pair< dpi::points, dpi::points > getDimensions();
+        std::pair< dpi::points, dpi::points > getPosition();
+        std::pair< dpi::pixels, dpi::pixels > getPxDimensions();
+        std::pair< dpi::pixels, dpi::pixels > getPxPosition();
+        dpi::pixels getDPI();
+        dpi::percent getScaleFactor();
         
         void acceptEvent( window_event& );
         
@@ -119,8 +124,9 @@ namespace jade
         jb_platform_window_t platform_window;
         
         std::string title;
-        unsigned int dimensions[2];
-        int position[2];
+        dpi::pixels dimensions[2];
+        dpi::pixels position[2];
+        dpi::percent scale_override;
         bool fullscreen;
         bool in_focus;
         

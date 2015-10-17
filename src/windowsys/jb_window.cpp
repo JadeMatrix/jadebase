@@ -62,6 +62,7 @@ namespace jade
         dimensions[ 1 ] = def_dim.second;
         position[ 0 ] = 0;
         position[ 1 ] = 0;
+        scale_override = 0;
         
         fullscreen = false;
         in_focus = true;
@@ -81,15 +82,54 @@ namespace jade
         can_add_containers = true;
     }
     
-    std::pair< unsigned int, unsigned int > window::getDimensions()
+    std::pair< dpi::points, dpi::points > window::getDimensions()
     {
         scoped_lock< mutex > slock( window_mutex );
-        return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
+        
+        dpi::percent scale = getScaleFactor();
+        
+        return std::pair< dpi::points,
+                          dpi::points >( dimensions[ 0 ] / scale,
+                                         dimensions[ 1 ] / scale );
     }
-    std::pair< int, int > window::getPosition()
+    std::pair< dpi::points, dpi::points > window::getPosition()
     {
         scoped_lock< mutex > slock( window_mutex );
-        return std::pair< int, int >( position[ 0 ], position[ 1 ] );
+        
+        dpi::percent scale = getScaleFactor();
+        
+        return std::pair< dpi::points,
+                          dpi::points >( position[ 0 ] / scale,
+                                         position[ 1 ] / scale );
+    }
+    std::pair< dpi::pixels, dpi::pixels > window::getPxDimensions()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        return std::pair< dpi::points,
+                          dpi::points >( dimensions[ 0 ],
+                                         dimensions[ 1 ] );
+    }
+    std::pair< dpi::pixels, dpi::pixels > window::getPxPosition()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        return std::pair< dpi::points,
+                          dpi::points >( position[ 0 ],
+                                         position[ 1 ] );
+    }
+    dpi::pixels window::getDPI()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        return STANDARD_DPI;
+    }
+    dpi::percent window::getScaleFactor()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        if( scale_override != 0 )
+            return scale_override;
+        else
+            return ( dpi::percent )getDPI() / ( dpi::percent )STANDARD_DPI;
     }
     
     void window::acceptEvent( window_event& e )
