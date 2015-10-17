@@ -148,29 +148,46 @@ namespace
                 // current_manip -> makeActive();
                 break;
             case ConfigureRequest:
-                // ff::write( jb_out, "ConfigureRequest\n" );
+                ff::write( jb_out, "ConfigureRequest\n" );
                 // x_event.xconfigurerequest
                 break;
             case ConfigureNotify:
                 {
+                    ff::write( jb_out, "ConfigureNotify\n" );
+                    
+                    jade::dpi::percent jb_window_scale = jb_window.getScaleFactor();
+                    
+                    auto jb_window_pos = jb_window.getPosition();
+                    
+                    dpi::points scaled_event_pos[ 2 ];
+                    scaled_event_pos[ 0 ] = x_event.xconfigure.x / jb_window_scale;
+                    scaled_event_pos[ 1 ] = x_event.xconfigure.y / jb_window_scale;
+                    
                     // if( x_event.xconfigure.value_mask & CWX || x_event.xconfigure.value_mask & CWY )
-                    if( x_event.xconfigure.x !=jb_window.getPosition().first
-                        || x_event.xconfigure.y !=jb_window.getPosition().second )
+                    if( scaled_event_pos[ 0 ] != jb_window_pos.first
+                        || scaled_event_pos[ 1 ] != jb_window_pos.second )
                     {
-                        current_manip -> setPosition( x_event.xconfigure.x, x_event.xconfigure.y );
+                        current_manip -> setPosition( scaled_event_pos[ 0 ],
+                                                      scaled_event_pos[ 1 ] );
                     }
                     
+                    auto jb_window_dims = jb_window.getDimensions();
+                    
+                    dpi::points scaled_event_dims[ 2 ];
+                    scaled_event_dims[ 0 ] = x_event.xconfigure.width  / jb_window_scale;
+                    scaled_event_dims[ 1 ] = x_event.xconfigure.height / jb_window_scale;
+                    
                     // if( x_event.xconfigure.value_mask & CWWidth || x_event.xconfigure.value_mask & CWHeight )
-                    if( x_event.xconfigure.width != jb_window.getDimensions().first
-                        || x_event.xconfigure.height != jb_window.getDimensions().second )
+                    if( scaled_event_dims[ 0 ] != jb_window_dims.first
+                        || scaled_event_dims[ 1 ] != jb_window_dims.second )
                     {
-                        if( x_event.xconfigure.width < 1
-                            || x_event.xconfigure.height < 1 )                  // Trust no one, not even your platform APIs
+                        if( scaled_event_dims[ 0 ] < 1
+                            || scaled_event_dims[ 1 ] < 1 )                     // Trust no one, not even your platform APIs
                             throw exception( "handleWindowEvent(): Width or height not within limits" );
                         
                         // ff::write( jb_out, "Setting dimensions\n" );
-                        current_manip -> setDimensions( x_event.xconfigure.width,
-                                                        x_event.xconfigure.height );
+                        current_manip -> setDimensions( scaled_event_dims[ 0 ],
+                                                        scaled_event_dims[ 1 ] );
                     }
                 }
                 break;

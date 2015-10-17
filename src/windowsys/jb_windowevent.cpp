@@ -109,9 +109,9 @@ namespace jade
                        ",",
                        e.pinch.position[ 1 ],
                        " (",
-                       e.stroke.position[ 0 ] - e.offset[ 0 ],
+                       e.pinch.position[ 0 ] - e.offset[ 0 ],
                        ",",
-                       e.stroke.position[ 1 ] - e.offset[ 1 ],
+                       e.pinch.position[ 1 ] - e.offset[ 1 ],
                        ")  distance ",
                        e.pinch.distance,
                        " rotation ",
@@ -130,7 +130,7 @@ namespace jade
                     ff::write( str, "Alt " );
                 if( e.scroll.super )
                     ff::write( str, "Super " );
-                if( e.stroke.cmd )
+                if( e.scroll.cmd )
                     ff::write( str, "(command) " );
                 
                 ff::write( str,
@@ -139,9 +139,9 @@ namespace jade
                            ",",
                            e.scroll.position[ 1 ],
                            " (",
-                           e.stroke.position[ 0 ] - e.offset[ 0 ],
+                           e.scroll.position[ 0 ] - e.offset[ 0 ],
                            ",",
-                           e.stroke.position[ 1 ] - e.offset[ 1 ],
+                           e.scroll.position[ 1 ] - e.offset[ 1 ],
                            ")  vertical ",
                            e.scroll.amount[ 1 ],
                            " horizontal ",

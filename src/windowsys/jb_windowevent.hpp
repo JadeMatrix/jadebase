@@ -25,6 +25,7 @@
 #include <string>
 
 #include "jb_keycode.hpp"
+#include "../utility/jb_dpi.hpp"
 #include "../utility/jb_platform.h"
 
 /******************************************************************************//******************************************************************************/
@@ -54,11 +55,11 @@ namespace jade
         bool super : 1;                                                         // Apple Command or Windows key
         bool cmd   : 1;                                                         // Platform command key: CTRL on Windows/Linux, Command on OS X
         
-        float   position[ 2 ];                                                  // Position [ x, y ] relative to screen (fractional if supported)
-        float   prev_pos[ 2 ];                                                  // Previous position [ x, y ], { NaN, NaN } if no previous
-        float   pressure;                                                       // Pressure, ( 0.0 ... 1.0 )
-        float       tilt[ 2 ];                                                  // Tilt [ x, y ], ( -1.0 ... 1.0 )
-        float   rotation;                                                       // Rotation (0.0 up to but not including 1.0 is a full rotation, can contain
+        dpi::points position[ 2 ];                                              // Position [ x, y ] relative to screen (fractional if supported)
+        dpi::points prev_pos[ 2 ];                                              // Previous position [ x, y ], { NaN, NaN } if no previous
+        float       pressure;                                                   // Pressure, ( 0.0 ... 1.0 )
+        float           tilt[ 2 ];                                              // Tilt [ x, y ], ( -1.0 ... 1.0 )
+        float       rotation;                                                   // Rotation (0.0 up to but not including 1.0 is a full rotation, can contain
                                                                                 // multiple rotations but usually not)
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
         
@@ -68,7 +69,7 @@ namespace jade
     // class droppable;
     struct drop_item
     {
-        int position[ 2 ];
+        dpi::points position[ 2 ];
         // droppable* item;
     };
     
@@ -111,16 +112,16 @@ namespace jade
         
         bool finish;
         
-        float distance;                                                         // Relative change in distance
-        float rotation;                                                         // Relative change, 0.0 through 1.0 for a full rotation, repeating
-        int position[ 2 ];                                                      // Absolute position in-window
+        dpi::points distance;                                                   // Relative change in distance
+        float       rotation;                                                   // Relative change, 0.0 through 1.0 for a full rotation, repeating
+        dpi::points position[ 2 ];                                              // Absolute position in-window
     };
     
     struct scroll_input
     {
-        int position[ 2 ];
+        dpi::points position[ 2 ];
         
-        float amount[ 2 ];                                                      // Distance scrolled in pixels on each axis
+        dpi::points amount[ 2 ];                                                // Distance scrolled in points on each axis
         
         bool shift : 1;
         bool ctrl  : 1;
@@ -156,7 +157,7 @@ namespace jade
             pinch_input pinch;
             scroll_input scroll;
         };
-        float offset[ 2 ];
+        dpi::points offset[ 2 ];
         
         window_event()
         {
@@ -170,8 +171,10 @@ namespace jade
     
     std::string wevent2str( window_event& );                                    // Window EVENT 2 [to] STRing
     
-    inline bool pointInsideRect( long p_x, long p_y,
-                                 long r_x, long r_y, long r_w, long r_h )
+    // TODO: Make these macros?
+    
+    inline bool pointInsideRect( dpi::points p_x, dpi::points p_y,
+                                 dpi::points r_x, dpi::points r_y, dpi::points r_w, dpi::points r_h )
     {
         return(    p_x >= r_x
                 && p_y >= r_y
@@ -179,8 +182,8 @@ namespace jade
                 && p_y <  r_y + r_h );                                          // We assume the compiler can optimize this a bit
     }
     
-    inline bool pointInsideCircle( long p_x, long p_y,
-                                   long c_x, long c_y, long c_r )               // c_x & c_y are the center of the circle
+    inline bool pointInsideCircle( dpi::points p_x, dpi::points p_y,
+                                   dpi::points c_x, dpi::points c_y, dpi::points c_r )  // c_x & c_y are the center of the circle
     {
         return ( p_x - c_x ) * ( p_x - c_x ) + ( p_y - c_y ) * ( p_y - c_y )
                <= c_r * c_r;                                                    // We assume the compiler can optimize this a bit

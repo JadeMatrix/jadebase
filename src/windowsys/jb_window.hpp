@@ -96,8 +96,8 @@ namespace jade
                 return TASK_SYSTEM;
             }
             
-            void setDimensions( unsigned int, unsigned int );                   // Width, height
-            void setPosition( int, int );                                       // X, Y
+            void setDimensions( dpi::points, dpi::points );                     // Width, height
+            void setPosition(   dpi::points, dpi::points );                     // X, Y
             
             void setFullscreen( bool );
             void setTitle( std::string );

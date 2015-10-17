@@ -172,9 +172,11 @@ namespace jade
         
         // TODO: Move to jade::windowview
         
+        dpi::percent scale = getScaleFactor();
+        
         bool no_position = false;
         
-        int e_position[ 2 ];
+        // int e_position[ 2 ];
         
         e.offset[ 0 ] = 0;
         e.offset[ 1 ] = 0;
@@ -182,18 +184,14 @@ namespace jade
         switch( e.type )                                                        // Normalize event position to window position (if necessary)
         {
         case STROKE:
-            e.stroke.position[ 0 ] -= position[ 0 ];
-            e.stroke.position[ 1 ] -= position[ 1 ];
-            e.stroke.prev_pos[ 0 ] -= position[ 0 ];
-            e.stroke.prev_pos[ 1 ] -= position[ 1 ];
-            e_position[ 0 ] = e.stroke.position[ 0 ];
-            e_position[ 1 ] = e.stroke.position[ 1 ];
+            e.stroke.position[ 0 ] -= position[ 0 ] / scale;
+            e.stroke.position[ 1 ] -= position[ 1 ] / scale;
+            e.stroke.prev_pos[ 0 ] -= position[ 0 ] / scale;
+            e.stroke.prev_pos[ 1 ] -= position[ 1 ] / scale;
             break;
         case DROP:
-            e.drop.position[ 0 ] -= position[ 0 ];
-            e.drop.position[ 1 ] -= position[ 1 ];
-            e_position[ 0 ] = e.drop.position[ 0 ];
-            e_position[ 1 ] = e.drop.position[ 1 ];
+            e.drop.position[ 0 ] -= position[ 0 ] / scale;
+            e.drop.position[ 1 ] -= position[ 1 ] / scale;
             break;
         case KEYCOMMAND:
         case COMMAND:
@@ -201,16 +199,12 @@ namespace jade
             no_position = true;
             break;
         case PINCH:
-            e.pinch.position[ 0 ] -= position[ 0 ];
-            e.pinch.position[ 1 ] -= position[ 1 ];
-            e_position[ 0 ] = e.pinch.position[ 0 ];
-            e_position[ 1 ] = e.pinch.position[ 1 ];
+            e.pinch.position[ 0 ] -= position[ 0 ] / scale;
+            e.pinch.position[ 1 ] -= position[ 1 ] / scale;
             break;
         case SCROLL:
-            e.scroll.position[ 0 ] -= position[ 0 ];
-            e.scroll.position[ 1 ] -= position[ 1 ];
-            e_position[ 0 ] = e.scroll.position[ 0 ];
-            e_position[ 1 ] = e.scroll.position[ 1 ];
+            e.scroll.position[ 0 ] -= position[ 0 ] / scale;
+            e.scroll.position[ 1 ] -= position[ 1 ] / scale;
             break;
         default:
             throw exception( "window::acceptEvent(): Unknown event type" );
@@ -558,9 +552,11 @@ namespace jade
                 {
                     // Actual resizing handled by WM, this is just for bounds checking
                     bool retry = false;
-                    unsigned int new_dimensions[ 2 ];
+                    dpi::pixels new_dimensions[ 2 ];
                     new_dimensions[ 0 ] = target -> dimensions[ 0 ];
                     new_dimensions[ 1 ] = target -> dimensions[ 1 ];
+                    
+                    dpi::percent scale = target -> getScaleFactor();
                     
                     // TODO: Fluid syncing of window & top_element dimensions:
                     //         1. Window gets dimension changed
@@ -571,14 +567,14 @@ namespace jade
                     //            sets self dimensions from those
                     //         No min window dimensions (X will be happier)
                     
-                    if( target -> dimensions[ 0 ] < JADEBASE_WINDOW_MIN_WIDTH )
+                    if( target -> dimensions[ 0 ] < JADEBASE_WINDOW_MIN_WIDTH * scale )
                     {
-                        new_dimensions[ 0 ] = JADEBASE_WINDOW_MIN_WIDTH;
+                        new_dimensions[ 0 ] = JADEBASE_WINDOW_MIN_WIDTH * scale;
                         retry = true;
                     }
-                    if( target -> dimensions[ 1 ] < JADEBASE_WINDOW_MIN_HEIGHT )
+                    if( target -> dimensions[ 1 ] < JADEBASE_WINDOW_MIN_HEIGHT * scale )
                     {
-                        new_dimensions[ 1 ] = JADEBASE_WINDOW_MIN_HEIGHT;
+                        new_dimensions[ 1 ] = JADEBASE_WINDOW_MIN_HEIGHT * scale;
                         retry = true;
                     }
                     
@@ -593,8 +589,8 @@ namespace jade
                     }
                     else                                                        // Window size change OK, so update top_element
                     {
-                        target -> top_element -> setRealDimensions( target -> dimensions[ 0 ],
-                                                                    target -> dimensions[ 1 ] );
+                        target -> top_element -> setRealDimensions( target -> dimensions[ 0 ] / scale,
+                                                                    target -> dimensions[ 1 ] / scale );
                         
                         redraw_window = true;
                     }
@@ -694,25 +690,33 @@ namespace jade
         return true;
     }
     
-    void window::manipulate::setDimensions( unsigned int w, unsigned int h )
+    void window::manipulate::setDimensions( dpi::points w, dpi::points h )
     {
+        ff::write( jb_out, "Settings window dimensions to ", w, " x ", h, "points\n" );
+        
         if( w < 1 || h < 1 )
             throw exception( "window::manipulate::setDimensions(): Width or height < 1" );
         
         scoped_lock< mutex > slock( target -> window_mutex );
         
-        target -> dimensions[ 0 ] = w;
-        target -> dimensions[ 1 ] = h;
+        dpi::percent scale = target -> getScaleFactor();
+        
+        target -> dimensions[ 0 ] = w * scale;
+        target -> dimensions[ 1 ] = h * scale;
         target -> updates.dimensions = true;
         
         target -> updates.changed = true;
     }
-    void window::manipulate::setPosition( int x, int y )
+    void window::manipulate::setPosition( dpi::points x, dpi::points y )
     {
+        ff::write( jb_out, "Settings window position to ", x, ",", y, "points\n" );
+        
         scoped_lock< mutex > slock( target -> window_mutex );
         
-        target -> position[ 0 ] = x;
-        target -> position[ 1 ] = y;
+        dpi::percent scale = target -> getScaleFactor();
+        
+        target -> position[ 0 ] = x * scale;
+        target -> position[ 1 ] = y * scale;
         target -> updates.position = true;
         
         target -> updates.changed = true;
@@ -836,6 +840,9 @@ namespace jade
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
             
             glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
+            
+            dpi::percent scale = target.getScaleFactor();
+            glScalef( scale, scale, 1.0f );
             
             target.top_element -> draw( &target );
             

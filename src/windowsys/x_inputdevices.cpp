@@ -518,6 +518,7 @@ namespace jade
             return;
         }
         jade::window& target = getWindow( target_pwin );
+        dpi::percent target_scale = target.getScaleFactor();
         
         event_type x_eventtype;
         
@@ -584,15 +585,15 @@ namespace jade
         Screen* x_screen = DefaultScreenOfDisplay( x_event.xany.display );
 
         int x_screen_px[ 2 ];
-        float x_screen_mm[ 2 ];
-        float x_screen_res[ 2 ];
+        // float x_screen_mm[ 2 ];
+        // float x_screen_res[ 2 ];
 
         x_screen_px[ 0 ] = WidthOfScreen( x_screen );
         x_screen_px[ 1 ] = HeightOfScreen( x_screen );
-        x_screen_mm[ 0 ] = WidthMMOfScreen( x_screen );
-        x_screen_mm[ 1 ] = HeightMMOfScreen( x_screen );
-        x_screen_res[ 0 ] = x_screen_mm[ 0 ] / x_screen_px[ 0 ];
-        x_screen_res[ 1 ] = x_screen_mm[ 1 ] / x_screen_px[ 1 ];
+        // x_screen_mm[ 0 ] = WidthMMOfScreen( x_screen );
+        // x_screen_mm[ 1 ] = HeightMMOfScreen( x_screen );
+        // x_screen_res[ 0 ] = x_screen_mm[ 0 ] / x_screen_px[ 0 ];
+        // x_screen_res[ 1 ] = x_screen_mm[ 1 ] / x_screen_px[ 1 ];
         
         if( x_eventtype == BUTTON_RELEASE
             && x_eventdata.button > Button3 )                                   // Ignore scroll button up events
@@ -647,8 +648,8 @@ namespace jade
                         if( x_eventdata.state & Button2Mask )                   // Button2 = middle click
                             w_event.stroke.click |= CLICK_ALT;
                         
-                        w_event.stroke.position[ 0 ] = ( float )x_eventdata.x;
-                        w_event.stroke.position[ 1 ] = ( float )x_eventdata.y;
+                        w_event.stroke.position[ 0 ] = ( dpi::points )x_eventdata.x / target_scale;
+                        w_event.stroke.position[ 1 ] = ( dpi::points )x_eventdata.y / target_scale;
                         
                         w_event.stroke.pressure = 0.0f;                         // Pressure may be set later
                         
@@ -665,12 +666,12 @@ namespace jade
                         if( x_eventdata.state & Button1Mask )
                             w_event.stroke.click |= CLICK_PRIMARY;
                         
-                        w_event.stroke.position[ 0 ] = ( ( float )x_eventdata.axis_data[ 0 ]
-                                                         / ( float )device_detail.axes[ 0 ].max_value )
-                                                       * ( float )x_screen_px[ 0 ];
-                        w_event.stroke.position[ 1 ] = ( ( float )x_eventdata.axis_data[ 1 ]
-                                                         / ( float )device_detail.axes[ 1 ].max_value )
-                                                       * ( float )x_screen_px[ 1 ];
+                        w_event.stroke.position[ 0 ] = ( ( dpi::points )x_eventdata.axis_data[ 0 ]
+                                                         / ( dpi::points )device_detail.axes[ 0 ].max_value )
+                                                       * ( dpi::points )x_screen_px[ 0 ] / target_scale;
+                        w_event.stroke.position[ 1 ] = ( ( dpi::points )x_eventdata.axis_data[ 1 ]
+                                                         / ( dpi::points )device_detail.axes[ 1 ].max_value )
+                                                       * ( dpi::points )x_screen_px[ 1 ] / target_scale;
                         
                         if( device_detail.type == TOUCH_STYLUS )                // Unpressured touch events report a 0 pressure
                             w_event.stroke.pressure = 1.0f;
