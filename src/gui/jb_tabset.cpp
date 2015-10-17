@@ -66,6 +66,7 @@ namespace jade
             throw exception( "tabset::tab::tab(): Contents empty shared_ptr" );
         
         parent = p;
+        contents -> setParentElement( p );
         
         title = new text_rsrc( 11.0f, GUI_LABEL_FONT, t );
         title -> setMaxDimensions( TABSET_MAX_TITLE_WIDTH,
@@ -119,7 +120,7 @@ namespace jade
         
         parent = p;
         
-        contents -> setParentElement( parent );
+        contents -> setParentElement( p );
     }
     
     // TABSET //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,6 +169,18 @@ namespace jade
     {
         for( int i = 0; i < tabs.size(); ++i )
             tabs[ i ].data -> contents -> closed();
+    }
+    
+    void tabset::setParentElement( gui_element* p )
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        parent = p;
+        for( int i = 0; i < tabs.size(); ++i )
+            tabs[ i ].data -> contents -> setParentElement( p );
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     
     void tabset::addTab( std::shared_ptr< tab >& t )
