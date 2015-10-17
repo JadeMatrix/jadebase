@@ -446,8 +446,12 @@ namespace jade
         switch( state )
         {
         case OFF_DOWN:
+            deassociateDevice( captured_dev );
+            state = OFF_UP;
+            break;
         case ON_DOWN:
             deassociateDevice( captured_dev );
+            state = ON_UP;
             break;
         case OFF_UP:
         case ON_UP:

@@ -218,7 +218,12 @@ namespace jade
             {
                 auto iter = finder -> second.chain.begin();
                 
-                while( iter != finder -> second.chain.end() )
+                auto last = --( finder -> second.chain.end() );
+                
+                if( iter == last )
+                    throw exception( "window::acceptEvent(): Zero-length association chain" );
+                
+                while( iter != last )
                 {
                     auto pos = ( *iter ) -> getRealPosition();
                     e.offset[ 0 ] = pos.first;
@@ -226,8 +231,7 @@ namespace jade
                     ++iter;
                 }
                 
-                --iter;
-                ( *iter ) -> acceptEvent( e );
+                ( *last ) -> acceptEvent( e );
                 
                 return;
             }
