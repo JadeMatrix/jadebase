@@ -120,7 +120,33 @@ namespace jade
     {
         scoped_lock< mutex > slock( window_mutex );
         
+        #if defined PLATFORM_XWS_GNUPOSIX
+        
+        {
+            Display* x_display = getXDisplay();
+            
+            using dpi::percent;
+            using dpi::pixels;
+            
+            percent x_display_ppmm[ 2 ];
+            
+            x_display_ppmm[ 0 ] = 25.4f
+                                  * ( percent )DisplayWidth(   x_display, 0 )
+                                  / ( percent )DisplayWidthMM( x_display, 0 );
+            x_display_ppmm[ 1 ] = 25.4f
+                                  * ( percent )DisplayHeight(   x_display, 0 )
+                                  / ( percent )DisplayHeightMM( x_display, 0 );
+            
+            return ( x_display_ppmm[ 0 ] + x_display_ppmm[ 1 ] ) / 2.0f;
+        }
+        
+        #else
+        
+        #warning DPI detection not supported on this platform
+        
         return STANDARD_DPI;
+        
+        #endif
     }
     dpi::percent window::getScaleFactor()
     {
