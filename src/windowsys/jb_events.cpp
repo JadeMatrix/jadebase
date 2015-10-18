@@ -148,13 +148,10 @@ namespace
                 // current_manip -> makeActive();
                 break;
             case ConfigureRequest:
-                ff::write( jb_out, "ConfigureRequest\n" );
                 // x_event.xconfigurerequest
                 break;
             case ConfigureNotify:
                 {
-                    ff::write( jb_out, "ConfigureNotify\n" );
-                    
                     jade::dpi::percent jb_window_scale = jb_window.getScaleFactor();
                     
                     auto jb_window_pos = jb_window.getPosition();

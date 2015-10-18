@@ -696,8 +696,6 @@ namespace jade
     
     void window::manipulate::setDimensions( dpi::points w, dpi::points h )
     {
-        ff::write( jb_out, "Settings window dimensions to ", w, " x ", h, "points\n" );
-        
         if( w < 1 || h < 1 )
             throw exception( "window::manipulate::setDimensions(): Width or height < 1" );
         
@@ -713,8 +711,6 @@ namespace jade
     }
     void window::manipulate::setPosition( dpi::points x, dpi::points y )
     {
-        ff::write( jb_out, "Settings window position to ", x, ",", y, "points\n" );
-        
         scoped_lock< mutex > slock( target -> window_mutex );
         
         dpi::percent scale = target -> getScaleFactor();
