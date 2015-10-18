@@ -385,10 +385,12 @@ namespace jade
                     else
                         if( getDevMode() )
                         {
+                            char* atom_name = XGetAtomName( x_display, x_dev_info[ i ].type );
                             ff::write( jb_out,
                                        "  - Unsupported device type (atom \"",
-                                       XGetAtomName( x_display, x_dev_info[ i ].type ),
+                                       atom_name,
                                        "\"), skipping\n" );
+                            XFree( atom_name );
                         }
                 }
                 
