@@ -135,7 +135,7 @@ namespace jade
         Display* x_display = getXDisplay();
         int x_screen = DefaultScreen( x_display );
         
-        std::map< jb_platform_idevid_t, x_input_detail > new_devices;          // For swapping with old list
+        std::map< jb_platform_idevid_t, x_input_detail > new_devices;           // For swapping with old list
         
         if( getDevMode() )
             ff::write( jb_out, "Opening input devices\n" );
@@ -408,6 +408,7 @@ namespace jade
                                RootWindow( x_display, x_screen ),
                                x_eventclass_list,
                                x_eventclass_count );                            // Tell X we want these events
+        delete[] x_eventclass_list;
         
         x_input_devices.swap( new_devices );
         

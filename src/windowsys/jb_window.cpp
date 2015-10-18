@@ -456,6 +456,7 @@ namespace jade
             glXMakeCurrent( x_display, None, NULL );
             glXDestroyContext( x_display, platform_window.glx_context );
             XDestroyWindow( x_display, platform_window.x_window );
+            XFree( platform_window.x_visual_info );
             
             platform_window.good = false;
         }
