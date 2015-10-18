@@ -67,8 +67,12 @@ namespace
     public:
         ManageResources_task( bool c )
         {
-            current_mask = jade::TASK_SYSTEM;
             cleanup = c;
+            
+            if( cleanup )
+                current_mask = jade::TASK_GPU;
+            else
+                current_mask = jade::TASK_SYSTEM;
         }
         
         bool execute( jade::task_mask* caller_mask )
@@ -77,7 +81,7 @@ namespace
             
             if( current_mask == jade::TASK_SYSTEM )
             {
-                if( !cleanup && !jade::getRegisteredWindowCount() )             // No window open yet = no OpenGL context yet
+                if( !jade::getRegisteredWindowCount() )                         // No window open yet = no OpenGL context yet
                 {
                     if( jade::getDevMode() )
                         ff::write( jb_out, "No active window, requeuing resource management\n" );

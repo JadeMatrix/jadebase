@@ -134,6 +134,8 @@ namespace jade
                     delete *iter;
                     // Don't use list::erase() after deleting the object, it invalidates the iterator
                 }
+                
+                data[ i ].clear();
             }
         }
         
