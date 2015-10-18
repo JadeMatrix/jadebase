@@ -71,8 +71,6 @@ namespace jade
                 dpi::points );                                                  // height of area below bar
         ~tabset();                                                              // Calls closed() on all tabs' contents
         
-        void setParentElement( gui_element* );
-        
         void addTab(    std::shared_ptr< tab >& );
         void removeTab( std::shared_ptr< tab >& );                              // Does not call the content's closed()
         

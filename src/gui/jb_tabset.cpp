@@ -78,6 +78,7 @@ namespace jade
     }
     tabset::tab::~tab()
     {
+        contents -> setParentElement( NULL );                                   // To prevent more NULL-parent errors in associateDevice(), I guess
         delete title;
     }
     
@@ -169,18 +170,7 @@ namespace jade
     {
         for( int i = 0; i < tabs.size(); ++i )
             tabs[ i ].data -> contents -> closed();
-    }
-    
-    void tabset::setParentElement( gui_element* p )
-    {
-        scoped_lock< mutex > slock( element_mutex );
-        
-        parent = p;
-        for( int i = 0; i < tabs.size(); ++i )
-            tabs[ i ].data -> contents -> setParentElement( p );
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
+        // Tabs destroyed on return, which decrements their contents' shared_ptr
     }
     
     void tabset::addTab( std::shared_ptr< tab >& t )
@@ -197,7 +187,7 @@ namespace jade
         
         new_state.data -> contents -> setRealPosition( position[ 0 ], position[ 1 ] + TABSET_BAR_HEIGHT );
         new_state.data -> contents -> setRealDimensions( dimensions[ 0 ], dimensions[ 1 ] - TABSET_BAR_HEIGHT );
-        new_state.data -> contents -> setParentElement( parent );
+        new_state.data -> contents -> setParentElement( this );
         
         tabs.push_back( new_state );
         
@@ -244,8 +234,6 @@ namespace jade
                 // We do not delete the tab or call its content's closed()
                 
                 tabs.erase( iter );
-                
-                t -> setParentTabset( NULL );
                 
                 reorganizeTabs();                                               // May call parent -> requestRedraw()
                 
@@ -350,9 +338,6 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        if( parent == NULL )
-            throw exception( "tabset::acceptEvent(): NULL parent window" );
-        
         switch( e.type )
         {
             case STROKE:
@@ -438,7 +423,8 @@ namespace jade
                                         if( e.stroke.click & CLICK_PRIMARY )
                                         {
                                             tabs[ i ].button_state = tab_state::DOWN;
-                                            parent -> requestRedraw();
+                                            if( parent != NULL )
+                                                parent -> requestRedraw();
                                         }
                                         else
                                         {
@@ -450,7 +436,8 @@ namespace jade
                                             else                                // Just a mouseover
                                             {
                                                 tabs[ i ].button_state = tab_state::OVER;
-                                                parent -> requestRedraw();
+                                                if( parent != NULL )
+                                                    parent -> requestRedraw();
                                             }
                                         }
                                         
@@ -465,7 +452,8 @@ namespace jade
                                                                7 ) )            // Previous stroke in button
                                         {
                                             tabs[ i ].button_state = tab_state::UP;
-                                            parent -> requestRedraw();
+                                            if( parent != NULL )
+                                                parent -> requestRedraw();
                                             return true;
                                         }
                                         
@@ -481,7 +469,8 @@ namespace jade
                                             associateDevice( e.stroke.dev_id );
                                             captured_dev = e.stroke.dev_id;
                                             
-                                            parent -> requestRedraw();
+                                            if( parent != NULL )
+                                                parent -> requestRedraw();
                                         }
                                         
                                         return true;                            // Either way we used the event
