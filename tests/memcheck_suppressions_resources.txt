@@ -1,0 +1,5 @@
+http://valgrind.org/docs/manual/manual-core.html#manual-core.suppress
+http://valgrind.org/docs/manual/mc-manual.html
+http://stackoverflow.com/questions/30376601/valgrind-memory-still-reachable-with-trivial-program-using-iostream
+http://src.chromium.org/viewvc/chrome/trunk/src/tools/valgrind/memcheck/suppressions.txt
+https://mail.gnome.org/archives/gtk-list/2009-July/msg00046.html

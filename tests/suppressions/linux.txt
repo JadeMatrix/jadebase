@@ -1,0 +1,16 @@
+{
+    _dl_init() possible leak
+    Memcheck:Leak
+    ...
+    fun:_dl_init
+    ...
+}
+{
+    Known leak in pango_layout_get_extents()
+    Memcheck:Leak
+    ...
+    fun:pango_itemize_with_base_dir
+    fun:*
+    fun:*
+    fun:_ZN4jade9text_rsrc12updatePixelsEv
+}

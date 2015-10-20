@@ -277,7 +277,7 @@ namespace jade
                                   NULL );
         
         // Make sure we have enough room
-        dimensions[ 0 ] = ceil( ( double )( p_layout_inkrect.width + p_layout_inkrect.x ) / PANGO_SCALE );
+        dimensions[ 0 ] = ceil( ( double )( p_layout_inkrect.width  + p_layout_inkrect.x ) / PANGO_SCALE );
         dimensions[ 1 ] = ceil( ( double )( p_layout_inkrect.height + p_layout_inkrect.y ) / PANGO_SCALE );
         
         if( max_dimensions[ 0 ] > 0
@@ -486,9 +486,9 @@ namespace jade
     {
         // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        cairo_destroy( context -> c_context );
-        
         g_object_unref( context -> p_layout );
+        
+        cairo_destroy( context -> c_context );
         
         cairo_font_options_destroy( context -> c_fontops );
     }
