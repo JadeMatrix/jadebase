@@ -38,3 +38,8 @@ This is easy enough to support using X, and is pretty much necessary for Cocoa
 
 --------------------------------------------------------------------------------
 
+If the pointer hasn't moved since jadebase initialization, nothing can be
+clicked.  Super minor but may have unforseen consequences down the line.
+
+--------------------------------------------------------------------------------
+

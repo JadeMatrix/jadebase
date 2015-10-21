@@ -14,3 +14,81 @@
     fun:*
     fun:_ZN4jade9text_rsrc12updatePixelsEv
 }
+{
+    Probable false positive for Fontconfig http://lists.freedesktop.org/archives/fontconfig/2011-March/003605.html https://bugs.freedesktop.org/show_bug.cgi?id=8428
+    Memcheck:Leak
+    ...
+    fun:FcDefaultSubstitute
+    ...
+}
+{
+    Probable false positive for Fontconfig http://lists.freedesktop.org/archives/fontconfig/2011-March/003605.html https://bugs.freedesktop.org/show_bug.cgi?id=8428
+    Memcheck:Leak
+    ...
+    fun:FcFontRenderPrepare
+    ...
+}
+{
+    Probable false positive for Pango
+    Memcheck:Leak
+    fun:realloc
+    fun:g_realloc
+    fun:*
+    fun:g_type_register_static
+    fun:g_type_register_static_simple
+    fun:pango_renderer_get_type
+    fun:pango_cairo_renderer_get_type
+}
+{
+    Probable false positive for Pango
+    Memcheck:Leak
+    ...
+    fun:pango_language_from_string
+    fun:pango_language_get_default
+    fun:*
+    fun:g_type_create_instance
+    fun:*
+    fun:g_object_newv
+    fun:g_object_new
+    fun:pango_font_map_create_context
+    fun:pango_cairo_create_context
+    fun:pango_cairo_create_layout
+}
+{
+    Probable false positive for Pango
+    Memcheck:Leak
+    ...
+    fun:g_type_class_ref
+    fun:g_object_newv
+    fun:g_object_new
+    fun:pango_cairo_font_map_new
+    fun:pango_cairo_font_map_get_default
+    fun:pango_cairo_create_context
+    fun:pango_cairo_create_layout
+}
+{
+    Probable false positive for Pango
+    Memcheck:Leak
+    ...
+    fun:pango_module_register
+    fun:*
+    fun:g_type_create_instance
+    fun:*
+    fun:g_object_newv
+    fun:g_object_new
+    fun:pango_cairo_font_map_new
+    fun:pango_cairo_font_map_get_default
+    fun:pango_cairo_create_context
+    fun:pango_cairo_create_layout
+}
+{
+    Probable false positive for Pango
+    Memcheck:Leak
+    ...
+    fun:g_type_add_interface_static
+    fun:pango_cairo_fc_font_map_get_type
+    fun:pango_cairo_font_map_new
+    fun:pango_cairo_font_map_get_default
+    fun:pango_cairo_create_context
+    fun:pango_cairo_create_layout
+}
