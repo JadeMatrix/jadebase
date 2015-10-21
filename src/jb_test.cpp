@@ -159,9 +159,10 @@ int jb_main()
         exit_code = EXIT_STDERR;
     }
     
+    jade::deinitGlobalLuaState();
+    
     ff::write( jb_out, "Goodbye\n" );
     
-    jade::deinitGlobalLuaState();
     jade::closeLog();
     
     return exit_code;
