@@ -43,3 +43,13 @@ clicked.  Super minor but may have unforseen consequences down the line.
 
 --------------------------------------------------------------------------------
 
+Fix this Lua error message:
+src/jb_test.lua:56: button:set_contents() takes 0, or 2 arguments
+                                                 ^
+
+--------------------------------------------------------------------------------
+
+Scrolling doesn't seem like it works anymore - check position normalization
+
+--------------------------------------------------------------------------------
+

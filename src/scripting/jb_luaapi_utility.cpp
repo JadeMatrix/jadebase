@@ -30,7 +30,7 @@ namespace
                     ff::write( log_string,
                                luaL_tolstring( state, i + 1, NULL ) );          // Use luaL_tolstring() to get __tostring() conversions
                 
-                ff::write( jb_out, log_string );
+                ff::write( jb_out, log_string, "\n" );
             }
             else
                 lua_pop( state, argc );                                         // Ignore & pop all arguments

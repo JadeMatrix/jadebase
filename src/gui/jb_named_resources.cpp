@@ -131,8 +131,8 @@ namespace
                             && iter -> second -> data != NULL )
                         {
                             GLuint gl_texture = jade::bytesToTexture( iter -> second -> data,
-                                                                     iter -> second -> texture -> dimensions[ 0 ],
-                                                                     iter -> second -> texture -> dimensions[ 1 ] );
+                                                                      iter -> second -> texture -> dimensions[ 0 ],
+                                                                      iter -> second -> texture -> dimensions[ 1 ] );
                             
                             iter -> second -> texture -> gl_texture = gl_texture;
                             

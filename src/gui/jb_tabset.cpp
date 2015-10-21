@@ -233,6 +233,7 @@ namespace jade
                 
                 // We do not delete the tab or call its content's closed()
                 
+                iter -> data -> setParentTabset( NULL );
                 tabs.erase( iter );
                 
                 reorganizeTabs();                                               // May call parent -> requestRedraw()
