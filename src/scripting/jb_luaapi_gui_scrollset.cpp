@@ -285,7 +285,9 @@ namespace jade
                 
                 ff::write( str,
                            "jade::scrollset at 0x",
-                           ff::to_x( ( long )( &**sset_sp ) ),
+                           ff::to_x( ( long )( &**sset_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
                            " (",
                            pos.first,
                            ",",

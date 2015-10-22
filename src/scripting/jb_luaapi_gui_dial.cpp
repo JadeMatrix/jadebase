@@ -101,6 +101,14 @@ namespace jade
                 }
                 lua_setmetatable( state, -2 );
                 
+                // DEBUG:
+                ff::write( jb_out,
+                           ">>> Lua jade.dial at 0x",
+                           ff::to_X( ( unsigned long )( &**dial_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
+                           " created\n" );
+                
                 return 1;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
@@ -307,6 +315,14 @@ namespace jade
                 
                 std::shared_ptr< dial >* dial_sp = ( std::shared_ptr< dial >* )lua_touserdata( state, 1 );
                 
+                // DEBUG:
+                ff::write( jb_out,
+                           ">>> Lua jade.dial at 0x",
+                           ff::to_X( ( unsigned long )( &**dial_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
+                           " collected\n" );
+                
                 dial_sp -> ~shared_ptr< dial >();
                 
                 return 0;
@@ -340,7 +356,9 @@ namespace jade
                 
                 ff::write( str,
                            "jade::dial at 0x",
-                           ff::to_x( ( long )( &**dial_sp ) ),
+                           ff::to_x( ( unsigned long )( &**dial_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
                            " (",
                            pos.first,
                            ",",

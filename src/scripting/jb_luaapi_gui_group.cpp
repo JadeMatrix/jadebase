@@ -22,6 +22,14 @@ namespace jade
         {
             new( lua_newuserdata( state, sizeof( std::shared_ptr< group > ) ) ) std::shared_ptr< group >( g );
             
+            // DEBUG:
+            ff::write( jb_out,
+                       ">>> Lua jade.group at 0x",
+                       ff::to_X( ( unsigned long )( &*g ),
+                                 PTR_HEX_WIDTH,
+                                 PTR_HEX_WIDTH ),
+                       " created\n" );
+            
             lua_newtable( state );
             {
                 lua_pushcfunction( state, jade_gui_group_position );
@@ -463,6 +471,14 @@ namespace jade
                 
                 std::shared_ptr< group >* group_sp = ( std::shared_ptr< group >* )lua_touserdata( state, 1 );
                 
+                // DEBUG:
+                ff::write( jb_out,
+                           ">>> Lua jade.group at 0x",
+                           ff::to_X( ( unsigned long )( &**group_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
+                           " collected\n" );
+                
                 group_sp -> ~shared_ptr< group >();
                 
                 return 0;
@@ -496,7 +512,9 @@ namespace jade
                 
                 ff::write( str,
                            "jade::group at 0x",
-                           ff::to_x( ( long )( &**group_sp ) ),
+                           ff::to_x( ( unsigned long )( &**group_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
                            " (",
                            pos.first,
                            ",",

@@ -191,7 +191,9 @@ namespace jade
                 
                 ff::write( png_string,
                            "jade::png_file at 0x",
-                           ff::to_x( ( long )( ( png_file* )lua_touserdata( state, 1 ) ) ) );
+                           ff::to_x( ( long )( ( png_file* )lua_touserdata( state, 1 ) ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ) );
                 
                 lua_pushstring( state, png_string.c_str() );
                 

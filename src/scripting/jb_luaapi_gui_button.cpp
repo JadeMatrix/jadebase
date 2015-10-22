@@ -101,6 +101,14 @@ namespace jade
                 }
                 lua_setmetatable( state, -2 );
                 
+                // DEBUG:
+                ff::write( jb_out,
+                           ">>> Lua jade.button at 0x",
+                           ff::to_X( ( unsigned long )( &**butt_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
+                           " created\n" );
+                
                 return 1;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             LUA_API_SAFETY_BLOCK_END
@@ -367,6 +375,14 @@ namespace jade
                 
                 std::shared_ptr< button >* butt_sp = ( std::shared_ptr< button >* )lua_touserdata( state, 1 );
                 
+                // DEBUG:
+                ff::write( jb_out,
+                           ">>> Lua jade.button at 0x",
+                           ff::to_X( ( unsigned long )( &**butt_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
+                           " collected\n" );
+                
                 butt_sp -> ~shared_ptr< button >();
                 
                 return 0;
@@ -400,7 +416,9 @@ namespace jade
                 
                 ff::write( str,
                            "jade::button at 0x",
-                           ff::to_x( ( long )( &**butt_sp ) ),
+                           ff::to_x( ( unsigned long )( &**butt_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
                            " (",
                            pos.first,
                            ",",

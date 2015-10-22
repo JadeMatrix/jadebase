@@ -75,11 +75,22 @@ namespace jade
                 
                 // submitTask( new window::manipulate( test_window ) );
                 
-                // std::shared_ptr< button > butt_sp = std::make_shared< button >( 10, 10, 150, 27 );
-                // test_window -> getTopElement() -> addElement( std::dynamic_pointer_cast< gui_element >( butt_sp ) );
-                
-                // std::shared_ptr< dial > dial_sp = std::make_shared< dial >( 180, 10 );
-                // test_window -> getTopElement() -> addElement( std::dynamic_pointer_cast< gui_element >( dial_sp ) );
+                // {
+                //     std::shared_ptr< group > group_sp = std::make_shared< group >( 0, 0, 256, 256 );
+                    
+                //     std::shared_ptr< button > butt_sp = std::make_shared< button >( 10, 10, 150, 27 );
+                //     group_sp -> addElement( std::dynamic_pointer_cast< gui_element >( butt_sp ) );
+                    
+                //     std::shared_ptr< dial > dial_sp = std::make_shared< dial >( 180, 10 );
+                //     group_sp -> addElement( std::dynamic_pointer_cast< gui_element >( dial_sp ) );
+                    
+                //     std::shared_ptr< tabset::tab > tab_sp = std::make_shared< tabset::tab >( nullptr, "Test Tab", group_sp );
+                    
+                //     std::shared_ptr< tabset > ts_sp = std::make_shared< tabset >( 0, 0, 256, 256 );
+                //     ts_sp -> addTab( tab_sp );
+                    
+                //     test_window -> getTopElement() -> addElement(std::dynamic_pointer_cast< gui_element >( ts_sp )  );
+                // }
                 
                 // test_window -> requestRedraw();
                 

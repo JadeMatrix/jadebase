@@ -340,7 +340,9 @@ namespace jade
                 
                 ff::write( str,
                            "jade::lua_callback at 0x",
-                           ff::to_x( ( long )( &*( std::shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ) ) );
+                           ff::to_x( ( long )( &**( std::shared_ptr< lua_callback >* )lua_touserdata( state, 1 ) ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ) );
                 
                 lua_pushstring( state, str.c_str() );
                 

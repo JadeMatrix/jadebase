@@ -450,7 +450,9 @@ namespace jade
                 
                 ff::write( str,
                            "jade::text_rsrc at 0x",
-                           ff::to_x( ( long )( &**rsrc_sp ) ),
+                           ff::to_x( ( unsigned long )( &**rsrc_sp ),
+                                     PTR_HEX_WIDTH,
+                                     PTR_HEX_WIDTH ),
                            " (",
                            dims.first,
                            ",",
