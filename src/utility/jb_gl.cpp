@@ -88,9 +88,9 @@ namespace jade
                        " (",
                        ( const char* )glewGetErrorString( gl_error ),
                        ") loading pixels from 0x",
-                       ff::to_x( ( unsigned long )( data ), HEX_WIDTH, HEX_WIDTH ),
+                       ff::to_x( ( unsigned long )( data ), PTR_HEX_WIDTH, PTR_HEX_WIDTH ),
                        " to texture 0x",
-                       ff::to_x( original, HEX_WIDTH, HEX_WIDTH ) );
+                       ff::to_x( original, PTR_HEX_WIDTH, PTR_HEX_WIDTH ) );
             throw e;
         }
         

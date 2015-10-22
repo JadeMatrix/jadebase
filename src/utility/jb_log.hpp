@@ -38,7 +38,7 @@
 #define MACROTOSTR_A( D ) #D
 #define   MACROTOSTR( D ) MACROTOSTR_A( D )                                     // Double expansion trick
 
-#define HEX_WIDTH   ( ( int )( sizeof( unsigned long ) * 2 ) )
+#define PTR_HEX_WIDTH   ( ( int )( sizeof( void* ) * 2 ) )
 
 namespace jade
 {

@@ -46,7 +46,9 @@ namespace jade
         if( getDevMode() )
             ff::write( jb_out,
                        "Registered a window (id 0x",
-                        ff::to_x( ( unsigned long )window_id ),
+                        ff::to_x( ( unsigned long )window_id,
+                                  PTR_HEX_WIDTH,
+                                  PTR_HEX_WIDTH ),
                         "), currently ",
                         id_window_map.size(),
                         " windows registered\n" );
@@ -65,7 +67,9 @@ namespace jade
         if( getDevMode() )
             ff::write( jb_out,
                        "Deregistered a window (id 0x",
-                        ff::to_x( ( unsigned long )window_id ),
+                        ff::to_x( ( unsigned long )window_id,
+                                  PTR_HEX_WIDTH,
+                                  PTR_HEX_WIDTH ),
                         "), currently ",
                         id_window_map.size(),
                         " windows registered\n" );
