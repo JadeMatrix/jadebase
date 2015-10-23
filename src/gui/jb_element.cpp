@@ -25,20 +25,20 @@ namespace jade
         setRealDimensions( w, h );
         
         // DEBUG:
-        ff::write( jb_out,
-                   ">>> jade::gui_element at 0x",
-                   ff::to_X( ( unsigned long )this, PTR_HEX_WIDTH, PTR_HEX_WIDTH ),
-                   " constructed\n" );
+        // ff::write( jb_out,
+        //            ">>> jade::gui_element at 0x",
+        //            ff::to_X( ( unsigned long )this, PTR_HEX_WIDTH, PTR_HEX_WIDTH ),
+        //            " constructed\n" );
     }
     gui_element::~gui_element()
     {
         clearDeviceAssociations();
         
         // DEBUG:
-        ff::write( jb_out,
-                   ">>> jade::gui_element at 0x",
-                   ff::to_X( ( unsigned long )this, PTR_HEX_WIDTH, PTR_HEX_WIDTH ),
-                   " destroyed\n" );
+        // ff::write( jb_out,
+        //            ">>> jade::gui_element at 0x",
+        //            ff::to_X( ( unsigned long )this, PTR_HEX_WIDTH, PTR_HEX_WIDTH ),
+        //            " destroyed\n" );
     }
     
     gui_element* gui_element::getParentElement()

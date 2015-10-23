@@ -90,12 +90,12 @@ namespace jade
                 lua_setmetatable( state, -2 );
                 
                 // DEBUG:
-                ff::write( jb_out,
-                           ">>> Lua jade.tabset at 0x",
-                           ff::to_X( ( unsigned long )( &**tset_sp ),
-                                     PTR_HEX_WIDTH,
-                                     PTR_HEX_WIDTH ),
-                           " created\n" );
+                // ff::write( jb_out,
+                //            ">>> Lua jade.tabset at 0x",
+                //            ff::to_X( ( unsigned long )( &**tset_sp ),
+                //                      PTR_HEX_WIDTH,
+                //                      PTR_HEX_WIDTH ),
+                //            " created\n" );
                 
                 return 1;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -376,12 +376,12 @@ namespace jade
                 std::shared_ptr< tabset >* tset_sp = ( std::shared_ptr< tabset >* )lua_touserdata( state, 1 );
                 
                 // DEBUG:
-                ff::write( jb_out,
-                           ">>> Lua jade.tabset at 0x",
-                           ff::to_X( ( unsigned long )( &**tset_sp ),
-                                     PTR_HEX_WIDTH,
-                                     PTR_HEX_WIDTH ),
-                           " collected\n" );
+                // ff::write( jb_out,
+                //            ">>> Lua jade.tabset at 0x",
+                //            ff::to_X( ( unsigned long )( &**tset_sp ),
+                //                      PTR_HEX_WIDTH,
+                //                      PTR_HEX_WIDTH ),
+                //            " collected\n" );
                 
                 tset_sp -> ~shared_ptr< tabset >();
                 
