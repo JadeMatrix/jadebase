@@ -176,8 +176,8 @@ namespace
         
         if( arg_l < 0 )
             throw jade::exception( "Task thread limit must be 0 or greater" );
-        else
-            task_thread_limit = arg_l;
+        
+        task_thread_limit = arg_l;
         
         ff::write( jb_out, "Task threads limited to ", task_thread_limit, "\n" );
         
@@ -207,7 +207,17 @@ namespace
     }
     bool parse_guiScaleOverride( std::string arg )
     {
+        float arg_f = strtof( arg.c_str(), NULL );
         
+        if( arg_f <= 0 || arg_f == +INFINITY )
+            throw jade::exception( "GUI scale override must be a positive, non-zero, non-infinite number" );
+        
+        gui_scale_override = arg_f;
+        
+        ff::write( jb_out,
+                   "GUI scale factor overridden to ",
+                   gui_scale_override,
+                   "\n" );
         
         return true;
     }

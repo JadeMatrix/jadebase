@@ -57,12 +57,12 @@ namespace jade
         
         std::pair< unsigned int, unsigned int > def_dim( getSetting_num( "jb_DefaultWindowW" ),
                                                          getSetting_num( "jb_DefaultWindowH" ) );
+        dpi::percent scale = getScaleFactor();
         
-        dimensions[ 0 ] = def_dim.first;
-        dimensions[ 1 ] = def_dim.second;
+        dimensions[ 0 ] = def_dim.first  * scale;
+        dimensions[ 1 ] = def_dim.second * scale;
         position[ 0 ] = 0;
         position[ 1 ] = 0;
-        scale_override = 0;
         
         fullscreen = false;
         in_focus = true;
@@ -152,10 +152,12 @@ namespace jade
     {
         scoped_lock< mutex > slock( window_mutex );
         
-        if( scale_override != 0 )
-            return scale_override;
-        else
+        float scale_override = getGUIScaleOverride();
+        
+        if( isnan( scale_override) )
             return ( dpi::percent )getDPI() / ( dpi::percent )STANDARD_DPI;
+        else
+            return scale_override;
     }
     
     void window::acceptEvent( window_event& e )

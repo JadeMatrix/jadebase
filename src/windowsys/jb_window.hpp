@@ -126,7 +126,6 @@ namespace jade
         std::string title;
         dpi::pixels dimensions[2];
         dpi::pixels position[2];
-        dpi::percent scale_override;
         bool fullscreen;
         bool in_focus;
         
