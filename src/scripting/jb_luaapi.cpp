@@ -124,7 +124,7 @@ namespace jade
                         else
                         {
                             ff::write( s,
-                                       i == 0 ? "" : ", or ",
+                                       i == 0 ? "" : ( n == 2 ? " or " : ", or " ),
                                        int_args[ i ] );
                         }
                     }
