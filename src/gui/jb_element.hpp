@@ -46,7 +46,6 @@ namespace jade
         virtual std::pair< dpi::points, dpi::points > getRealDimensions();      // Used to arrange elements
         virtual std::pair< dpi::points, dpi::points > getVisualDimensions();    // Used to generate area for event capturing
         
-        // TODO: Put elements in charge of normalizing event offsets to their own position
         virtual bool acceptEvent( window_event& ) = 0;                          // If the event was accepted, returns true, else returns false.  If
                                                                                 // event_fallthrough is false should always return true.
         

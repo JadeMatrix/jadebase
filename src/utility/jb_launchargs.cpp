@@ -42,6 +42,7 @@
 #define LAUNCHVAL_TASKTHREADS 0
 #define LAUNCHVAL_USETFILE    ""
 #define LAUNCHVAL_SCRIPTFILE  ""
+#define LAUNCHVAL_GUISCALE    NAN
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -53,6 +54,7 @@ namespace
     long        task_thread_limit;
     std::string user_settings_file;
     std::string main_script_file;
+    float       gui_scale_override;
     
     std::filebuf log_fb;
     std::ostream log_stream( std::cout.rdbuf() );                               // Initialize to std::cout
@@ -62,11 +64,12 @@ namespace
     {
         jade::launcharg_callback callback;
         std::string long_flag;
+        char        short_flag;
         bool        require_arg;
         std::string arg_desc;
         std::string desc;
     };
-    std::map< char, launcharg_data > parse_data;
+    std::map< int, launcharg_data > parse_data;
     bool launch_args_parsed = false;
     
     std::string getFlagsString()                                                // Prints in simple ASCII order by flag for now
@@ -76,7 +79,7 @@ namespace
         int long_flag_width = 0;
         int  arg_desc_width = 0;
         
-        for( std::map< char, launcharg_data >::iterator iter = parse_data.begin();
+        for( auto iter = parse_data.begin();
              iter != parse_data.end();
              ++iter )
         {
@@ -100,13 +103,13 @@ namespace
         
         std::string flags_string;
         
-        for( std::map< char, launcharg_data >::iterator iter = parse_data.begin();
+        for( auto iter = parse_data.begin();
              iter != parse_data.end();
              ++iter )
         {
             ff::write( flags_string,
                        "[ -",
-                       ff::ch( iter -> first ),
+                       ff::ch( iter -> second.short_flag ),
                        " | --",
                        iter -> second.long_flag,
                        whitespace + iter -> second.long_flag.length() + ( whitespace_width - long_flag_width ),
@@ -202,6 +205,12 @@ namespace
         
         return true;
     }
+    bool parse_guiScaleOverride( std::string arg )
+    {
+        
+        
+        return true;
+    }
 }
 
 /* jb_launchargs.hpp **********************************************************//******************************************************************************/
@@ -209,7 +218,7 @@ namespace
 namespace jade
 {
     void registerArgParser( launcharg_callback callback,
-                            char        flag,
+                            char        short_flag,
                             std::string long_flag,
                             bool        require_arg,
                             std::string arg_desc,
@@ -218,11 +227,16 @@ namespace jade
         if( launch_args_parsed )
             throw exception( "registerArgParser(): Launch arguments already parsed" );
         
-        parse_data[ flag ].callback    = callback;
-        parse_data[ flag ].long_flag   = long_flag;
-        parse_data[ flag ].require_arg = require_arg;
-        parse_data[ flag ].arg_desc    = arg_desc;
-        parse_data[ flag ].desc        = desc;
+        int key = short_flag != '\0' ?
+                  ( int )short_flag :
+                  ( int )( long )callback;                                      // Quite the pain
+        
+        parse_data[ key ].callback    = callback;
+        parse_data[ key ].long_flag   = long_flag;
+        parse_data[ key ].short_flag  = short_flag;
+        parse_data[ key ].require_arg = require_arg;
+        parse_data[ key ].arg_desc    = arg_desc;
+        parse_data[ key ].desc        = desc;
     }
     
     #if defined PLATFORM_XWS_GNUPOSIX | defined PLATFORM_MACOSX
@@ -279,6 +293,12 @@ namespace jade
                            true,
                            "FILE",
                            "Load a Lua script" );
+        registerArgParser( parse_guiScaleOverride,
+                           '\0',
+                           "gui-scale",
+                           true,
+                           "REAL",
+                           "Override the GUI scale (must be non-negative)" );
         
         launch_args_parsed = true;
         
@@ -289,18 +309,22 @@ namespace jade
             task_thread_limit  = LAUNCHVAL_TASKTHREADS;
             user_settings_file = LAUNCHVAL_USETFILE;
             main_script_file   = LAUNCHVAL_SCRIPTFILE;
+            gui_scale_override = LAUNCHVAL_GUISCALE;
             
             std::string val_str;
             
             struct option* long_flags = new struct option[ parse_data.size() + 1 ];
             int i = 0;
-            for( std::map< char, launcharg_data >::iterator iter = parse_data.begin();
+            for( auto iter = parse_data.begin();
                  iter != parse_data.end();
                  ++iter )
             {
-                val_str += iter -> first;
-                if( iter -> second.require_arg )
-                    val_str += ':';
+                if( iter -> second.short_flag != '\0' )
+                {
+                    val_str += iter -> second.short_flag;
+                    if( iter -> second.require_arg )
+                        val_str += ':';
+                }
                 
                 long_flags[ i ].name    = iter -> second.long_flag.c_str();
                 long_flags[ i ].has_arg = iter -> second.require_arg ? required_argument : no_argument;
@@ -320,7 +344,9 @@ namespace jade
             while( return_val &&
                    ( flag = getopt_long( argc, argv, val_str.c_str(), long_flags, NULL ) ) != -1 )
             {
-                if( !parse_data.count( flag ) )
+                auto finder = parse_data.find( flag );
+                
+                if( finder == parse_data.end() )
                 {
                     exception e;
                     ff::write( *e,
@@ -329,8 +355,18 @@ namespace jade
                     delete[] long_flags;
                     throw e;
                 }
-                else
-                    return_val = parse_data[ flag ].callback( optarg ? optarg : "" );   // optarg will be NULL if not used
+                
+                // DEBUG:
+                // ff::write( jb_out,
+                //            ">>> Got argument value 0x",
+                //            ff::to_X( finder -> first ),
+                //            ": --",
+                //            finder -> second.long_flag,
+                //            " ",
+                //            optarg,
+                //            "\n" );
+                
+                return_val = finder -> second.callback( optarg ? optarg : "" ); // optarg will be NULL if not used
             }
             
             delete[] long_flags;
@@ -371,6 +407,10 @@ namespace jade
     std::string getMainScriptFileName()
     {
         return main_script_file;
+    }
+    float getGUIScaleOverride()
+    {
+        return gui_scale_override;
     }
 }
 

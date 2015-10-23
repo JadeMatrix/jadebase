@@ -96,7 +96,7 @@ namespace jade
                 
             } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            std::string main_script_file= getMainScriptFileName();
+            std::string main_script_file = getMainScriptFileName();
             if( main_script_file.length() != 0 )
             {
                 lua_state& global_lua_state( getGlobalLuaState() );

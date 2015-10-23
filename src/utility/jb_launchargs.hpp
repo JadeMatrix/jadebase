@@ -40,6 +40,7 @@ namespace jade
     long        getTaskThreadLimit();                                           // Get the max number of threads available to the task system (>=1 or -1)
     std::string getUserSettingsFileName();                                      // Get the path to the user settings file set at startup
     std::string getMainScriptFileName();                                        // Get the path to the main Lua script file
+    float       getGUIScaleOverride();                                          // Get the GUI scale override if any, or NaN if no override given
 }
 
 /******************************************************************************//******************************************************************************/
