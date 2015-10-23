@@ -49,7 +49,3 @@ src/jb_test.lua:56: button:set_contents() takes 0, or 2 arguments
 
 --------------------------------------------------------------------------------
 
-Scrolling doesn't seem like it works anymore - check position normalization
-
---------------------------------------------------------------------------------
-

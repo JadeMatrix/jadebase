@@ -773,8 +773,10 @@ namespace jade
                 break;
             case SCROLL:
                 {
-                    w_event.scroll.position[ 0 ] = x_eventdata.x;               // XDeviceButtonEvent::x & x_root seemt to report the same value
-                    w_event.scroll.position[ 1 ] = x_eventdata.y;
+                    w_event.scroll.position[ 0 ] = ( dpi::points )x_eventdata.x // XDeviceButtonEvent::x & x_root seemt to report the same value
+                                                   / target_scale;
+                    w_event.scroll.position[ 1 ] = ( dpi::points )x_eventdata.y
+                                                   / target_scale;
                     
                     w_event.scroll.amount[ 0 ] = 0.0f;                          // Initialize to 0.0
                     w_event.scroll.amount[ 1 ] = 0.0f;
