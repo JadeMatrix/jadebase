@@ -12,10 +12,10 @@
  * Dynamics are implicitly nestable.  Classes implementing the base dynamic<>
  * class allow this by overriding the pure virtual twist() function with their
  * specific functionality, which 'twists' the value passed in.  The top-level
- * dynamic may be supplied with an optional starting value of type T on get().
- * However, sub-dynamics' twist()s are not required to respect the value passed
- * in, and may change it to a completely unrelated value.  The validity of the
- * dynamics chain semantics is up to the chain implementer.
+ * dynamic must be supplied with a starting value of type T on get().  However,
+ * sub-dynamics' twist()s are not required to respect the value passed in, and
+ * may change it to a completely unrelated value.  The validity of the dynamics
+ * chain semantics is up to the chain implementer.
  * 
  * Dynamics are not guaranteed to be thread-safe, and so rely on the thread-
  * safety of their get()er.
@@ -35,43 +35,32 @@ namespace jade
     template< typename T > class dynamic
     {
     public:
-        virtual dynamic( window& ) : context( &c ) {}
+        std::vector< dynamic< T > > subs;                                       // Leaving this public is the simplest way of manipulating it
+        
+        dynamic( window& c ) : context( &c ) {}
+        dynamic( const dynamic< T >& o ) : context( o.context ), subs( o.subs ) {}
         virtual ~dynamic() {}
         
-        void addSubDynamic( dynamic< T >& );
         void changeContext( window& );
         
-        const T& get();
         const T& get( T& );
     protected:
         window* context;
-        std::vector< dynamic< T > > sub_dynamics;
         
         virtual void twist( T& ) = 0;
     };
     
-    template< typename T > void dynamic< T >::addSubDynamic( dynamic< T >& s )
-    {
-        sub_dynamics.push_back( s );
-    }
     template< typename T > void dynamic< T >::changeContext( window& c )
     {
         context = &t;
     }
     
-    template< typename T > const T& dynamic< T >::get()
-    {
-        T uninitialized;
-        return get( uninitialized );
-    }
-    template< typename T > const T& dynamic< T >::get( T& start )
+    template< typename T > void dynamic< T >::get( T& start )
     {
         twist( start );
         
-        for( int i = 0; i < sub_dynamics.length(); ++i )
-            sub_dynamics[ i ] -> twist( start );
-        
-        return start;
+        for( int i = 0; i < subs.length(); ++i )
+            subs[ i ] -> twist( start );
     }
 }
 
