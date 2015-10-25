@@ -43,7 +43,7 @@ namespace jade
         
         void changeContext( window& );
         
-        const T& get( T& );
+        void get( T& );
     protected:
         window* context;
         
@@ -52,7 +52,7 @@ namespace jade
     
     template< typename T > void dynamic< T >::changeContext( window& c )
     {
-        context = &t;
+        context = &c;
     }
     
     template< typename T > void dynamic< T >::get( T& start )

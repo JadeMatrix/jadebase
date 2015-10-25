@@ -25,7 +25,7 @@
 #include <string>
 
 #include "jb_keycode.hpp"
-#include "../utility/jb_dpi.hpp"
+#include "../dynamics/jb_dpi.hpp"
 #include "../utility/jb_platform.h"
 
 /******************************************************************************//******************************************************************************/

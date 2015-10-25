@@ -15,9 +15,9 @@
 #include <list>
 #include <utility>
 
+#include "../dynamics/jb_dpi.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_callback.hpp"
-#include "../utility/jb_dpi.hpp"
 #include "../utility/jb_platform.h"
 #include "../windowsys/jb_windowevent.hpp"
 

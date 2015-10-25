@@ -22,6 +22,7 @@
 
 #include <cmath>
 
+#include "jb_windowevent.hpp"
 #include "jb_windowmanagement.hpp"
 #include "../gui/jb_named_resources.hpp"
 #include "../gui/jb_windowview.hpp"

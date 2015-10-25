@@ -22,12 +22,10 @@
 #include <string>
 #include <vector>
 
-#include "jb_windowevent.hpp"
-#include "../gui/jb_windowview.hpp"
+// #include "jb_windowevent.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_container.hpp"
-#include "../utility/jb_dpi.hpp"
 #include "../utility/jb_platform.h"
 #include "../utility/jb_version.hpp"
 
@@ -46,7 +44,9 @@
 
 namespace jade
 {
+    struct window_event;
     class gui_element;
+    class windowview;
     class gui_resource;
     
     class window

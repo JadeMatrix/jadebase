@@ -13,7 +13,7 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-
+#include "jb_dynamic.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -28,11 +28,23 @@ namespace jade
         typedef float percent;                                                  // Percents are always relative to something and have no innate value
     }
     
+    const dpi::pixels STANDARD_DPI = 75;
+    const dpi::pixels HIRES_DPI    = 150;
+    
     dpi::pixels pt2px( window&, dpi::points );                                  // Convert a point to a pixel distance based on the given window's scaling
     dpi::points px2pt( window&, dpi::pixels );                                  // Convert a pixel to a point distance based on the given window's scaling
     
-    const dpi::pixels STANDARD_DPI = 75;
-    const dpi::pixels HIRES_DPI    = 150;
+    // template< typename T > class ScaleToWindowScale : dynamic< T >
+    // {
+    // public:
+    //     ScaleToWindowScale( window& c ) : dynamic< T >( c ) {}
+    //     ScaleToWindowScale( const ScaleToWindowScale< T >& o ) : dynamic< T >( o ) {}
+    // protected:
+    //     void twist( T& start )
+    //     {
+    //         // start *= context -> getScaleFactor();
+    //     }
+    // };
 }
 
 /******************************************************************************//******************************************************************************/
