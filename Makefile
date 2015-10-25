@@ -120,6 +120,7 @@ JADEBASE_THREADUTIL_HPP = src/threading/jb_threadutil.hpp ${JADEBASE_PLATFORM_H}
 JADEBASE_CALLBACK_HPP = src/utility/jb_callback.hpp
 JADEBASE_CONTAINER_HPP = src/utility/jb_container.hpp ${JADEBASE_MUTEX_HPP} ${JADEBASE_SCOPEDLOCK_HPP} ${JADEBASE_EXCEPTION_HPP}
 JADEBASE_DPI_HPP = src/utility/jb_dpi.hpp
+JADEBASE_DYNAMIC_HPP = src/utility/jb_dynamic.hpp
 JADEBASE_EXCEPTION_HPP = src/utility/jb_exception.hpp
 JADEBASE_GL_HPP = src/utility/jb_gl.hpp ${JADEBASE_PLATFORM_H}
 JADEBASE_LAUNCHARGS_HPP = src/utility/jb_launchargs.hpp
