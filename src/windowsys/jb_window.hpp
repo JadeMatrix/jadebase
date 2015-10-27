@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-// #include "jb_windowevent.hpp"
+#include "jb_windowevent.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_container.hpp"

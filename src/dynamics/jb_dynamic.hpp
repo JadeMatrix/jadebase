@@ -26,6 +26,9 @@
 
 #include <vector>
 
+// #include "jb_dynamic_guard.hpp"
+#include "../utility/jb_exception.hpp"
+
 /******************************************************************************//******************************************************************************/
 
 namespace jade
@@ -35,33 +38,128 @@ namespace jade
     template< typename T > class dynamic
     {
     public:
-        std::vector< dynamic< T > > subs;                                       // Leaving this public is the simplest way of manipulating it
+        std::vector< dynamic< T > > subs;
         
-        dynamic( window& c ) : context( &c ) {}
-        dynamic( const dynamic< T >& o ) : context( o.context ), subs( o.subs ) {}
-        virtual ~dynamic() {}
+        dynamic( window& );
+        dynamic( const dynamic< T >& );
+        virtual ~dynamic();
         
         void changeContext( window& );
+        window& getContext();
         
-        void get( T& );
-    protected:
-        window* context;
-        
+        void perform( T& );
+    private:
         virtual void twist( T& ) = 0;
     };
     
-    template< typename T > void dynamic< T >::changeContext( window& c )
+    template< typename New, typename Type, typename Dynamic = dynamic< Type > > class dynamic_inherit : Dynamic
     {
-        context = &c;
+    protected:
+        dynamic_inherit( window& c ) : Dynamic( c )
+        {
+            static_assert( sizeof( New ) == sizeof( Dynamic ),
+                           "Classes inheriting from jade::dynamic may not add member variables" );
+        }
+    };
+    
+    template< typename T > dynamic< T >::dynamic( window& c )
+    {
+        // TODO: Implement
+    }
+    template< typename T > dynamic< T >::dynamic( const dynamic< T >& o ) : subs( o.subs )
+    {
+        // TODO: Implement
     }
     
-    template< typename T > void dynamic< T >::get( T& start )
+    template< typename T > void dynamic< T >::changeContext( window& c )
     {
-        twist( start );
-        
-        for( int i = 0; i < subs.length(); ++i )
-            subs[ i ] -> twist( start );
+        // TODO: Implement
     }
+    template< typename T > window& dynamic< T >::getContext()
+    {
+        // TODO: Implement
+    }
+    
+    template< typename T > void dynamic< T >::perform( T& t )
+    {
+        twist( t );
+        for( int i = 0; i < subs.length(); ++i )
+            subs[ i ].perform( t );
+    }
+    
+    // template< typename T > class dynamic
+    // {
+    //     JB_DYNAMIC
+    // public:
+    //     typedef void ( * twister )( T& );
+        
+    //     std::vector< dynamic< T > > subs;                                       // Leaving this public is the simplest way of manipulating it
+    //     twister twist;
+        
+    //     dynamic( window& c );
+    //     dynamic( const dynamic< T >& o );
+    //     virtual ~dynamic() {}
+        
+    //     void changeContext( window& );                                          // Wrapping the context and passing it as a reference to discourage NULLifying
+    //     window& getContext();
+        
+    //     void get( T& );
+    // };
+    
+    // template< typename T > dynamic< T >::dynamic( window& c )
+    // {
+    //     // _dynamic_private_change_context( ( void* )this, &c );
+    // }
+    // template< typename T > dynamic< T >::dynamic( const dynamic< T >& o ) : subs( o.subs )
+    // {
+    //     // context = &c;
+    //     // _dynamic_private_change_context( ( void* )this, &c );
+    // }
+    
+    // template< typename T > void dynamic< T >::changeContext( window& c )
+    // {
+    //     // context = &c;
+    //     // _dynamic_private_change_context( ( void* )this, &c );
+    // }
+    
+    // template< typename T > void dynamic< T >::get( T& start )
+    // {
+    //     _dynamic_private_assert_size();
+        
+    //     if( twist != nullptr )
+    //         twist( start );
+        
+    //     for( int i = 0; i < subs.length(); ++i )
+    //         subs[ i ] -> get( start );
+    // }
+    
+    class DynamicsTestPass_dynamic : public dynamic_inherit< DynamicsTestPass_dynamic, float >
+    {
+    public:
+        DynamicsTestPass_dynamic( window& c ) : dynamic_inherit( c ) {}
+    private:
+        void twist( float& foo )
+        {
+            foo *= 2.0f;
+        }
+    };
+    
+    // class DynamicsTestPassFail_dynamic : public dynamic_inherit< DynamicsTestPassFail_dynamic >
+    
+    class DynamicsTestFail_dynamic : public dynamic_inherit< DynamicsTestFail_dynamic, float >
+    {
+    public:
+        DynamicsTestFail_dynamic( window& c ) : dynamic_inherit( c ) {}
+    private:
+        float bar;
+        void twist( float& foo )
+        {
+            foo *= 2.0f;
+        }
+    };
+    
+    // DynamicsTestPass_dynamic pass_test;
+    // DynamicsTestFail_dynamic fail_test;
 }
 
 /******************************************************************************//******************************************************************************/

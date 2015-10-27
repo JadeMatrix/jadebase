@@ -34,15 +34,16 @@ namespace jade
     dpi::pixels pt2px( window&, dpi::points );                                  // Convert a point to a pixel distance based on the given window's scaling
     dpi::points px2pt( window&, dpi::pixels );                                  // Convert a pixel to a point distance based on the given window's scaling
     
-    // template< typename T > class ScaleToWindowScale : dynamic< T >
+    // class ScaleToWindowScale_dynamic : dynamic< points >
     // {
+    //     JB_DYNAMIC
     // public:
-    //     ScaleToWindowScale( window& c ) : dynamic< T >( c ) {}
-    //     ScaleToWindowScale( const ScaleToWindowScale< T >& o ) : dynamic< T >( o ) {}
+    //     ScaleToWindowScale( window& c ) : dynamic< points >( c ) {}
+    //     ScaleToWindowScale( const ScaleToWindowScale< points >& o ) : dynamic< points >( o ) {}
     // protected:
-    //     void twist( T& start )
+    //     void twist( points& start )
     //     {
-    //         // start *= context -> getScaleFactor();
+    //         start *= context -> getScaleFactor();
     //     }
     // };
 }
