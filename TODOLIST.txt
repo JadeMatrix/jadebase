@@ -43,3 +43,7 @@ clicked.  Super minor but may have unforseen consequences down the line.
 
 --------------------------------------------------------------------------------
 
+Use mipmaps + glScalef() for GUI scaling
+
+--------------------------------------------------------------------------------
+

@@ -13,7 +13,7 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#include "jb_dynamic.hpp"
+
 
 /******************************************************************************//******************************************************************************/
 
@@ -33,19 +33,6 @@ namespace jade
     
     dpi::pixels pt2px( window&, dpi::points );                                  // Convert a point to a pixel distance based on the given window's scaling
     dpi::points px2pt( window&, dpi::pixels );                                  // Convert a pixel to a point distance based on the given window's scaling
-    
-    // class ScaleToWindowScale_dynamic : dynamic< points >
-    // {
-    //     JB_DYNAMIC
-    // public:
-    //     ScaleToWindowScale( window& c ) : dynamic< points >( c ) {}
-    //     ScaleToWindowScale( const ScaleToWindowScale< points >& o ) : dynamic< points >( o ) {}
-    // protected:
-    //     void twist( points& start )
-    //     {
-    //         start *= context -> getScaleFactor();
-    //     }
-    // };
 }
 
 /******************************************************************************//******************************************************************************/
