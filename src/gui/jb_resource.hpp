@@ -23,17 +23,16 @@ namespace jade
     class gui_resource
     {
     public:
-        // TODO: Figure out which dpi:: things this should use
-        gui_resource( unsigned int,                                               // Width
-                      unsigned int );                                             // Height
+        gui_resource( dpi::points,                                              // Width
+                      dpi::points );                                            // Height
         virtual ~gui_resource();
         
-        virtual std::pair< unsigned int, unsigned int > getDimensions();            // Non-pure virtual, as we are always guaranteed dimensions
+        virtual std::pair< dpi::points, dpi::points > getDimensions();          // Non-pure virtual, as we are always guaranteed dimensions
         
         virtual void draw( window* ) = 0;
         
     protected:
-        unsigned int dimensions[ 2 ];
+        dpi::points dimensions[ 2 ];
     };
 }
 

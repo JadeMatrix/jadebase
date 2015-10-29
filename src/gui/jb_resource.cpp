@@ -13,8 +13,8 @@
 
 namespace jade
 {
-    gui_resource::gui_resource( unsigned int w,
-                                unsigned int h )
+    gui_resource::gui_resource( dpi::points w,
+                                dpi::points h )
     {
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
@@ -24,9 +24,9 @@ namespace jade
         // Empty
     }
     
-    std::pair< unsigned int, unsigned int > gui_resource::getDimensions()
+    std::pair< dpi::points, dpi::points > gui_resource::getDimensions()
     {
-        return std::pair< unsigned int, unsigned int >( dimensions[ 0 ], dimensions[ 1 ] );
+        return std::pair< dpi::points, dpi::points >( dimensions[ 0 ], dimensions[ 1 ] );
     }
 }
 

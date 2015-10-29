@@ -14,6 +14,7 @@
 
 #include <string>
 
+#include "../utility/jb_dpi.hpp"
 #include "../utility/jb_gl.hpp"
 
 /******************************************************************************//******************************************************************************/
@@ -23,7 +24,7 @@ namespace jade
     struct gui_texture
     {
         GLuint gl_texture;
-        unsigned int dimensions[ 2 ];
+        dpi::points dimensions[ 2 ];
         
         gui_texture()
         {

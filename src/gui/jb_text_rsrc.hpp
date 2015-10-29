@@ -15,6 +15,8 @@
  * origin is roughly the lower left corner (if baseline is enabled).  This
  * baseline behavior can be enabled/disabled with setEnableBaseline().
  * 
+ * TODO: Consider using dpi::points for the point size
+ * 
  */
 
 /* INCLUDES *******************************************************************//******************************************************************************/
@@ -67,10 +69,10 @@ namespace jade
                                                                                 // FIXME: Figure out why Pango doesn't like one line:
         // #define TEXT_MAXHEIGHT_ONELINE   0                                      // Doesn't work like it should, perhaps?  Pango docs not clear.
         
-        std::pair< int, int > getMaxDimensions();
-        void                  setMaxDimensions( int,                            // Max width in pixels
-                                                int,                            // Max heigth in pixels
-                                                ellipsis_mode e = NONE );       // Ellipsis mode for truncating string when it does not fit max dimensions
+        std::pair< dpi::points, dpi::points > getMaxDimensions();
+        void setMaxDimensions( dpi::points,                                     // Max width in points
+                               dpi::points,                                     // Max heigth in points
+                               ellipsis_mode e = NONE );                        // Ellipsis mode for truncating string when it does not fit max dimensions
         
         bool getEnableBaseline();
         void setEnableBaseline( bool );                                         // Centered baseline obeys writing direction (horizontal/vertical)
@@ -86,13 +88,13 @@ namespace jade
     protected:
         mutex text_mutex;
         
-        int tex_offset[ 2 ];                                                    // Texture offset from the baseline
+        dpi::points tex_offset[ 2 ];                                            // Texture offset from the baseline
         
         std::string string;
         std::string font;
         float point_size;
         float color[ 4 ];
-        int max_dimensions[ 2 ];
+        dpi::points max_dimensions[ 2 ];
         bool enable_baseline;
         ellipsis_mode ellipsize;
         bool hinting_enabled;

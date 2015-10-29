@@ -9,9 +9,11 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "jb_named_resources.hpp"
+#include "jb_texture.hpp"
+
+#include <cmath>
 
 #include "jb_image_rsrc.hpp"
-#include "jb_texture.hpp"
 #include "../filetypes/jb_png.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../tasking/jb_taskexec.hpp"
@@ -131,8 +133,9 @@ namespace
                             && iter -> second -> data != NULL )
                         {
                             GLuint gl_texture = jade::bytesToTexture( iter -> second -> data,
-                                                                      iter -> second -> texture -> dimensions[ 0 ],
-                                                                      iter -> second -> texture -> dimensions[ 1 ] );
+                                                                      ceil( iter -> second -> texture -> dimensions[ 0 ] ),
+                                                                      ceil( iter -> second -> texture -> dimensions[ 1 ] ),
+                                                                      0 );
                             
                             iter -> second -> texture -> gl_texture = gl_texture;
                             

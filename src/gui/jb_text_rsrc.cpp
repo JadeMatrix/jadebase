@@ -139,20 +139,22 @@ namespace jade
         // Do not update pixels, as coloring is render-time only
     }
     
-    std::pair< int, int > text_rsrc::getMaxDimensions()
+    std::pair< dpi::points, dpi::points > text_rsrc::getMaxDimensions()
     {
         scoped_lock< mutex > slock( text_mutex );
         
-        return std::pair< int, int >( max_dimensions[ 0 ], max_dimensions[ 1 ] );
+        return std::pair< dpi::points, dpi::points >( max_dimensions[ 0 ], max_dimensions[ 1 ] );
     }
-    void text_rsrc::setMaxDimensions( int w, int h, ellipsis_mode e )
+    void text_rsrc::setMaxDimensions( dpi::points w,
+                                      dpi::points h,
+                                      ellipsis_mode e )
     {
         scoped_lock< mutex > slock( text_mutex );
         
         if( w < 0 )
         {
             if( w < -1 )
-                throw exception( "text_rsrc::setMaxWidth(): Width < -1" );
+                throw exception( "text_rsrc::setMaxDimensions(): Width < -1" );
             
             max_dimensions[ 0 ] = -1;
             ellipsize = NONE;
@@ -336,7 +338,11 @@ namespace jade
         if( pixel_space != NULL )
             delete[] pixel_space;
         
-        pixel_space = new unsigned char[ dimensions[ 0 ] * dimensions [ 1 ] * 4 ];
+        dpi::pixels pixel_dims[ 2 ];
+        pixel_dims[ 0 ] = ceil( dimensions[ 0 ] );                              // Using ceil() as we want the texture at least as big as the points
+        pixel_dims[ 1 ] = ceil( dimensions[ 1 ] );
+        
+        pixel_space = new unsigned char[ pixel_dims[ 0 ] * pixel_dims[ 1 ] * 4 ];
         
         if( pixel_space == NULL )
             throw exception( "text_rsrc::updatePixels(): Could not allocate pixel space" );
@@ -346,15 +352,15 @@ namespace jade
         int c_stride = cairo_image_surface_get_stride( context.c_surf );
         unsigned char* c_pixelp;
         
-        for( long i = 0; i < dimensions[ 0 ] * dimensions[ 1 ]; ++i )
+        for( long i = 0; i < pixel_dims[ 0 ] * pixel_dims[ 1 ]; ++i )
         {
-            if( i % dimensions[ 0 ] == 0 )
-                c_pixelp = c_data + c_stride * ( i / dimensions[ 0 ] );         // Important since the surface stride might be wider than the surface width
+            if( i % pixel_dims[ 0 ] == 0 )
+                c_pixelp = c_data + c_stride * ( i / pixel_dims[ 0 ] );         // Important since the surface stride might be wider than the surface width
             
             pixel_space[ i * 4 + 0 ] = 0xFF;
             pixel_space[ i * 4 + 1 ] = 0xFF;
             pixel_space[ i * 4 + 2 ] = 0xFF;
-            pixel_space[ i * 4 + 3 ] = c_pixelp[ i % dimensions[ 0 ] ];
+            pixel_space[ i * 4 + 3 ] = c_pixelp[ i % pixel_dims[ 0 ] ];
         }
         
         // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -367,8 +373,9 @@ namespace jade
             throw exception( "text_rsrc::updateTexture(): Pixel space NULL" );
         
         gl_tex = bytesToTexture( pixel_space,
-                                 dimensions[ 0 ],
-                                 dimensions[ 1 ],
+                                 ceil( dimensions[ 0 ] ),
+                                 ceil( dimensions[ 1 ] ),
+                                 0,
                                  gl_tex );
         
         delete[] pixel_space;
@@ -378,11 +385,15 @@ namespace jade
     
     void text_rsrc::updatePixels_setup( text_update_context* context )
     {
+        dpi::pixels pixel_dims[ 2 ];
+        pixel_dims[ 0 ] = ceil( dimensions[ 0 ] );
+        pixel_dims[ 1 ] = ceil( dimensions[ 1 ] );
+        
         // Set up Cairo then Pango with initial values /////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         context -> c_surf = cairo_image_surface_create( CAIRO_FORMAT_A8,        // We only need alpha, coloring is handled by OpenGL
-                                                        dimensions[ 0 ],
-                                                        dimensions[ 1 ] );
+                                                        pixel_dims[ 0 ],
+                                                        pixel_dims[ 1 ] );
         context -> c_status = cairo_surface_status( context -> c_surf );
         if( context -> c_status )
         {
@@ -409,18 +420,18 @@ namespace jade
         
         // Customize Pango layout & font ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        if( dimensions[ 0 ] == 0 )
+        if( pixel_dims[ 0 ] == 0 )
             pango_layout_set_width( context -> p_layout,
                                     -1 );
         else
             pango_layout_set_width( context -> p_layout,
-                                    dimensions[ 0 ] * PANGO_SCALE );
-        if( dimensions[ 1 ] == 0 )
+                                    pixel_dims[ 0 ] * PANGO_SCALE );
+        if( pixel_dims[ 1 ] == 0 )
             pango_layout_set_height( context -> p_layout,
                                      -1 );
         else
             pango_layout_set_height( context -> p_layout,
-                                     dimensions[ 1 ] * PANGO_SCALE );
+                                     pixel_dims[ 1 ] * PANGO_SCALE );
         
         context -> c_fontops = cairo_font_options_create();
         

@@ -17,10 +17,10 @@
 namespace jade
 {
     image_rsrc::image_rsrc( std::string f,
-                            unsigned int x,
-                            unsigned int y,
-                            unsigned int w,
-                            unsigned int h ) : gui_resource( w, h )
+                            dpi::points x,
+                            dpi::points y,
+                            dpi::points w,
+                            dpi::points h ) : gui_resource( w, h )
     {
         texture = acquireTexture( f );
         

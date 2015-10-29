@@ -21,6 +21,7 @@ namespace jade
     GLuint bytesToTexture( unsigned char*,                                      // Pixel data in RGBA_8
                            unsigned int,                                        // Width in pixels
                            unsigned int,                                        // Height in pixels
+                           unsigned int,                                        // Mipmap level
                            GLuint original = 0x00 );                            // Takes w * h bytes in data & converts it to an OpenGL texture, replacing
                                                                                 // original if original != 0x00; either way it returns the texture ID.
     

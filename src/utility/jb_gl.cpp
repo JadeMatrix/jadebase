@@ -51,6 +51,7 @@ namespace jade
     GLuint bytesToTexture( unsigned char* data,
                            unsigned int w,
                            unsigned int h,
+                           unsigned int level,
                            GLuint original )
     {
         if( data == NULL )
@@ -64,7 +65,7 @@ namespace jade
         
         glBindTexture( GL_TEXTURE_2D, original );
         glTexImage2D( GL_TEXTURE_2D,
-                      0,
+                      level,
                       GL_RGBA,
                       w,
                       h,
@@ -77,7 +78,7 @@ namespace jade
         
         GLenum gl_error = glGetError();
         
-        glBindTexture( GL_TEXTURE_2D, 0x00 );
+        glBindTexture( GL_TEXTURE_2D, 0x00 );                                   // Un-bind texture
         
         if( gl_error != GL_NO_ERROR )
         {
