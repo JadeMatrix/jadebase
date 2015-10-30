@@ -61,6 +61,39 @@ namespace
     
     std::map< jade::gui_resource_name, jade::gui_resource* > named_resources;
     
+    std::string get1xFilename( std::string& fn )                                // If fn is the 2x version of the image filename, returns a string that is the
+                                                                                // 1x filename.  If fn is the 1x version, returns an empty string.
+    {
+        size_t pos_2x = fn.rfind( "@2x" );
+        
+        std::string str_1x;
+        
+        if( pos_2x != std::string::npos )
+            str_1x = fn.substr( 0, pos_2x - 1 )
+                     + fn.substr( pos_2x );
+        
+        return str_1x;
+    }
+    std::string get2xFilename( std::string& fn )                                // If fn is the 1x version of the image filename, returns a string that is the
+                                                                                // 2x filename.  If fn is the 2x version, returns an empty string.
+    {
+        size_t png_pos = fn.find( ".png" );
+        
+        if( png_pos != fn.length() - 4 )
+        {
+            jade::exception exc;
+            
+            ff::write( *exc,
+                       "jade::get2xFilename(): Unrecognized filename format \"",
+                       fn,
+                       "\"" );
+            
+            throw exc;
+        }
+        
+        return fn.substr( 0, png_pos ) + "@2x.png";
+    }
+    
     class ManageResources_task : public jade::task
     {
     protected:
@@ -396,14 +429,23 @@ namespace jade
     {
         scoped_lock< mutex > slock( resources_mutex );
         
+        std::string filename_1x = get1xFilename( filename );
+        
+        std::string* fn;
+        
+        if( filename_1x.length() )
+            fn = &filename_1x;
+        else
+            fn = &filename;
+        
         gui_texture_holder* h;
         
-        if( resource_textures.count( filename ) )
-            h = resource_textures[ filename ];
+        if( resource_textures.count( *fn ) )
+            h = resource_textures[ *fn ];
         else
         {
             h = new gui_texture_holder();
-            resource_textures[ filename ] = h;
+            resource_textures[ *fn ] = h;
             new_textures = true;
         }
         

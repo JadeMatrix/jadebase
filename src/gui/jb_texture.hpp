@@ -4,9 +4,16 @@
 /* 
  * jb_texture.hpp
  * 
- * Simple wrapper for OpenGL textures
+ * Simple wrapper for OpenGL textures; implemented in jb_named_resources.cpp
  * 
- * Implemented in jb_named_resources.cpp
+ * The string passed to acquireTexture() by default is the 1x zoom version.  If
+ * the 1x zoom version is named "image.png" then any file in the same directory
+ * named "image@2x.png" will also be loaded as the hi-DPI (2x zoom) version.  If
+ * the supplied string ends in "@2x.png", that file will be loaded as the 2x
+ * zoom version; if file without the "@2x" exists it will be loaded as the 1x
+ * zoom version.  Currently only PNG files following this Apple-style naming
+ * scheme are supported.  The position and dimensions passed into the construc-
+ * tor have a ratio of 1 point per pixel on the 1x zoom version.
  * 
  */
 
