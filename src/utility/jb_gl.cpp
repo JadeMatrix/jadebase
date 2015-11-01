@@ -49,8 +49,8 @@ namespace jade
     }
     
     GLuint bytesToTexture( unsigned char* data,
-                           unsigned int w,
-                           unsigned int h,
+                           dpi::pixels w,
+                           dpi::pixels h,
                            unsigned int level,
                            GLuint original )
     {
@@ -98,7 +98,10 @@ namespace jade
         return original;
     }
     
-    void addDrawMask( int x, int y, unsigned int w, unsigned int h )
+    void addDrawMask( dpi::points x,
+                      dpi::points y,
+                      dpi::points w,
+                      dpi::points h )
     {
         glColorMask( GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE );
         

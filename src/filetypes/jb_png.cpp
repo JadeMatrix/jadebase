@@ -20,7 +20,7 @@ namespace jade
 {
     png_file::png_file( std::string filename )
     {
-        unsigned char   header[ PNG_HEADER_BYTES ];
+        unsigned char header[ PNG_HEADER_BYTES ];
         
         c_file = fopen( filename.c_str(), "rb" );
         
@@ -114,10 +114,10 @@ namespace jade
         }
     }
     
-    std::pair< unsigned int, unsigned int > png_file::getDimensions()
+    std::pair< dpi::pixels, dpi::pixels > png_file::getDimensions()
     {
-        return std::pair< unsigned int, unsigned int >( dimensions[ 0 ],
-                                                        dimensions[ 1 ] );
+        return std::pair< dpi::pixels, dpi::pixels >( dimensions[ 0 ],
+                                                      dimensions[ 1 ] );
     }
     
     size_t png_file::getBitDepth()

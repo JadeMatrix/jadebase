@@ -18,6 +18,8 @@
 
 #include <png.h>
 
+#include "../utility/jb_dpi.hpp"
+
 /******************************************************************************//******************************************************************************/
 
 namespace jade
@@ -37,7 +39,7 @@ namespace jade
         png_file( std::string );                                                // Opens the png file at the given path
         ~png_file();
         
-        std::pair< unsigned int, unsigned int > getDimensions();
+        std::pair< dpi::pixels, dpi::pixels > getDimensions();
         
         size_t getBitDepth();
         
@@ -51,7 +53,7 @@ namespace jade
         png_structp file_struct;
         
         color_type type;
-        unsigned int dimensions[ 2 ];
+        dpi::pixels dimensions[ 2 ];
         size_t bit_depth;
         
         bool open;

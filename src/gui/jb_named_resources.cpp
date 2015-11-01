@@ -40,18 +40,25 @@ namespace
     {
         jade::gui_texture* texture;
         
-        unsigned char* data;
+        unsigned char* data[ 2 ];
+        unsigned int levels;                                                    // 1 = 1x only, 2 = 2x only, 3 = both
         int ref_count;
         
         gui_texture_holder()
         {
             texture = new jade::gui_texture();
-            data = NULL;
+            data[ 0 ] = NULL;
+            data[ 1 ] = NULL;
             ref_count = 0;
         }
         ~gui_texture_holder()
         {
             delete texture;
+            
+            if( data[ 0 ] != NULL )
+                delete data[ 0 ];
+            if( data[ 1 ] != NULL )
+                delete data[ 1 ];
         }
     };
     
@@ -61,23 +68,28 @@ namespace
     
     std::map< jade::gui_resource_name, jade::gui_resource* > named_resources;
     
-    std::string get1xFilename( std::string& fn )                                // If fn is the 2x version of the image filename, returns a string that is the
+    std::string get1xFilename( const std::string& fn )                          // If fn is the 2x version of the image filename, returns a string that is the
                                                                                 // 1x filename.  If fn is the 1x version, returns an empty string.
     {
-        size_t pos_2x = fn.rfind( "@2x" );
-        
         std::string str_1x;
+        
+        size_t pos_2x = fn.rfind( "@2x" );
         
         if( pos_2x != std::string::npos )
             str_1x = fn.substr( 0, pos_2x - 1 )
-                     + fn.substr( pos_2x );
+                     + fn.substr( pos_2x + 3 );
         
         return str_1x;
     }
-    std::string get2xFilename( std::string& fn )                                // If fn is the 1x version of the image filename, returns a string that is the
+    std::string get2xFilename( const std::string& fn )                          // If fn is the 1x version of the image filename, returns a string that is the
                                                                                 // 2x filename.  If fn is the 2x version, returns an empty string.
     {
-        size_t png_pos = fn.find( ".png" );
+        std::string fn_1x = get1xFilename( fn );
+        
+        if( fn_1x.length() > 0 )                                                // fn is already the 2x filename
+            return fn;
+        
+        size_t png_pos = fn.rfind( ".png" );
         
         if( png_pos != fn.length() - 4 )
         {
@@ -126,26 +138,73 @@ namespace
                 
                 if( new_textures )
                 {
-                    for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+                    for( auto iter = resource_textures.begin();
                          iter != resource_textures.end();
                          ++iter )
                     {
-                        if( iter -> second -> data == NULL
-                            && iter -> second -> texture -> gl_texture == 0x00 )
+                        if( iter -> second -> texture -> gl_texture == 0x00
+                            && iter -> second -> data[ 0 ] == NULL )
                         {
-                            jade::png_file rsrc_file( iter -> first );
+                            int data_i = 0;
                             
-                            std::pair< unsigned int, unsigned int > rsrc_dim = rsrc_file.getDimensions();
+                            try
+                            {
+                                jade::png_file rsrc_file( get2xFilename( iter -> first ) );
+                                
+                                std::pair< jade::dpi::pixels, jade::dpi::pixels > rsrc_dim = rsrc_file.getDimensions();
+                                iter -> second -> data[ data_i ] = new unsigned char[ rsrc_dim.first * rsrc_dim.second * 4 ];
+                                
+                                if( iter -> second -> data[ data_i ] == NULL )
+                                    throw jade::exception( "ManageResources_task::execute(): Could not allocate conversion space for @2x" );
+                                
+                                rsrc_file.toRGBABytes( iter -> second -> data[ data_i ] );
+                                
+                                iter -> second -> texture -> dimensions[ 0 ] = rsrc_dim.first  / 2;
+                                iter -> second -> texture -> dimensions[ 1 ] = rsrc_dim.second / 2;
+                                
+                                iter -> second -> levels |= 2;
+                                
+                                ++data_i;
+                            }
+                            catch( jade::exception e ) {}
                             
-                            iter -> second -> data = new unsigned char[ rsrc_dim.first * rsrc_dim.second * 4 ];
+                            try
+                            {
+                                jade::png_file rsrc_file( iter -> first );
+                                
+                                std::pair< jade::dpi::pixels, jade::dpi::pixels > rsrc_dim = rsrc_file.getDimensions();
+                                iter -> second -> data[ data_i ] = new unsigned char[ rsrc_dim.first * rsrc_dim.second * 4 ];
+                                
+                                if( iter -> second -> data[ data_i ] == NULL )
+                                    throw jade::exception( "ManageResources_task::execute(): Could not allocate conversion space for @1x" );
+                                
+                                rsrc_file.toRGBABytes( iter -> second -> data[ data_i ] );
+                                
+                                if( data_i == 0 )
+                                {
+                                    iter -> second -> texture -> dimensions[ 0 ] = rsrc_dim.first;
+                                    iter -> second -> texture -> dimensions[ 1 ] = rsrc_dim.second;
+                                }
+                                
+                                iter -> second -> levels |= 1;
+                                
+                                ++data_i;
+                            }
+                            catch( jade::exception e ) {}
                             
-                            if( iter -> second -> data == NULL )
-                                throw jade::exception( "ManageResources_task::execute(): Could not allocate conversion space" );
-                            
-                            rsrc_file.toRGBABytes( iter -> second -> data );
-                            
-                            iter -> second -> texture -> dimensions[ 0 ] = rsrc_dim.first;
-                            iter -> second -> texture -> dimensions[ 1 ] = rsrc_dim.second;
+                            if( data_i == 0 )
+                            {
+                                jade::exception e;
+                                
+                                ff::write( *e,
+                                           "Could not open resource \"",
+                                           iter -> first,
+                                           "\" or \"",
+                                           get2xFilename( iter -> first ),
+                                           "\"" );
+                                
+                                throw e;
+                            }
                         }
                     }
                 }
@@ -158,22 +217,42 @@ namespace
             {
                 if( new_textures )
                 {
-                    for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+                    for( auto iter = resource_textures.begin();
                          iter != resource_textures.end();
                          ++iter )
                     {
                         if( iter -> second -> texture -> gl_texture == 0x00
-                            && iter -> second -> data != NULL )
+                            && iter -> second -> data[ 0 ] != NULL )
                         {
-                            GLuint gl_texture = jade::bytesToTexture( iter -> second -> data,
-                                                                      ceil( iter -> second -> texture -> dimensions[ 0 ] ),
-                                                                      ceil( iter -> second -> texture -> dimensions[ 1 ] ),
-                                                                      0 );
+                            GLuint gl_texture;
+                            
+                            if( iter -> second -> levels == 1 )
+                                gl_texture = jade::bytesToTexture( iter -> second -> data[ 0 ],
+                                                                   ceil( iter -> second -> texture -> dimensions[ 0 ] ),
+                                                                   ceil( iter -> second -> texture -> dimensions[ 1 ] ),
+                                                                   0 );
+                            else
+                                gl_texture = jade::bytesToTexture( iter -> second -> data[ 0 ],
+                                                                   ceil( iter -> second -> texture -> dimensions[ 0 ] ) * 2,
+                                                                   ceil( iter -> second -> texture -> dimensions[ 1 ] ) * 2,
+                                                                   0 );
                             
                             iter -> second -> texture -> gl_texture = gl_texture;
                             
-                            delete[] iter -> second -> data;
-                            iter -> second -> data = NULL;
+                            delete[] iter -> second -> data[ 0 ];
+                            iter -> second -> data[ 0 ] = NULL;
+                            
+                            if( iter -> second -> data[ 1 ] != NULL )
+                            {
+                                jade::bytesToTexture( iter -> second -> data[ 1 ],
+                                                      ceil( iter -> second -> texture -> dimensions[ 0 ] ),
+                                                      ceil( iter -> second -> texture -> dimensions[ 1 ] ),
+                                                      1,
+                                                      iter -> second -> texture -> gl_texture );
+                                
+                                delete[] iter -> second -> data[ 1 ];
+                                iter -> second -> data[ 1 ] = NULL;
+                            }
                         }
                     }
                     
@@ -182,7 +261,7 @@ namespace
                 
                 if( old_textures )
                 {
-                    for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+                    for( auto iter = resource_textures.begin();
                          iter != resource_textures.end();
                          /* NULL */ )
                     {
@@ -230,6 +309,28 @@ namespace jade
     void initNamedResources()
     {
         scoped_lock< mutex > slock( resources_mutex );
+        
+        // std::string fn( GUI_RESOURCE_FILE );
+        // ff::write( jb_out,
+        //            "Original filename: ",
+        //            fn,
+        //            "\n" );
+        // std::string fn_1x = get1xFilename( fn );
+        // ff::write( jb_out,
+        //            "@1x filename: ",
+        //            ( fn_1x.length() ? fn_1x : "default" ),
+        //            "\n" );
+        // std::string fn_2x = get2xFilename( fn );
+        // ff::write( jb_out,
+        //            "@2x filename: ",
+        //            ( fn_2x.length() ? fn_2x : "default" ),
+        //            "\n" );
+        // if( fn_2x.length() )
+        //     ff::write( jb_out,
+        //                "@1x filename from 2x: ",
+        //                get1xFilename( fn_2x ),
+        //                "\n" );
+        // throw exception( "early terminate" );
         
         named_resources[ rounded_button_off_up_top_left ] = new image_rsrc( GUI_RESOURCE_FILE, 0, 0, 6, 7 );
         named_resources[ rounded_button_off_up_top_center ] = new image_rsrc( GUI_RESOURCE_FILE, 6, 0, 1, 7 );
@@ -429,7 +530,7 @@ namespace jade
     {
         scoped_lock< mutex > slock( resources_mutex );
         
-        std::string filename_1x = get1xFilename( filename );
+        std::string filename_1x = get1xFilename( filename );                    // Textures are referenced by their 1x filename
         
         std::string* fn;
         
@@ -457,7 +558,7 @@ namespace jade
     {
         scoped_lock< mutex > slock( resources_mutex );
         
-        for( std::map< std::string, gui_texture_holder* >::iterator iter = resource_textures.begin();
+        for( auto iter = resource_textures.begin();
              iter != resource_textures.end();
              ++iter )
         {
