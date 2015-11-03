@@ -167,6 +167,8 @@ namespace jade
                                       dpi::points h,
                                       ellipsis_mode e )
     {
+        // TODO: Clean up & document this
+        
         scoped_lock< mutex > slock( text_mutex );
         
         if( w < 0 )
@@ -260,7 +262,10 @@ namespace jade
             }
             glEnd();
             
-            glTranslatef( tex_offset[ 0 ] * -1.0f, tex_offset[ 1 ] * -1.0f, 0.0f );
+            if( enable_baseline )
+                glTranslatef( tex_offset[ 0 ] * -1.0f,
+                              tex_offset[ 1 ] * -1.0f,
+                              0.0f );
             
             glBindTexture( GL_TEXTURE_2D, 0x00 );
         }
@@ -282,6 +287,8 @@ namespace jade
         else
             context = new text_update_context;
         
+        context -> state = text_update_context::UPDATE_PIXELS;
+        
         dimensions[ 0 ] = 0;
         dimensions[ 1 ] = 0;
         
@@ -289,15 +296,15 @@ namespace jade
         
         // Get real dimensions /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        PangoRectangle p_layout_inkrect;
+        PangoRectangle p_layout_lrect;
         
         pango_layout_get_extents( context -> p_layout,
-                                  &p_layout_inkrect,
-                                  NULL );
+                                  NULL,
+                                  &p_layout_lrect );                            // Get the logical rect, since the ink rect truncates some stuff
         
         // Make sure we have enough room
-        dimensions[ 0 ] = ceil( ( double )( p_layout_inkrect.width  + p_layout_inkrect.x ) / PANGO_SCALE );
-        dimensions[ 1 ] = ceil( ( double )( p_layout_inkrect.height + p_layout_inkrect.y ) / PANGO_SCALE );
+        dimensions[ 0 ] = ceil( ( p_layout_lrect.width  + p_layout_lrect.x ) / ( double )( PANGO_SCALE * 2.0f ) );
+        dimensions[ 1 ] = ceil( ( p_layout_lrect.height + p_layout_lrect.y ) / ( double )( PANGO_SCALE * 2.0f ) );
         
         if( max_dimensions[ 0 ] > 0
             && dimensions[ 0 ] > max_dimensions[ 0 ] )
@@ -330,20 +337,20 @@ namespace jade
         // switch( pango_context_get_gravity( pango_layout_get_context( context -> p_layout ) ) )
         // {
         // case PANGO_GRAVITY_EAST:
-        //     tex_offset[ 0 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 0 ] = pango_layout_get_baseline( context -> p_layout ) / ( PANGO_SCALE * -1 * 2.0f );
         //     tex_offset[ 1 ] = 0;
         //     break;
         // case PANGO_GRAVITY_WEST:
-        //     tex_offset[ 0 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 0 ] = pango_layout_get_baseline( context -> p_layout ) / ( PANGO_SCALE * -1 * 2.0f );
         //     tex_offset[ 1 ] = 0;
         //     break;
         // case PANGO_GRAVITY_NORTH:
         //     tex_offset[ 0 ] = 0;
-        //     tex_offset[ 1 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 1 ] = pango_layout_get_baseline( context -> p_layout ) / ( PANGO_SCALE * -1 * 2.0f );
         //     break;
         // case PANGO_GRAVITY_SOUTH:
             tex_offset[ 0 ] = 0;
-            tex_offset[ 1 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
+            tex_offset[ 1 ] = pango_layout_get_baseline( context -> p_layout ) / ( PANGO_SCALE * -1 * 2.0f );
         //     break;
         // case PANGO_GRAVITY_AUTO:
         // default:
@@ -353,8 +360,8 @@ namespace jade
         // Convert Cairo surface to RGBA for OpenGL ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         dpi::pixels pixel_dims[ 2 ];
-        pixel_dims[ 0 ] = ceil( dimensions[ 0 ] );                              // Using ceil() as we want the texture at least as big as the points
-        pixel_dims[ 1 ] = ceil( dimensions[ 1 ] );
+        pixel_dims[ 0 ] = ceil( dimensions[ 0 ] * 2.0f );                       // Using ceil() as we want the texture at least as big as the points
+        pixel_dims[ 1 ] = ceil( dimensions[ 1 ] * 2.0f );
         
         context -> pixel_space[ 0 ] = new unsigned char[ pixel_dims[ 0 ] * pixel_dims[ 1 ] * 4 ];
         
@@ -389,8 +396,8 @@ namespace jade
             && context -> state == text_update_context::UPDATE_TEXTURE )
         {
             gl_tex = bytesToTexture( context -> pixel_space[ 0 ],
-                                     ceil( dimensions[ 0 ] ),
-                                     ceil( dimensions[ 1 ] ),
+                                     ceil( dimensions[ 0 ] * 2.0f ),
+                                     ceil( dimensions[ 1 ] * 2.0f ),
                                      0,
                                      gl_tex );
             
@@ -402,11 +409,9 @@ namespace jade
     
     void text_rsrc::updatePixels_setup()
     {
-        context -> state = text_update_context::UPDATE_PIXELS;
-        
         dpi::pixels pixel_dims[ 2 ];
-        pixel_dims[ 0 ] = ceil( dimensions[ 0 ] );
-        pixel_dims[ 1 ] = ceil( dimensions[ 1 ] );
+        pixel_dims[ 0 ] = ceil( dimensions[ 0 ] * 2.0f );
+        pixel_dims[ 1 ] = ceil( dimensions[ 1 ] * 2.0f );
         
         // Set up Cairo then Pango with initial values /////////////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -439,6 +444,8 @@ namespace jade
         
         // Customize Pango layout & font ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
+        // Working with the logical bounding box here; this allows us to left-
+        // justify right-to-left text
         if( pixel_dims[ 0 ] == 0 )
             pango_layout_set_width( context -> p_layout,
                                     -1 );
@@ -477,7 +484,7 @@ namespace jade
         context -> p_fontd = pango_font_description_from_string( font.c_str() );
         
         pango_font_description_set_absolute_size( context -> p_fontd,
-                                                  point_size * PANGO_SCALE );
+                                                  point_size * 2.0f * PANGO_SCALE );
         
         pango_layout_set_font_description( context -> p_layout,
                                            context -> p_fontd );
