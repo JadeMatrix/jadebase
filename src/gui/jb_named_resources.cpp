@@ -49,6 +49,7 @@ namespace
             texture = new jade::gui_texture();
             data[ 0 ] = NULL;
             data[ 1 ] = NULL;
+            levels = 0;
             ref_count = 0;
         }
         ~gui_texture_holder()

@@ -37,6 +37,29 @@ namespace jade
         
         PangoLayout*          p_layout;
         PangoFontDescription* p_fontd;
+        
+        unsigned char* pixel_space[ 2 ];
+        unsigned int levels;                                                    // 1 = 1x only, 2 = 2x only, 3 = both
+        
+        enum
+        {
+            UPDATE_PIXELS,
+            UPDATE_TEXTURE
+        } state;
+        
+        text_update_context()
+        {
+            c_surf = NULL;
+            c_context = NULL;
+            c_fontops = NULL;
+            
+            p_layout = NULL;
+            p_fontd = NULL;
+            
+            pixel_space[ 0 ] = NULL;
+            pixel_space[ 1 ] = NULL;
+            levels = 0;
+        }
     };
     
     text_rsrc::text_rsrc( float p,
@@ -64,16 +87,14 @@ namespace jade
         hinting_enabled = false;
         antialiasing_enabled = true;
         
-        pixel_space = NULL;
+        context = NULL;
         gl_tex = 0x00;
         
-        update_tex = true;
         updatePixels();
     }
     text_rsrc::~text_rsrc()
     {
-        if( pixel_space != NULL )
-            delete pixel_space;
+        updatePixels_cleanup();
     }
     
     float text_rsrc::getPointSize()
@@ -91,7 +112,6 @@ namespace jade
         
         point_size = p;
         
-        update_tex = true;
         updatePixels();
     }
     
@@ -107,7 +127,6 @@ namespace jade
         
         string = s;
         
-        update_tex = true;
         updatePixels();
     }
     
@@ -123,7 +142,6 @@ namespace jade
         
         font = f;
         
-        update_tex = true;
         updatePixels();
     }
     
@@ -167,7 +185,6 @@ namespace jade
         
         max_dimensions[ 1 ] = h;
         
-        update_tex = true;
         updatePixels();
     }
     
@@ -196,7 +213,6 @@ namespace jade
         
         hinting_enabled = h;
         
-        update_tex = true;
         updatePixels();
     }
     
@@ -212,7 +228,6 @@ namespace jade
         
         antialiasing_enabled = a;
         
-        update_tex = true;
         updatePixels();
     }
     
@@ -220,8 +235,7 @@ namespace jade
     {
         scoped_lock< mutex > slock( text_mutex );
         
-        if( update_tex )
-            updateTexture();
+        updateTexture();
         
         glColor4f( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
         {
@@ -261,20 +275,23 @@ namespace jade
         
         scoped_lock< mutex > slock( text_mutex );
         
-        text_update_context context;
-        
         // Set up Cairo then Pango with initial values /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        if( context != NULL )
+            updatePixels_cleanup();
+        else
+            context = new text_update_context;
         
         dimensions[ 0 ] = 0;
         dimensions[ 1 ] = 0;
         
-        updatePixels_setup( &context );
+        updatePixels_setup();
         
         // Get real dimensions /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         PangoRectangle p_layout_inkrect;
         
-        pango_layout_get_extents( context.p_layout,
+        pango_layout_get_extents( context -> p_layout,
                                   &p_layout_inkrect,
                                   NULL );
         
@@ -296,37 +313,37 @@ namespace jade
         {
             // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            updatePixels_cleanup( &context );
+            updatePixels_cleanup();
             
             // Re-set up Cairo then Pango with actual values ///////////////////////////////////////////////////////////////////////////////////////////////////
             
-            updatePixels_setup( &context );
+            updatePixels_setup();
         }
         
         // Draw text to surface ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        pango_cairo_show_layout( context.c_context,
-                                 context.p_layout );                            // Render text
+        pango_cairo_show_layout( context -> c_context,
+                                 context -> p_layout );                            // Render text
         
         // TODO: Support vertical baseline
         
-        // switch( pango_context_get_gravity( pango_layout_get_context( context.p_layout ) ) )
+        // switch( pango_context_get_gravity( pango_layout_get_context( context -> p_layout ) ) )
         // {
         // case PANGO_GRAVITY_EAST:
-        //     tex_offset[ 0 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 0 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
         //     tex_offset[ 1 ] = 0;
         //     break;
         // case PANGO_GRAVITY_WEST:
-        //     tex_offset[ 0 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 0 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
         //     tex_offset[ 1 ] = 0;
         //     break;
         // case PANGO_GRAVITY_NORTH:
         //     tex_offset[ 0 ] = 0;
-        //     tex_offset[ 1 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+        //     tex_offset[ 1 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
         //     break;
         // case PANGO_GRAVITY_SOUTH:
             tex_offset[ 0 ] = 0;
-            tex_offset[ 1 ] = pango_layout_get_baseline( context.p_layout ) / PANGO_SCALE * -1;
+            tex_offset[ 1 ] = pango_layout_get_baseline( context -> p_layout ) / PANGO_SCALE * -1;
         //     break;
         // case PANGO_GRAVITY_AUTO:
         // default:
@@ -335,21 +352,18 @@ namespace jade
         
         // Convert Cairo surface to RGBA for OpenGL ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        if( pixel_space != NULL )
-            delete[] pixel_space;
-        
         dpi::pixels pixel_dims[ 2 ];
         pixel_dims[ 0 ] = ceil( dimensions[ 0 ] );                              // Using ceil() as we want the texture at least as big as the points
         pixel_dims[ 1 ] = ceil( dimensions[ 1 ] );
         
-        pixel_space = new unsigned char[ pixel_dims[ 0 ] * pixel_dims[ 1 ] * 4 ];
+        context -> pixel_space[ 0 ] = new unsigned char[ pixel_dims[ 0 ] * pixel_dims[ 1 ] * 4 ];
         
-        if( pixel_space == NULL )
+        if( context -> pixel_space[ 0 ] == NULL )
             throw exception( "text_rsrc::updatePixels(): Could not allocate pixel space" );
         
-        unsigned char* c_data = cairo_image_surface_get_data( context.c_surf );
+        unsigned char* c_data = cairo_image_surface_get_data( context -> c_surf );
         
-        int c_stride = cairo_image_surface_get_stride( context.c_surf );
+        int c_stride = cairo_image_surface_get_stride( context -> c_surf );
         unsigned char* c_pixelp;
         
         for( long i = 0; i < pixel_dims[ 0 ] * pixel_dims[ 1 ]; ++i )
@@ -357,34 +371,39 @@ namespace jade
             if( i % pixel_dims[ 0 ] == 0 )
                 c_pixelp = c_data + c_stride * ( i / pixel_dims[ 0 ] );         // Important since the surface stride might be wider than the surface width
             
-            pixel_space[ i * 4 + 0 ] = 0xFF;
-            pixel_space[ i * 4 + 1 ] = 0xFF;
-            pixel_space[ i * 4 + 2 ] = 0xFF;
-            pixel_space[ i * 4 + 3 ] = c_pixelp[ i % pixel_dims[ 0 ] ];
+            context -> pixel_space[ 0 ][ i * 4 + 0 ] = 0xFF;
+            context -> pixel_space[ 0 ][ i * 4 + 1 ] = 0xFF;
+            context -> pixel_space[ 0 ][ i * 4 + 2 ] = 0xFF;
+            context -> pixel_space[ 0 ][ i * 4 + 3 ] = c_pixelp[ i % pixel_dims[ 0 ] ];
         }
         
         // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
-        updatePixels_cleanup( &context );
+        updatePixels_cleanup();
+        
+        context -> state = text_update_context::UPDATE_TEXTURE;
     }
     void text_rsrc::updateTexture()
     {
-        if( pixel_space == NULL )
-            throw exception( "text_rsrc::updateTexture(): Pixel space NULL" );
-        
-        gl_tex = bytesToTexture( pixel_space,
-                                 ceil( dimensions[ 0 ] ),
-                                 ceil( dimensions[ 1 ] ),
-                                 0,
-                                 gl_tex );
-        
-        delete[] pixel_space;
-        pixel_space = NULL;
-        update_tex = false;
+        if( context != NULL
+            && context -> state == text_update_context::UPDATE_TEXTURE )
+        {
+            gl_tex = bytesToTexture( context -> pixel_space[ 0 ],
+                                     ceil( dimensions[ 0 ] ),
+                                     ceil( dimensions[ 1 ] ),
+                                     0,
+                                     gl_tex );
+            
+            updatePixels_cleanup();
+            delete context;
+            context = NULL;
+        }
     }
     
-    void text_rsrc::updatePixels_setup( text_update_context* context )
+    void text_rsrc::updatePixels_setup()
     {
+        context -> state = text_update_context::UPDATE_PIXELS;
+        
         dpi::pixels pixel_dims[ 2 ];
         pixel_dims[ 0 ] = ceil( dimensions[ 0 ] );
         pixel_dims[ 1 ] = ceil( dimensions[ 1 ] );
@@ -493,15 +512,40 @@ namespace jade
         pango_cairo_update_layout( context -> c_context,
                                    context -> p_layout );
     }
-    void text_rsrc::updatePixels_cleanup( text_update_context* context )
+    void text_rsrc::updatePixels_cleanup()
     {
-        // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
-        g_object_unref( context -> p_layout );
-        
-        cairo_destroy( context -> c_context );
-        
-        cairo_font_options_destroy( context -> c_fontops );
+        if( context != NULL )
+        {
+            switch( context -> state )
+            {
+            case text_update_context::UPDATE_PIXELS:
+                // Clean up Pango then Cairo ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+                g_object_unref( context -> p_layout );
+                
+                cairo_destroy( context -> c_context );
+                
+                cairo_font_options_destroy( context -> c_fontops );
+                
+                break;
+            case text_update_context::UPDATE_TEXTURE:
+                if( context -> pixel_space[ 0 ] != NULL )
+                {
+                    delete[] context -> pixel_space[ 0 ];
+                    context -> pixel_space[ 0 ] = NULL;
+                }
+                
+                if( context -> pixel_space[ 1 ] != NULL )                       // It is unlikely that 1 will be nonnull if 0 is null, but check anyways
+                {
+                    delete[] context -> pixel_space[ 1 ];
+                    context -> pixel_space[ 1 ] = NULL;
+                }
+                
+                break;
+            default:
+                throw exception( "destroyUpdateContext(): Unknown update state" );
+            }
+        }
     }
 }
 

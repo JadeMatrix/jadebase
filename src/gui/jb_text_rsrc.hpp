@@ -100,15 +100,14 @@ namespace jade
         bool hinting_enabled;
         bool antialiasing_enabled;
         
-        unsigned char* pixel_space;
+        text_update_context* context;
         GLuint gl_tex;
         
-        bool update_tex;
         void updatePixels();
         void updateTexture();
         
-        void updatePixels_setup( text_update_context* );
-        void updatePixels_cleanup( text_update_context* );
+        void updatePixels_setup();
+        void updatePixels_cleanup();
     };
 }
 
