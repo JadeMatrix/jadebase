@@ -403,12 +403,13 @@ namespace jade
                 element_position   = elements[ i ] -> getVisualPosition();
                 element_dimensions = elements[ i ] -> getVisualDimensions();
                 
-                if( pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
-                                     e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
-                                     element_position.first,
-                                     element_position.second,
-                                     element_dimensions.first,
-                                     element_dimensions.second )
+                if( ( e.type == STROKE                                          // Allow elements to see exiting strokes
+                      && pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
+                                          e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
+                                          element_position.first,
+                                          element_position.second,
+                                          element_dimensions.first,
+                                          element_dimensions.second ) )
                     || pointInsideRect( e_position[ 0 ],
                                         e_position[ 1 ],
                                         element_position.first,
