@@ -118,6 +118,7 @@ namespace jade
         
     protected:
         mutex window_mutex;
+        mutex redraw_mutex;
         
         /* Window infrastructure **********************************************//******************************************************************************/
         

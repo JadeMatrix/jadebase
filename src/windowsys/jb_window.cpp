@@ -267,7 +267,7 @@ namespace jade
     
     void window::requestRedraw()
     {
-        scoped_lock< mutex > slock( window_mutex );
+        scoped_lock< mutex > slock( redraw_mutex );
         
         if( pending_redraws < 1 )
         {
@@ -806,13 +806,13 @@ namespace jade
     
     window::redraw::redraw( window& t ) : target( t )
     {
-        scoped_lock< mutex > slock( target.window_mutex );
+        scoped_lock< mutex > slock( target.redraw_mutex );
         
         target.pending_redraws++;
     }
     bool window::redraw::execute( task_mask* caller_mask )
     {
-        scoped_lock< mutex > slock( target.window_mutex );
+        scoped_lock< mutex > rslock( target.redraw_mutex );
         
         target.makeContextCurrent();
         
@@ -822,6 +822,8 @@ namespace jade
         {
             if( target.pending_redraws != 1 )                                   // Sanity check
                 throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
+            
+            scoped_lock< mutex > wslock( target.window_mutex );
             
             glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
             glLoadIdentity();
