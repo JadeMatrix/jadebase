@@ -1,3 +1,5 @@
+# Memcheck #####################################################################
+
 {
     _dl_init() 'possible' leak
     Memcheck:Leak
@@ -91,4 +93,15 @@
     fun:pango_cairo_font_map_get_default
     fun:pango_cairo_create_context
     fun:pango_cairo_create_layout
+}
+
+# Helgrind #####################################################################
+
+{
+    jade::task_queue condition broadcast on ::push()
+    Helgrind:Misc
+    ...
+    fun:_ZNK4jade9condition9broadcastEv
+    fun:_ZN4jade10task_queue4pushEPNS_4taskE
+    ...
 }
