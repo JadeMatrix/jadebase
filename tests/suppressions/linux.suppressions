@@ -98,10 +98,26 @@
 # Helgrind #####################################################################
 
 {
+    jade::task_queue condition broadcast on ::open()
+    Helgrind:Misc
+    ...
+    fun:_ZNK4jade9condition9broadcastEv
+    fun:_ZN4jade10task_queue4openEv
+    ...
+}
+{
     jade::task_queue condition broadcast on ::push()
     Helgrind:Misc
     ...
     fun:_ZNK4jade9condition9broadcastEv
     fun:_ZN4jade10task_queue4pushEPNS_4taskE
+    ...
+}
+{
+    jade::task_queue condition broadcast on ::close()
+    Helgrind:Misc
+    ...
+    fun:_ZNK4jade9condition9broadcastEv
+    fun:_ZN4jade10task_queue5closeEv
     ...
 }

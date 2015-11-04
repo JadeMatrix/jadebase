@@ -251,14 +251,19 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        if( current_tab >= 0 )
-            tabs[ current_tab ].data -> contents -> hidden();
+        int new_index = current_tab = getTabIndex( t );
         
-        current_tab = getTabIndex( t );
-        t -> contents -> shown();
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
+        if( new_index != current_tab )
+        {
+            if( current_tab >= 0 )
+                tabs[ current_tab ].data -> contents -> hidden();
+            
+            current_tab = new_index;
+            t -> contents -> shown();
+            
+            if( parent != NULL )
+                parent -> requestRedraw();
+        }
     }
     void tabset::moveTabLeft( std::shared_ptr< tab >& t )
     {
@@ -751,10 +756,10 @@ namespace jade
                 if( total_tab_width + bar_scroll < dimensions[ 0 ] )
                     bar_scroll = dimensions[ 0 ] - total_tab_width;
             }
+            
+            if( parent != NULL )
+                parent -> requestRedraw();
         }
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
     }
 }
 

@@ -74,6 +74,8 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
+        float old_value = value;
+        
         if( v > DIAL_MAX_VALUE )
             value = DIAL_MAX_VALUE;
         else
@@ -87,7 +89,7 @@ namespace jade
         if( value_change_callback )
             value_change_callback -> call();
         
-        if( parent != NULL )
+        if( value != old_value && parent != NULL )
             parent -> requestRedraw();
     }
     float dial::getValue()
