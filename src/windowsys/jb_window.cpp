@@ -384,13 +384,15 @@ namespace jade
                            "\n" );
             
             platform_window.glx_context = glXCreateContext( x_display,
-                                                        platform_window.x_visual_info,
-                                                        NULL,
-                                                        GL_TRUE );
+                                                            platform_window.x_visual_info,
+                                                            NULL,
+                                                            GL_TRUE );
             
             initOpenGL();                                                       // Init OpenGL first time only
             
-            glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
+            glXMakeCurrent( x_display,
+                            platform_window.x_window
+                                platform_window.glx_context );
             
             glewExperimental = GL_TRUE;                                         // To allow FBOs in OpenGL <3.0
             GLenum err = glewInit();                                            // Init GLEW first time only
@@ -415,9 +417,9 @@ namespace jade
                            "\n" );
             
             platform_window.glx_context = glXCreateContext( x_display,
-                                                        platform_window.x_visual_info,
-                                                        context_source.getPlatformWindow().glx_context,
-                                                        GL_TRUE );
+                                                            platform_window.x_visual_info,
+                                                            context_source.getPlatformWindow().glx_context,
+                                                            GL_TRUE );
             
             glXMakeCurrent( x_display, platform_window.x_window, platform_window.glx_context );
         }

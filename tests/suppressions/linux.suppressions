@@ -94,6 +94,44 @@
     fun:pango_cairo_create_context
     fun:pango_cairo_create_layout
 }
+{
+    glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT )
+    Memcheck:Leak
+    fun:calloc
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:_ZN4jade6window6redraw7executeEPh
+}
+{
+    glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT )
+    Memcheck:Leak
+    fun:calloc
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:*
+    fun:_ZN4jade6window6redraw7executeEPh
+}
+{
+    Potential false positive for glew's glXCreateContext()
+    Memcheck:Leak
+    ...
+    fun:glXCreateContext
+    fun:_ZN4jade6window4initEv
+}
 
 # Helgrind #####################################################################
 
