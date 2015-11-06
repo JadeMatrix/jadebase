@@ -4,7 +4,8 @@
 /* 
  * jb_texture.hpp
  * 
- * Simple wrapper for OpenGL textures; implemented in jb_named_resources.cpp
+ * Simple wrapper for managed OpenGL textures; implemented in
+ * jb_named_resources.cpp
  * 
  * The string passed to acquireTexture() by default is the 1x zoom version.  If
  * the 1x zoom version is named "image.png" then any file in the same directory
@@ -43,6 +44,11 @@ namespace jade
     };
     
     gui_texture* acquireTexture( std::string );                                 // Lock & return (possibly opening) a texture from the image at the given path
+    gui_texture* acquireTexture( dpi::points,                                   // Create a managed texture from a raw data descriptor
+                                 dpi::points,                                   // Width & height in whole points
+                                 unsigned char*[ 2 ] );                         // Two mipmap levels; 0 = 1x, 1 = 2x; either, neither, but not both may be NULL;
+                                                                                // the texture management system owns these pointers after passing them in.
+    gui_texture* acquireTexture( gui_texture* );                                // Reference an existing managed texture
     void releaseTexture( gui_texture* t );                                      // Release an acquired texture
 }
 

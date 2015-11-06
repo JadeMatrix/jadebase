@@ -12,6 +12,7 @@
 #include "jb_texture.hpp"
 
 #include <cmath>
+#include <map>
 
 #include "jb_image_rsrc.hpp"
 #include "../filetypes/jb_png.hpp"
@@ -64,6 +65,7 @@ namespace
     };
     
     std::map< std::string, gui_texture_holder* > resource_textures;
+    std::map< jade::gui_texture*, gui_texture_holder* > anonymous_textures;
     bool new_textures = false;
     bool old_textures = false;
     
@@ -105,6 +107,43 @@ namespace
         }
         
         return fn.substr( 0, png_pos ) + "@2x.png";
+    }
+    
+    void generateOpenGLTexture( gui_texture_holder* h )                         // Helper function for ManageResources_task::execute()
+    {
+        if( h -> texture -> gl_texture == 0x00
+            && h -> data[ 0 ] != NULL )
+        {
+            GLuint gl_texture;
+            
+            if( h -> levels == 1 )
+                gl_texture = jade::bytesToTexture( h -> data[ 0 ],
+                                                   ceil( h -> texture -> dimensions[ 0 ] ),
+                                                   ceil( h -> texture -> dimensions[ 1 ] ),
+                                                   0 );
+            else
+                gl_texture = jade::bytesToTexture( h -> data[ 0 ],
+                                                   ceil( h -> texture -> dimensions[ 0 ] ) * 2,
+                                                   ceil( h -> texture -> dimensions[ 1 ] ) * 2,
+                                                   0 );
+            
+            h -> texture -> gl_texture = gl_texture;
+            
+            delete[] h -> data[ 0 ];
+            h -> data[ 0 ] = NULL;
+            
+            if( h -> data[ 1 ] != NULL )
+            {
+                jade::bytesToTexture( h -> data[ 1 ],
+                                      ceil( h -> texture -> dimensions[ 0 ] ),
+                                      ceil( h -> texture -> dimensions[ 1 ] ),
+                                      1,
+                                      h -> texture -> gl_texture );
+                
+                delete[] h -> data[ 1 ];
+                h -> data[ 1 ] = NULL;
+            }
+        }
     }
     
     class ManageResources_task : public jade::task
@@ -218,43 +257,20 @@ namespace
             {
                 if( new_textures )
                 {
+                    // Generate OpenGL textures for file textures
                     for( auto iter = resource_textures.begin();
                          iter != resource_textures.end();
                          ++iter )
                     {
-                        if( iter -> second -> texture -> gl_texture == 0x00
-                            && iter -> second -> data[ 0 ] != NULL )
-                        {
-                            GLuint gl_texture;
-                            
-                            if( iter -> second -> levels == 1 )
-                                gl_texture = jade::bytesToTexture( iter -> second -> data[ 0 ],
-                                                                   ceil( iter -> second -> texture -> dimensions[ 0 ] ),
-                                                                   ceil( iter -> second -> texture -> dimensions[ 1 ] ),
-                                                                   0 );
-                            else
-                                gl_texture = jade::bytesToTexture( iter -> second -> data[ 0 ],
-                                                                   ceil( iter -> second -> texture -> dimensions[ 0 ] ) * 2,
-                                                                   ceil( iter -> second -> texture -> dimensions[ 1 ] ) * 2,
-                                                                   0 );
-                            
-                            iter -> second -> texture -> gl_texture = gl_texture;
-                            
-                            delete[] iter -> second -> data[ 0 ];
-                            iter -> second -> data[ 0 ] = NULL;
-                            
-                            if( iter -> second -> data[ 1 ] != NULL )
-                            {
-                                jade::bytesToTexture( iter -> second -> data[ 1 ],
-                                                      ceil( iter -> second -> texture -> dimensions[ 0 ] ),
-                                                      ceil( iter -> second -> texture -> dimensions[ 1 ] ),
-                                                      1,
-                                                      iter -> second -> texture -> gl_texture );
-                                
-                                delete[] iter -> second -> data[ 1 ];
-                                iter -> second -> data[ 1 ] = NULL;
-                            }
-                        }
+                       generateOpenGLTexture( iter -> second );
+                    }
+                    
+                    // Generate OpenGL textures for manual textures
+                    for( auto iter = anonymous_textures.begin();
+                         iter != anonymous_textures.end();
+                         ++iter )
+                    {
+                        generateOpenGLTexture( iter -> second );
                     }
                     
                     new_textures = false;
@@ -274,6 +290,22 @@ namespace
                             delete iter -> second;
                             
                             resource_textures.erase( iter++ );
+                        }
+                        else
+                            ++iter;
+                    }
+                    for( auto iter = anonymous_textures.begin();
+                         iter != anonymous_textures.end();
+                         /* NULL */ )
+                    {
+                        if( iter -> second -> ref_count < 1 )
+                        {
+                            if( iter -> second -> texture -> gl_texture != 0x00 )
+                                glDeleteTextures( 1, &( iter -> second -> texture -> gl_texture ) );
+                            
+                            delete iter -> second;
+                            
+                            anonymous_textures.erase( iter++ );
                         }
                         else
                             ++iter;
@@ -310,28 +342,6 @@ namespace jade
     void initNamedResources()
     {
         scoped_lock< mutex > slock( resources_mutex );
-        
-        // std::string fn( GUI_RESOURCE_FILE );
-        // ff::write( jb_out,
-        //            "Original filename: ",
-        //            fn,
-        //            "\n" );
-        // std::string fn_1x = get1xFilename( fn );
-        // ff::write( jb_out,
-        //            "@1x filename: ",
-        //            ( fn_1x.length() ? fn_1x : "default" ),
-        //            "\n" );
-        // std::string fn_2x = get2xFilename( fn );
-        // ff::write( jb_out,
-        //            "@2x filename: ",
-        //            ( fn_2x.length() ? fn_2x : "default" ),
-        //            "\n" );
-        // if( fn_2x.length() )
-        //     ff::write( jb_out,
-        //                "@1x filename from 2x: ",
-        //                get1xFilename( fn_2x ),
-        //                "\n" );
-        // throw exception( "early terminate" );
         
         named_resources[ rounded_button_off_up_top_left ] = new image_rsrc( GUI_RESOURCE_FILE, 0, 0, 6, 7 );
         named_resources[ rounded_button_off_up_top_center ] = new image_rsrc( GUI_RESOURCE_FILE, 6, 0, 1, 7 );
@@ -555,6 +565,52 @@ namespace jade
         
         return h -> texture;
     }
+    gui_texture* acquireTexture( dpi::points w,
+                                 dpi::points h,
+                                 unsigned char* data[ 2 ] )
+    {
+        scoped_lock< mutex > slock( resources_mutex );
+        
+        gui_texture_holder* holder = new gui_texture_holder();
+        
+        holder -> data[ 0 ] = data[ 0 ];
+        holder -> data[ 1 ] = data[ 1 ];
+        holder -> texture -> dimensions[ 0 ] = w;
+        holder -> texture -> dimensions[ 1 ] = h;
+        
+        holder -> levels = ( data[ 0 ] == NULL ? 0x00 : 0x01 )
+                      | ( data[ 1 ] == NULL ? 0x00 : 0x02 );
+        
+        anonymous_textures[ holder -> texture ] = holder;
+        new_textures = true;
+        
+        return holder -> texture;
+    }
+    gui_texture* acquireTexture( gui_texture* t )
+    {
+        scoped_lock< mutex > slock( resources_mutex );
+        
+        for( auto finder = resource_textures.begin();
+             finder != resource_textures.end();
+             ++finder )
+        {
+            if( finder -> second -> texture == t )
+            {
+                finder -> second -> ref_count++;
+                return t;
+            }
+        }
+        
+        auto finder = anonymous_textures.find( t );
+        
+        if( finder != anonymous_textures.end() )
+        {
+            finder -> second -> ref_count++;
+            return t;
+        }
+        
+        throw exception( "acquireTexture( gui_texture* ): No such texture" );
+    }
     void releaseTexture( gui_texture* t )
     {
         scoped_lock< mutex > slock( resources_mutex );
@@ -572,11 +628,28 @@ namespace jade
                     old_textures = true;
                     
                     if( iter -> second -> ref_count < 0 )
-                        throw exception( "releaseTexture(): Texture reference count < 0" );
+                        throw exception( "releaseTexture(): Resource texture reference count < 0" );
                 }
                 
                 return;
             }
+        }
+        
+        auto finder = anonymous_textures.find( t );
+        
+        if( finder != anonymous_textures.end() )
+        {
+            finder -> second -> ref_count--;
+            
+            if( finder -> second -> ref_count < 1 )
+            {
+                old_textures = true;
+                
+                if( finder -> second -> ref_count < 0 )
+                    throw exception( "releaseTexture(): Anonymous texture reference count < 0" );
+            }
+            
+            return;
         }
         
         throw exception( "releaseTexture(): No such texture" );
