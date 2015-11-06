@@ -440,11 +440,10 @@ namespace jade
                                                 removeTab( tabs[ i ].data );    // Calls other utilities for cleanup
                                             }
                                             else                                // Just a mouseover
-                                            {
                                                 tabs[ i ].button_state = tab_state::OVER;
-                                                if( parent != NULL )
-                                                    parent -> requestRedraw();
-                                            }
+                                            
+                                            if( parent != NULL )
+                                                parent -> requestRedraw();
                                         }
                                         
                                         return true;
