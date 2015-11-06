@@ -109,10 +109,9 @@ namespace
         return fn.substr( 0, png_pos ) + "@2x.png";
     }
     
-    void generateOpenGLTexture( gui_texture_holder* h )                         // Helper function for ManageResources_task::execute()
+    bool generateOpenGLTexture( gui_texture_holder* h )                         // Helper function for ManageResources_task::execute()
     {
-        if( h -> texture -> gl_texture == 0x00
-            && h -> data[ 0 ] != NULL )
+        if( h -> data[ 0 ] != NULL )
         {
             GLuint gl_texture;
             
@@ -143,7 +142,11 @@ namespace
                 delete[] h -> data[ 1 ];
                 h -> data[ 1 ] = NULL;
             }
+            
+            return true;
         }
+        else
+            return false;
     }
     
     class ManageResources_task : public jade::task
@@ -257,12 +260,16 @@ namespace
             {
                 if( new_textures )
                 {
+                    new_textures = false;
+                    
                     // Generate OpenGL textures for file textures
                     for( auto iter = resource_textures.begin();
                          iter != resource_textures.end();
                          ++iter )
                     {
-                       generateOpenGLTexture( iter -> second );
+                        if( iter -> second -> texture -> gl_texture == 0x00 )
+                            if( !generateOpenGLTexture( iter -> second ) )
+                                new_textures = true;
                     }
                     
                     // Generate OpenGL textures for manual textures
@@ -270,10 +277,9 @@ namespace
                          iter != anonymous_textures.end();
                          ++iter )
                     {
-                        generateOpenGLTexture( iter -> second );
+                        if( iter -> second -> texture -> gl_texture == 0x00 )
+                            generateOpenGLTexture( iter -> second );
                     }
-                    
-                    new_textures = false;
                 }
                 
                 if( old_textures )
@@ -316,7 +322,13 @@ namespace
                 
                 jade::redrawAllWindows();
                 
-                return true;
+                if( new_textures )                                              // Textures were requested between phases, so requeue
+                {
+                    current_mask = jade::TASK_SYSTEM;
+                    return false;
+                }
+                else
+                    return true;
             }
         }
         
@@ -573,14 +585,30 @@ namespace jade
         
         gui_texture_holder* holder = new gui_texture_holder();
         
-        holder -> data[ 0 ] = data[ 0 ];
-        holder -> data[ 1 ] = data[ 1 ];
         holder -> texture -> dimensions[ 0 ] = w;
         holder -> texture -> dimensions[ 1 ] = h;
         
         holder -> levels = ( data[ 0 ] == NULL ? 0x00 : 0x01 )
-                      | ( data[ 1 ] == NULL ? 0x00 : 0x02 );
+                           | ( data[ 1 ] == NULL ? 0x00 : 0x02 );
         
+        switch( holder -> levels )
+        {
+        case 0x00:
+            throw exception( "acquireTexture() raw: Pixel data sets may not both be NULL" );
+        case 0x02:
+            holder -> data[ 0 ] = data[ 1 ];
+            break;
+        case 0x03:
+            holder -> data[ 1 ] = data[ 1 ];
+        case 0x01:
+            holder -> data[ 0 ] = data[ 0 ];
+            break;
+        default:
+            // Literally can never get here
+            break;
+        }
+        
+        holder -> ref_count = 1;
         anonymous_textures[ holder -> texture ] = holder;
         new_textures = true;
         

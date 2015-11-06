@@ -25,6 +25,7 @@
 
 #include <string>
 
+#include "jb_texture.hpp"
 #include "../threading/jb_mutex.hpp"
 
 /******************************************************************************//******************************************************************************/
@@ -36,7 +37,7 @@
 
 namespace jade
 {
-    struct text_update_context;                                                 // Opaque utility struct
+    struct text_update_context;
     
     class text_rsrc : public gui_resource
     {
@@ -100,14 +101,11 @@ namespace jade
         bool hinting_enabled;
         bool antialiasing_enabled;
         
-        text_update_context* context;
-        GLuint gl_tex;
+        gui_texture* texture;
         
         void updatePixels();
-        void updateTexture();
-        
-        void updatePixels_setup();
-        void updatePixels_cleanup();
+        void updatePixels_setup( text_update_context& );
+        void updatePixels_cleanup( text_update_context& );
     };
 }
 
