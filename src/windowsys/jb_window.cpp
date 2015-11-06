@@ -391,8 +391,8 @@ namespace jade
             initOpenGL();                                                       // Init OpenGL first time only
             
             glXMakeCurrent( x_display,
-                            platform_window.x_window
-                                platform_window.glx_context );
+                            platform_window.x_window,
+                            platform_window.glx_context );
             
             glewExperimental = GL_TRUE;                                         // To allow FBOs in OpenGL <3.0
             GLenum err = glewInit();                                            // Init GLEW first time only
