@@ -113,6 +113,7 @@ namespace jade
     {
         init();
         
+        contents -> setParentElement( this );
         contents -> setRealDimensions( dimensions[ 0 ],
                                        dimensions[ 1 ] );
     }
@@ -127,6 +128,8 @@ namespace jade
         std::pair< dpi::points, dpi::points > c_dims( contents -> getRealDimensions() );
         
         setRealDimensions( c_dims.first, c_dims.second );
+        
+        contents -> setParentElement( this );
     }
     scrollset::~scrollset()
     {
@@ -155,7 +158,7 @@ namespace jade
         dimensions[ 1 ] = h;
         
         ff::write( jb_out,
-                   "Setting scrollset dimensions to ",
+                   ">>> Setting scrollset dimensions to ",
                    w,
                    " x ",
                    h,
@@ -797,6 +800,30 @@ namespace jade
             slider_pos[ i ] = SCROLLBAR_BUTTON_REAL_WIDTH + ( max_length - slider_width[ i ] )
                      * ( scroll_limit < 0 ? ( 1 - ( scroll_offset / scroll_limit ) ) : ( scroll_offset / scroll_limit ) );
         }
+        
+        // Resize contents /////////////////////////////////////////////////////
+        
+        dpi::points internal_dims[ 2 ];
+        
+        if( slider_state[ 0 ] != DISABLED
+            || bars_always_visible )
+        {
+            internal_dims[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
+        }
+        else
+            internal_dims[ 0 ] = dimensions[ 0 ];
+        
+        if( slider_state[ 1 ] != DISABLED
+            || bars_always_visible )
+        {
+            internal_dims[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
+        }
+        else
+            internal_dims[ 1 ] = dimensions[ 1 ];
+        
+        contents -> setRealDimensions( internal_dims[ 0 ], internal_dims[ 1 ] );
+        
+        // Request redraw //////////////////////////////////////////////////////
         
         if( parent != NULL )
             parent -> requestRedraw();
