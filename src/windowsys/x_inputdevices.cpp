@@ -783,16 +783,16 @@ namespace jade
                     switch( x_eventdata.button )
                     {
                     case Button4:                                               // Scroll wheel up
-                        w_event.scroll.amount[ 1 ] =  1.0f * jade::getSetting_num( "jb_ScrollDistance" );
-                        break;
-                    case Button5:                                               // Scroll wheel down
                         w_event.scroll.amount[ 1 ] = -1.0f * jade::getSetting_num( "jb_ScrollDistance" );
                         break;
+                    case Button5:                                               // Scroll wheel down
+                        w_event.scroll.amount[ 1 ] =  1.0f * jade::getSetting_num( "jb_ScrollDistance" );
+                        break;
                     case ( Button5 + 1 ):                                       // Scroll wheel left
-                        w_event.scroll.amount[ 0 ] =  1.0f * jade::getSetting_num( "jb_ScrollDistance" );
+                        w_event.scroll.amount[ 0 ] = -1.0f * jade::getSetting_num( "jb_ScrollDistance" );
                         break;
                     case ( Button5 + 2 ):                                       // Scroll wheel right
-                        w_event.scroll.amount[ 0 ] = -1.0f * jade::getSetting_num( "jb_ScrollDistance" );
+                        w_event.scroll.amount[ 0 ] =  1.0f * jade::getSetting_num( "jb_ScrollDistance" );
                         break;
                     default:
                         break;                                                  // Realistically we'll never get here

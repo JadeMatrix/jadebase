@@ -455,8 +455,34 @@ namespace jade
         
         if( e.type == SCROLL && !contents_accepted )
         {
-            if( inside_corner )
+            // DEBUG:
+            // ff::write( jb_out,
+            //            ">>> got here | accepted=",
+            //            contents_accepted ? "true" : "false",
+            //            " inside_corner=",
+            //            inside_corner ? "true" : "false",
+            //            "\n" );
+            
+            if( inside_corner
+                || !pointInsideRect( e.scroll.position[ 0 ] - e.offset[ 0 ],
+                                     e.scroll.position[ 1 ] - e.offset[ 1 ],
+                                     position[ 0 ],
+                                     position[ 1 ],
+                                     dimensions[ 0 ],
+                                     dimensions[ 1 ] ) )
+            {
+                // DEBUG:
+                // ff::write( jb_out, ">>> Not in bounds\n" );
                 return false;                                                   // No scrolling in corner
+            }
+            
+            // DEBUG:
+            // ff::write( jb_out,
+            //            ">>> Scrolling by ",
+            //            e.scroll.amount[ 0 ],
+            //            ",",
+            //            e.scroll.amount[ 1 ],
+            //            "\n" );
             
             contents -> scrollPoints( e.scroll.amount[ 0 ], e.scroll.amount[ 1 ] );
             
@@ -475,8 +501,39 @@ namespace jade
         
         // Draw bars first (below) /////////////////////////////////////////////
         
+        // DEBUG:
+        // ff::write( jb_out,
+        //            ">>> Drawing jade::scrollset at ",
+        //            position[ 0 ],
+        //            ",",
+        //            position[ 1 ],
+        //            " ",
+        //            dimensions[ 0 ],
+        //            "x",
+        //            dimensions[ 1 ],
+        //            "\n" );
+        
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
+            // DEBUG:
+            // glColor4f( 1.0f, 0.0f, 0.0f, 0.5f );
+            // {
+            //     glBegin( GL_QUADS );
+            //     {
+            //         glVertex2f( 0.0f, 0.0f );
+                    
+            //         glVertex2f( 0.0f, dimensions[ 1 ] );
+                    
+            //         glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
+                    
+            //         glVertex2f( dimensions[ 0 ], 0.0f );
+            //     }
+            //     glEnd();
+            // }
+            // glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+            
+            
+            
             for( int i = 0; i < 2; ++i )                                        // Iterate through the 2 scrollbars for code reuse
             {
                 glPushMatrix();
@@ -503,7 +560,7 @@ namespace jade
                         {
                             for( int j = 0; j < 2; ++j )
                             {
-                                switch( ( i ? vert_state : horz_state )[ j ] )  // Nice little bit of pointer magic
+                                switch( ( i ? horz_state : vert_state )[ j ] )  // Nice little bit of pointer magic
                                 {
                                 case UP:
                                     if( j )
@@ -535,7 +592,7 @@ namespace jade
                         }
                         glPopMatrix();
                         
-                        glTranslatef( slider_pos[ i ] + SCROLLBAR_BUTTON_REAL_WIDTH, 0.0f, 0.0f );
+                        glTranslatef( slider_pos[ i ], 0.0f, 0.0f );
                         
                         #ifdef DEPRESSABLE_SLIDER_BARS
                         
@@ -912,6 +969,18 @@ namespace jade
         contents -> setRealPosition( position[ 0 ], position[ 1 ] );
         
         arrangeBars();
+        
+        // DEBUG:
+        // ff::write( jb_out,
+        //            ">>> Created jade::scrollset at ",
+        //            position[ 0 ],
+        //            ",",
+        //            position[ 1 ],
+        //            " ",
+        //            dimensions[ 0 ],
+        //            "x",
+        //            dimensions[ 1 ],
+        //            "\n" );
         
         scoped_lock< mutex > slock( scroll_rsrc_mutex );
         

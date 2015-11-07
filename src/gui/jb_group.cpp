@@ -423,16 +423,16 @@ namespace jade
             }
         }
         
-        if( event_fallthrough )
+        // if( event_fallthrough )
             return false;
-        else
-            return ( no_position
-                     || pointInsideRect( e_position[ 0 ],
-                                         e_position[ 1 ],
-                                         0,
-                                         0,
-                                         dimensions[ 0 ],
-                                         dimensions[ 1 ] ) );
+        // else
+        //     return ( no_position
+        //              || pointInsideRect( e_position[ 0 ],
+        //                                  e_position[ 1 ],
+        //                                  0,
+        //                                  0,
+        //                                  dimensions[ 0 ],
+        //                                  dimensions[ 1 ] ) );
     }
     
     void group::updateScrollParams()
