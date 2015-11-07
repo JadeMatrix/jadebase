@@ -27,14 +27,10 @@ namespace jade
         
         event_fallthrough = false;
         
-        internal_dims[ 0 ] = dimensions[ 0 ];
-        internal_dims[ 1 ] = dimensions[ 1 ];
-        
-        scroll_limits[ 0 ] = 0;
-        scroll_limits[ 1 ] = 0;
-        
         scroll_offset[ 0 ] = 0;
         scroll_offset[ 1 ] = 0;
+        
+        updateScrollParams();
     }
     
     void group::addElement( const std::shared_ptr< gui_element >& e )
@@ -46,6 +42,8 @@ namespace jade
         
         e -> setParentElement( this );
         elements.push_back( e );
+        
+        updateScrollParams();
         
         if( parent != NULL )
             parent -> requestRedraw();
@@ -66,6 +64,8 @@ namespace jade
                 elements.erase( iter );                                         // Dereferences by deleting std::shared_ptr
                 
                 e -> setParentElement( NULL );
+                
+                updateScrollParams();
                 
                 if( parent != NULL )
                     parent -> requestRedraw();
@@ -168,6 +168,8 @@ namespace jade
         dimensions[ 0 ] = w;
         dimensions[ 1 ] = h;
         
+        updateScrollParams();
+        
         if( parent != NULL )
             parent -> requestRedraw();
     }
@@ -206,7 +208,7 @@ namespace jade
         for( int i = 0; i < elements.size(); ++i )
         {
             std::pair< dpi::points, dpi::points > evp = elements[ i ] -> getVisualPosition();
-            std::pair< dpi::points, dpi::points > evd = elements[ i ] -> getVisualPosition();
+            std::pair< dpi::points, dpi::points > evd = elements[ i ] -> getVisualDimensions();
             
             if( evp.first + evd.first > v_position.first + v_dimensions.first )
                 v_dimensions.first = evd.first;
@@ -275,19 +277,24 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        updateScrollParams();
+        // updateScrollParams();
         
-        if( scroll_offset[ 0 ] + x < scroll_limits[ 0 ] )                       // We have to modify x & y as they are used later
-            x = scroll_limits[ 0 ] - scroll_offset[ 0 ];
-        else if( scroll_offset[ 0 ] + x > 0 )
-            x = 0 - scroll_offset[ 0 ];
-        if( scroll_offset[ 1 ] + y < scroll_limits[ 1 ] )
-            y = scroll_limits[ 1 ] - scroll_offset[ 1 ];
-        else if( scroll_offset[ 1 ] + y > 0 )
-            y = 0 - scroll_offset[ 1 ];
+        // if( scroll_offset[ 0 ] + x < scroll_limits[ 0 ] )                       // We have to modify x & y as they are used later
+        //     x = scroll_limits[ 0 ] - scroll_offset[ 0 ];
+        // else if( scroll_offset[ 0 ] + x > 0 )
+        //     x = 0 - scroll_offset[ 0 ];
+        // if( scroll_offset[ 1 ] + y < scroll_limits[ 1 ] )
+        //     y = scroll_limits[ 1 ] - scroll_offset[ 1 ];
+        // else if( scroll_offset[ 1 ] + y > 0 )
+        //     y = 0 - scroll_offset[ 1 ];
+        
+        // scroll_offset[ 0 ] += x;
+        // scroll_offset[ 1 ] += y;
         
         scroll_offset[ 0 ] += x;
         scroll_offset[ 1 ] += y;
+        
+        clampScroll();
         
         if( parent != NULL )
             parent -> requestRedraw();
@@ -404,8 +411,8 @@ namespace jade
                 element_dimensions = elements[ i ] -> getVisualDimensions();
                 
                 if( ( e.type == STROKE                                          // Allow elements to see exiting strokes
-                      && pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
-                                          e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
+                      && pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ] + position[ 0 ] - scroll_offset[ 0 ],
+                                          e.stroke.prev_pos[ 1 ] - e.offset[ 1 ] + position[ 1 ] - scroll_offset[ 1 ],
                                           element_position.first,
                                           element_position.second,
                                           element_dimensions.first,
@@ -437,21 +444,60 @@ namespace jade
     
     void group::updateScrollParams()
     {
-        // TODO: something
-        #warning jade::group internal dimensions hardcoded to 2 * dimensions
+        dpi::points v_top_left [] = { scroll_offset[ 0 ], scroll_offset[ 1 ] };
+        dpi::points v_bot_right[] = { dimensions[ 0 ] - scroll_offset[ 0 ], dimensions[ 1 ] - scroll_offset[ 1 ] };
         
-        internal_dims[ 0 ] = dimensions[ 0 ] * 2;
-        internal_dims[ 1 ] = dimensions[ 1 ] * 2;
+        // if( elements.size() >= 1 )
+        // {
+        //     std::pair< dpi::points, dpi::points > erp = elements[ 0 ] -> getVisualPosition();
+        //     std::pair< dpi::points, dpi::points > erd = elements[ 0 ] -> getVisualDimensions();
+            
+        //     v_top_left[ 0 ] = erp.first - scroll_offset[ 0 ];
+        //     v_top_left[ 1 ] = erp.second - scroll_offset[ 1 ];
         
-        if( internal_dims[ 0 ] > dimensions[ 0 ] )
-            scroll_limits[ 0 ] = dimensions[ 0 ] - internal_dims[ 0 ];
-        else
+        //     v_bot_right[ 0 ] = erp.first + erd.first - scroll_offset[ 0 ];
+        //     v_bot_right[ 1 ] = erp.second + erd.second - scroll_offset[ 1 ];
+            
+            for( int i = 0; i < elements.size(); ++i )
+            {
+                std::pair< dpi::points, dpi::points > erp = elements[ i ] -> getRealPosition();
+                std::pair< dpi::points, dpi::points > erd = elements[ i ] -> getRealDimensions();
+                
+                if( erp.first - scroll_offset[ 0 ] < v_top_left[ 0 ] )
+                    v_top_left[ 0 ] = erp.first - scroll_offset[ 0 ];
+                if( erp.second - scroll_offset[ 1 ] < v_top_left[ 1 ] )
+                    v_top_left[ 1 ] = erp.second - scroll_offset[ 1 ];
+                
+                if( erp.first + erd.first - scroll_offset[ 0 ] > v_bot_right[ 0 ] )
+                    v_bot_right[ 0 ] = erp.first + erd.first - scroll_offset[ 0 ];
+                if( erp.second + erd.second - scroll_offset[ 1 ] > v_bot_right[ 1 ] )
+                    v_bot_right[ 1 ] = erp.second + erd.second - scroll_offset[ 1 ];
+            }
+        // }
+        
+        scroll_limits[ 0 ] = ( v_bot_right[ 0 ] - v_top_left[ 0 ] ) - dimensions[ 0 ];
+        scroll_limits[ 1 ] = ( v_bot_right[ 1 ] - v_top_left[ 1 ] ) - dimensions[ 1 ];
+        
+        if( scroll_limits[ 0 ] < 0 )
             scroll_limits[ 0 ] = 0;
-        
-        if( internal_dims[ 1 ] > dimensions[ 1 ] )
-            scroll_limits[ 1 ] = dimensions[ 1 ] - internal_dims[ 1 ];
-        else
+        if( scroll_limits[ 1 ] < 0 )
             scroll_limits[ 1 ] = 0;
+        
+        clampScroll();
+    }
+    void group::clampScroll()
+    {
+        if( scroll_offset[ 0 ] > scroll_limits[ 0 ] )
+            scroll_offset[ 0 ] = scroll_limits[ 0 ];
+        else
+            if( scroll_offset[ 0 ] < 0 )
+                scroll_offset[ 0 ] = 0;
+            
+        if( scroll_offset[ 1 ] > scroll_limits[ 1 ] )
+            scroll_offset[ 1 ] = scroll_limits[ 1 ];
+        else
+            if( scroll_offset[ 1 ] < 0 )
+                scroll_offset[ 1 ] = 0;
     }
 }
 

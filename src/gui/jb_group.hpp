@@ -91,7 +91,6 @@ namespace jade
         
     protected:
         std::vector< std::shared_ptr< gui_element > > elements;
-        dpi::points internal_dims[ 2 ];                                         // Dimensions of the internal layout of the group
         
         bool draw_background;
         
@@ -101,12 +100,13 @@ namespace jade
         std::shared_ptr< callback > hidden_callback;
         std::shared_ptr< callback > closed_callback;
         
-        dpi::points scroll_limits[ 2 ];                                         // X min, X max, Y min, Y max
-        dpi::points scroll_offset[ 2 ];
+        dpi::points scroll_limits[ 2 ];                                         // Max scrollable points in each direction
+        dpi::points scroll_offset[ 2 ];                                         // Subtractive offset in each direction (usually positive)
         
         bool acceptEvent_copy( window_event );                                  // Copies event first for modification
         
-        void updateScrollParams();                                              // Utility, not thread-safe
+        void updateScrollParams();                                              // Utility; not thread-safe
+        void clampScroll();                                                     // Utility; not thread-safe
     };
 }
 

@@ -116,6 +116,8 @@ namespace jade
         contents -> setParentElement( this );
         contents -> setRealDimensions( dimensions[ 0 ],
                                        dimensions[ 1 ] );
+        
+        arrangeBars();
     }
     scrollset::scrollset( dpi::points x,
                           dpi::points y,
@@ -130,6 +132,8 @@ namespace jade
         setRealDimensions( c_dims.first, c_dims.second );
         
         contents -> setParentElement( this );
+        
+        arrangeBars();
     }
     scrollset::~scrollset()
     {
@@ -143,9 +147,9 @@ namespace jade
         position[ 0 ] = x;
         position[ 1 ] = y;
         
-        contents -> setRealPosition( position[ 0 ], position[ 1 ] );
-        contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
-                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT );
+        // contents -> setRealPosition( position[ 0 ], position[ 1 ] );
+        // contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
+        //                                dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
         if( parent != NULL )
             parent -> requestRedraw();
@@ -164,7 +168,7 @@ namespace jade
                    h,
                    "\n" );
         
-        contents -> setRealPosition( position[ 0 ], position[ 1 ] );
+        // contents -> setRealPosition( position[ 0 ], position[ 1 ] );
         contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
                                        dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
@@ -310,20 +314,20 @@ namespace jade
                     switch( capturing )
                     {
                         case LEFT_BUTTON:
-                            scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" );
+                            scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
                             scroll_amount[ 1 ] = 0;
                             break;
                         case RIGHT_BUTTON:
-                            scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
+                            scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" );
                             scroll_amount[ 1 ] = 0;
                             break;
                         case TOP_BUTTON:
                             scroll_amount[ 0 ] = 0;
-                            scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" );
+                            scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
                             break;
                         case BOTTOM_BUTTON:
                             scroll_amount[ 0 ] = 0;
-                            scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
+                            scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" );
                             break;
                         case CORNER:
                             break;
