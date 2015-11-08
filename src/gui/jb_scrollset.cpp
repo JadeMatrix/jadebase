@@ -255,16 +255,20 @@ namespace jade
             
             if( capturing == HORIZONTAL_BAR
                 || capturing == VERTICAL_BAR
-                || ( point_in_button = pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                                        e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                                        rect_pos[ 0 ] + position[ 0 ],
-                                                        rect_pos[ 1 ] + position[ 1 ],
+                || ( point_in_button = pointInsideRect( e.stroke.position[ 0 ],
+                                                        e.stroke.position[ 1 ],
+                                                        // rect_pos[ 0 ] + position[ 0 ],
+                                                        // rect_pos[ 1 ] + position[ 1 ],
+                                                        rect_pos[ 0 ],
+                                                        rect_pos[ 1 ],
                                                         rect_dim[ 0 ],
                                                         rect_dim[ 1 ] ) )
-                || ( prev_in_button  = pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ],
-                                                        e.stroke.prev_pos[ 1 ] - e.offset[ 1 ],
-                                                        rect_pos[ 0 ] + position[ 0 ],
-                                                        rect_pos[ 1 ] + position[ 1 ],
+                || ( prev_in_button  = pointInsideRect( e.stroke.prev_pos[ 0 ],
+                                                        e.stroke.prev_pos[ 1 ],
+                                                        // rect_pos[ 0 ] + position[ 0 ],
+                                                        // rect_pos[ 1 ] + position[ 1 ],
+                                                        rect_pos[ 0 ],
+                                                        rect_pos[ 1 ],
                                                         rect_dim[ 0 ],
                                                         rect_dim[ 1 ] ) ) )
             {
@@ -365,16 +369,16 @@ namespace jade
             }
         }
         
-        bool inside_horz = pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                            e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                            position[ 0 ],
-                                            position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_HEIGHT,
+        bool inside_horz = pointInsideRect( e.stroke.position[ 0 ],
+                                            e.stroke.position[ 1 ],
+                                            0,
+                                            dimensions[ 1 ] - SCROLLBAR_HEIGHT,
                                             dimensions[ 0 ],
                                             SCROLLBAR_HEIGHT );
-        bool inside_vert = pointInsideRect( e.stroke.position[ 0 ] - e.offset[ 0 ],
-                                            e.stroke.position[ 1 ] - e.offset[ 1 ],
-                                            position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_HEIGHT,
-                                            position[ 1 ],
+        bool inside_vert = pointInsideRect( e.stroke.position[ 0 ],
+                                            e.stroke.position[ 1 ],
+                                            dimensions[ 0 ] - SCROLLBAR_HEIGHT,
+                                            0,
                                             SCROLLBAR_HEIGHT,
                                             dimensions[ 1 ] );
         bool inside_corner = inside_horz && inside_vert;
@@ -398,13 +402,13 @@ namespace jade
                     //     capturing = HORIZONTAL_BAR;
                     // }
                     
-                    if( e.stroke.position[ 0 ] - e.offset[ 0 ]
+                    if( e.stroke.position[ 0 ]
                         < position[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
                     {
                         capturing = LEFT_BUTTON;
                     }
                     
-                    if( e.stroke.position[ 0 ] - e.offset[ 0 ]
+                    if( e.stroke.position[ 0 ]
                         >= position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
                     {
                         capturing = RIGHT_BUTTON;
@@ -419,13 +423,13 @@ namespace jade
                     //     capturing = VERTICAL_BAR;
                     // }
                     
-                    if( e.stroke.position[ 1 ] - e.offset[ 1 ]
+                    if( e.stroke.position[ 1 ]
                         < position[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
                     {
                         capturing = TOP_BUTTON;
                     }
                     
-                    if( e.stroke.position[ 1 ] - e.offset[ 1 ]
+                    if( e.stroke.position[ 1 ]
                         >= position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
                     {
                         capturing = BOTTOM_BUTTON;
@@ -443,8 +447,8 @@ namespace jade
                 
                 if( capturing )
                 {
-                    capture_start[ 0 ] = e.stroke.position[ 0 ] + e.offset[ 0 ];
-                    capture_start[ 1 ] = e.stroke.position[ 1 ] + e.offset[ 1 ];
+                    capture_start[ 0 ] = e.stroke.position[ 0 ];
+                    capture_start[ 1 ] = e.stroke.position[ 1 ];
                     associateDevice( e.stroke.dev_id );
                     captured_dev = e.stroke.dev_id;
                     
@@ -455,7 +459,7 @@ namespace jade
             }
         }
         
-        bool contents_accepted = contents -> acceptEvent( e );
+        bool contents_accepted = contents -> acceptEvent( e );                  // The contents have a 0,0 relative position to the scrollset
         
         if( e.type == SCROLL && !contents_accepted )
         {
@@ -468,10 +472,10 @@ namespace jade
             //            "\n" );
             
             if( inside_corner
-                || !pointInsideRect( e.scroll.position[ 0 ] - e.offset[ 0 ],
-                                     e.scroll.position[ 1 ] - e.offset[ 1 ],
-                                     position[ 0 ],
-                                     position[ 1 ],
+                || !pointInsideRect( e.scroll.position[ 0 ],
+                                     e.scroll.position[ 1 ],
+                                     0,
+                                     0,
                                      dimensions[ 0 ],
                                      dimensions[ 1 ] ) )
             {

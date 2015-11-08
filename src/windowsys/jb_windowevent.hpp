@@ -157,13 +157,10 @@ namespace jade
             pinch_input pinch;
             scroll_input scroll;
         };
-        dpi::points offset[ 2 ];
         
         window_event()
         {
             type = NONE;
-            offset[ 0 ] = NAN;
-            offset[ 1 ] = NAN;
         }
     };
     
@@ -171,23 +168,13 @@ namespace jade
     
     std::string wevent2str( window_event& );                                    // Window EVENT 2 [to] STRing
     
-    // TODO: Make these macros?
+    #define pointInsideRect( p_x, p_y, r_x, r_y, r_w, r_h ) ( p_x >= r_x\
+                                                              && p_y >= r_y\
+                                                              && p_x <  r_x + r_w\
+                                                              && p_y <  r_y + r_h ) // We assume the compiler can optimize this a bit
     
-    inline bool pointInsideRect( dpi::points p_x, dpi::points p_y,
-                                 dpi::points r_x, dpi::points r_y, dpi::points r_w, dpi::points r_h )
-    {
-        return(    p_x >= r_x
-                && p_y >= r_y
-                && p_x <  r_x + r_w
-                && p_y <  r_y + r_h );                                          // We assume the compiler can optimize this a bit
-    }
-    
-    inline bool pointInsideCircle( dpi::points p_x, dpi::points p_y,
-                                   dpi::points c_x, dpi::points c_y, dpi::points c_r )  // c_x & c_y are the center of the circle
-    {
-        return ( p_x - c_x ) * ( p_x - c_x ) + ( p_y - c_y ) * ( p_y - c_y )
-               <= c_r * c_r;                                                    // We assume the compiler can optimize this a bit
-    }
+    #define pointInsideCircle( p_x, p_y, c_x, c_y, c_r ) ( ( p_x - c_x ) * ( p_x - c_x ) + ( p_y - c_y ) * ( p_y - c_y )\
+                                                            <= c_r * c_r )      // c_x & c_y are the center of the circle
 }
 
 /******************************************************************************//******************************************************************************/

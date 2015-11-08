@@ -81,6 +81,11 @@ namespace jade
         return getRealPosition();
     }
     
+    std::pair< dpi::points, dpi::points > gui_element::getEventOffset()
+    {
+        return getRealPosition();
+    }
+    
     std::pair< dpi::points, dpi::points > gui_element::getRealDimensions()
     {
         scoped_lock< mutex > slock( element_mutex );

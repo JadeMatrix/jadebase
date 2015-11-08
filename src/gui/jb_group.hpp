@@ -64,6 +64,7 @@ namespace jade
         void setRealDimensions( dpi::points, dpi::points );                     // Width, height
         
         std::pair< dpi::points, dpi::points > getVisualPosition();
+        std::pair< dpi::points, dpi::points > getEventOffset();
         std::pair< dpi::points, dpi::points > getVisualDimensions();
         
         bool acceptEvent( window_event& );
@@ -103,7 +104,7 @@ namespace jade
         dpi::points scroll_limits[ 2 ];                                         // Max scrollable points in each direction
         dpi::points scroll_offset[ 2 ];                                         // Subtractive offset in each direction (usually positive)
         
-        bool acceptEvent_copy( window_event );                                  // Copies event first for modification
+        bool sendEventToChild( int, window_event );                             // Utility; copies event first for modification; not thread-safe
         
         void updateScrollParams();                                              // Utility; not thread-safe
         void clampScroll();                                                     // Utility; not thread-safe

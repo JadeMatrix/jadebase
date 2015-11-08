@@ -181,9 +181,6 @@ namespace jade
         
         // int e_position[ 2 ];
         
-        e.offset[ 0 ] = 0;
-        e.offset[ 1 ] = 0;
-        
         switch( e.type )                                                        // Normalize event position to window position (if necessary)
         {
         case STROKE:
@@ -221,19 +218,47 @@ namespace jade
             {
                 auto iter = finder -> second.chain.begin();
                 
-                auto last = --( finder -> second.chain.end() );
-                
-                if( iter == last )
+                if( iter == finder -> second.chain.end() )
                     throw exception( "window::acceptEvent(): Zero-length association chain" );
                 
-                while( iter != last )
+                while( iter != finder -> second.chain.end() )
                 {
-                    auto pos = ( *iter ) -> getRealPosition();
-                    e.offset[ 0 ] = pos.first;
-                    e.offset[ 1 ] = pos.second;
+                    auto pos = ( *iter ) -> getEventOffset();
+                    
+                    switch( e.type )                                       // Normalize event position to element position (if necessary)
+                    {
+                    case STROKE:
+                        e.stroke.position[ 0 ] -= pos.first;
+                        e.stroke.position[ 1 ] -= pos.second;
+                        e.stroke.prev_pos[ 0 ] -= pos.first;
+                        e.stroke.prev_pos[ 1 ] -= pos.second;
+                        break;
+                    case DROP:
+                        e.drop.position[ 0 ] -= pos.first;
+                        e.drop.position[ 1 ] -= pos.second;
+                        break;
+                    case KEYCOMMAND:
+                    case COMMAND:
+                    case TEXT:
+                        no_position = true;
+                        break;
+                    case PINCH:
+                        e.pinch.position[ 0 ] -= pos.first;
+                        e.pinch.position[ 1 ] -= pos.second;
+                        break;
+                    case SCROLL:
+                        e.scroll.position[ 0 ] -= pos.first;
+                        e.scroll.position[ 1 ] -= pos.second;
+                        break;
+                    default:
+                        // We already took care of this case above
+                        break;
+                    }
+                    
                     ++iter;
                 }
                 
+                auto last = --( finder -> second.chain.end() );
                 ( *last ) -> acceptEvent( e );
                 
                 return;

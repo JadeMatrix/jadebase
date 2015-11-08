@@ -43,6 +43,8 @@ namespace jade
         std::pair< dpi::points, dpi::points > getRealPosition();
         virtual std::pair< dpi::points, dpi::points > getVisualPosition();
         
+        virtual std::pair< dpi::points, dpi::points > getEventOffset();         // Get the offset for event normalization; usually just the position
+        
         virtual std::pair< dpi::points, dpi::points > getRealDimensions();      // Used to arrange elements
         virtual std::pair< dpi::points, dpi::points > getVisualDimensions();    // Used to generate area for event capturing
         

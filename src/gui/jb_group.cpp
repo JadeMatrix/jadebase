@@ -11,6 +11,7 @@
 
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_gl.hpp"
+#include "../utility/jb_log.hpp"
 #include "../utility/jb_settings.hpp"
 #include "../windowsys/jb_window.hpp"
 
@@ -193,6 +194,14 @@ namespace jade
         
         return v_position;
     }
+    std::pair< dpi::points, dpi::points > group::getEventOffset()
+    {
+        scoped_lock< mutex > slock( element_mutex );
+        
+        return std::pair< dpi::points,
+                          dpi::points >( position[ 0 ] - scroll_offset[ 0 ],
+                                         position[ 1 ] - scroll_offset[ 1 ] );
+    }
     std::pair< dpi::points, dpi::points > group::getVisualDimensions()
     {
         scoped_lock< mutex > slock( element_mutex );
@@ -222,7 +231,28 @@ namespace jade
     
     bool group::acceptEvent( window_event& e )
     {
-        return acceptEvent_copy( e );                                           // Easy way of changing offsets without editing original
+        scoped_lock< mutex > slock( element_mutex );
+        
+        for( int i = elements.size() - 1; i >= 0; -- i )                        // Iterate newest (topmost) first
+        {
+            if( sendEventToChild( i, e ) )
+                return true;
+        }
+        
+        if( e.type == STROKE )
+        {
+            if( stroke_fallthrough )
+                return false;
+            else
+                return !pointInsideRect( e.stroke.position[ 0 ],
+                                         e.stroke.position[ 1 ],
+                                         0,
+                                         0,
+                                         dimensions[ 0 ],
+                                         dimensions[ 1 ] );
+        }
+        else
+            return false;
     }
     
     void group::draw( window* w )
@@ -340,18 +370,15 @@ namespace jade
                                           scroll_limits[ 1 ] / dimensions[ 1 ] );
     }
     
-    bool group::acceptEvent_copy( window_event e )
+    bool group::sendEventToChild( int i, window_event e )
     {
-        scoped_lock< mutex > slock( element_mutex );
-        
         bool no_position = false;
-        
-        std::pair< dpi::points, dpi::points > element_position;
-        std::pair< dpi::points, dpi::points > element_dimensions;
         dpi::points e_position[ 2 ];
         
-        e.offset[ 0 ] += position[ 0 ] - scroll_offset[ 0 ];
-        e.offset[ 1 ] += position[ 1 ] - scroll_offset[ 1 ];
+        std::pair< dpi::points, dpi::points > element_offset     = elements[ i ] -> getEventOffset();
+        
+        std::pair< dpi::points, dpi::points > element_position   = elements[ i ] -> getVisualPosition();
+        std::pair< dpi::points, dpi::points > element_dimensions = elements[ i ] -> getVisualDimensions();
         
         switch( e.type )
         {
@@ -381,52 +408,50 @@ namespace jade
             break;
         }
         
-        e_position[ 0 ] -= e.offset[ 0 ];
-        e_position[ 1 ] -= e.offset[ 1 ];
-        
-        for( int i = elements.size() - 1; i >= 0; -- i )                        // Iterate newest (topmost) first
+        if( ( e.type == STROKE                                                  // Allow elements to see exiting strokes
+              && pointInsideRect( e.stroke.prev_pos[ 0 ],
+                                  e.stroke.prev_pos[ 1 ],
+                                  element_position.first  - scroll_offset[ 0 ],
+                                  element_position.second - scroll_offset[ 1 ],
+                                  element_dimensions.first,
+                                  element_dimensions.second ) )
+            || pointInsideRect( e_position[ 0 ],
+                                e_position[ 1 ],
+                                element_position.first  - scroll_offset[ 0 ],
+                                element_position.second - scroll_offset[ 1 ],
+                                element_dimensions.first,
+                                element_dimensions.second ) )
         {
-            if( no_position )
+            switch( e.type )
             {
-                if( elements[ i ] -> acceptEvent( e ) )
-                    return true;
+            case STROKE:
+                e.stroke.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
+                e.stroke.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
+                e.stroke.prev_pos[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
+                e.stroke.prev_pos[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
+                break;
+            case DROP:
+                e.drop.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
+                e.drop.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
+                break;
+            case KEYCOMMAND:
+            case COMMAND:
+            case TEXT:
+                break;
+            case PINCH:
+                e.pinch.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
+                e.pinch.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
+                break;
+            case SCROLL:
+                e.scroll.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
+                e.scroll.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
+                break;
+            default:
+                // We already took care of this case above
+                break;
             }
-            else
-            {
-                element_position   = elements[ i ] -> getVisualPosition();
-                element_dimensions = elements[ i ] -> getVisualDimensions();
-                
-                if( ( e.type == STROKE                                          // Allow elements to see exiting strokes
-                      && pointInsideRect( e.stroke.prev_pos[ 0 ] - e.offset[ 0 ] + position[ 0 ] - scroll_offset[ 0 ],
-                                          e.stroke.prev_pos[ 1 ] - e.offset[ 1 ] + position[ 1 ] - scroll_offset[ 1 ],
-                                          element_position.first,
-                                          element_position.second,
-                                          element_dimensions.first,
-                                          element_dimensions.second ) )
-                    || pointInsideRect( e_position[ 0 ],
-                                        e_position[ 1 ],
-                                        element_position.first,
-                                        element_position.second,
-                                        element_dimensions.first,
-                                        element_dimensions.second ) )
-                {
-                    if( elements[ i ] -> acceptEvent( e ) )
-                        return true;
-                }
-            }
-        }
-        
-        if( e.type == STROKE )
-        {
-            if( stroke_fallthrough )
-                return false;
-            else
-                return !pointInsideRect( e_position[ 0 ],
-                                         e_position[ 1 ],
-                                         0,
-                                         0,
-                                         dimensions[ 0 ],
-                                         dimensions[ 1 ] );
+            
+            return elements[ i ] -> acceptEvent( e );
         }
         else
             return false;
