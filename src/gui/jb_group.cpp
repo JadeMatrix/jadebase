@@ -25,7 +25,7 @@ namespace jade
     {
         draw_background = true;
         
-        event_fallthrough = false;
+        stroke_fallthrough = false;
         
         scroll_offset[ 0 ] = 0;
         scroll_offset[ 1 ] = 0;
@@ -93,17 +93,17 @@ namespace jade
         return draw_background;
     }
     
-    void group::setEventFallthrough( bool t )
+    void group::setStrokeFallthrough( bool t )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        event_fallthrough = t;
+        stroke_fallthrough = t;
     }
-    bool group::getEventFallthrough()
+    bool group::getStrokeFallthrough()
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        return event_fallthrough;
+        return stroke_fallthrough;
     }
     
     // CALLBACKS & EVENTS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -416,16 +416,20 @@ namespace jade
             }
         }
         
-        // if( event_fallthrough )
+        if( e.type == STROKE )
+        {
+            if( stroke_fallthrough )
+                return false;
+            else
+                return !pointInsideRect( e_position[ 0 ],
+                                         e_position[ 1 ],
+                                         0,
+                                         0,
+                                         dimensions[ 0 ],
+                                         dimensions[ 1 ] );
+        }
+        else
             return false;
-        // else
-        //     return ( no_position
-        //              || pointInsideRect( e_position[ 0 ],
-        //                                  e_position[ 1 ],
-        //                                  0,
-        //                                  0,
-        //                                  dimensions[ 0 ],
-        //                                  dimensions[ 1 ] ) );
     }
     
     void group::updateScrollParams()

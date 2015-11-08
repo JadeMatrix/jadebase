@@ -45,8 +45,8 @@ namespace jade
         void setDrawBackground( bool );                                         // Set whether the group has an opaque or transparent background
         bool getDrawBackground();
         
-        void setEventFallthrough( bool );                                       // Set whether the group accepts all events all its children don't
-        bool getEventFallthrough();
+        void setStrokeFallthrough( bool );                                      // Set whether the group accepts all stroke events left unaccepted by children
+        bool getStrokeFallthrough();
         
         // CALLBACKS & EVENTS //////////////////////////////////////////////////
         
@@ -94,7 +94,7 @@ namespace jade
         
         bool draw_background;
         
-        bool event_fallthrough;
+        bool stroke_fallthrough;
         
         std::shared_ptr< callback > shown_callback;
         std::shared_ptr< callback > hidden_callback;
