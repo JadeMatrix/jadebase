@@ -277,20 +277,6 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        // updateScrollParams();
-        
-        // if( scroll_offset[ 0 ] + x < scroll_limits[ 0 ] )                       // We have to modify x & y as they are used later
-        //     x = scroll_limits[ 0 ] - scroll_offset[ 0 ];
-        // else if( scroll_offset[ 0 ] + x > 0 )
-        //     x = 0 - scroll_offset[ 0 ];
-        // if( scroll_offset[ 1 ] + y < scroll_limits[ 1 ] )
-        //     y = scroll_limits[ 1 ] - scroll_offset[ 1 ];
-        // else if( scroll_offset[ 1 ] + y > 0 )
-        //     y = 0 - scroll_offset[ 1 ];
-        
-        // scroll_offset[ 0 ] += x;
-        // scroll_offset[ 1 ] += y;
-        
         scroll_offset[ 0 ] += x;
         scroll_offset[ 1 ] += y;
         
@@ -444,36 +430,24 @@ namespace jade
     
     void group::updateScrollParams()
     {
-        dpi::points v_top_left [] = { scroll_offset[ 0 ], scroll_offset[ 1 ] };
+        dpi::points v_top_left [] = { -scroll_offset[ 0 ], -scroll_offset[ 1 ] };
         dpi::points v_bot_right[] = { dimensions[ 0 ] - scroll_offset[ 0 ], dimensions[ 1 ] - scroll_offset[ 1 ] };
         
-        // if( elements.size() >= 1 )
-        // {
-        //     std::pair< dpi::points, dpi::points > erp = elements[ 0 ] -> getVisualPosition();
-        //     std::pair< dpi::points, dpi::points > erd = elements[ 0 ] -> getVisualDimensions();
+        for( int i = 0; i < elements.size(); ++i )
+        {
+            std::pair< dpi::points, dpi::points > erp = elements[ i ] -> getRealPosition();
+            std::pair< dpi::points, dpi::points > erd = elements[ i ] -> getRealDimensions();
             
-        //     v_top_left[ 0 ] = erp.first - scroll_offset[ 0 ];
-        //     v_top_left[ 1 ] = erp.second - scroll_offset[ 1 ];
-        
-        //     v_bot_right[ 0 ] = erp.first + erd.first - scroll_offset[ 0 ];
-        //     v_bot_right[ 1 ] = erp.second + erd.second - scroll_offset[ 1 ];
+            if( erp.first - scroll_offset[ 0 ] < v_top_left[ 0 ] )
+                v_top_left[ 0 ] = erp.first - scroll_offset[ 0 ];
+            if( erp.second - scroll_offset[ 1 ] < v_top_left[ 1 ] )
+                v_top_left[ 1 ] = erp.second - scroll_offset[ 1 ];
             
-            for( int i = 0; i < elements.size(); ++i )
-            {
-                std::pair< dpi::points, dpi::points > erp = elements[ i ] -> getRealPosition();
-                std::pair< dpi::points, dpi::points > erd = elements[ i ] -> getRealDimensions();
-                
-                if( erp.first - scroll_offset[ 0 ] < v_top_left[ 0 ] )
-                    v_top_left[ 0 ] = erp.first - scroll_offset[ 0 ];
-                if( erp.second - scroll_offset[ 1 ] < v_top_left[ 1 ] )
-                    v_top_left[ 1 ] = erp.second - scroll_offset[ 1 ];
-                
-                if( erp.first + erd.first - scroll_offset[ 0 ] > v_bot_right[ 0 ] )
-                    v_bot_right[ 0 ] = erp.first + erd.first - scroll_offset[ 0 ];
-                if( erp.second + erd.second - scroll_offset[ 1 ] > v_bot_right[ 1 ] )
-                    v_bot_right[ 1 ] = erp.second + erd.second - scroll_offset[ 1 ];
-            }
-        // }
+            if( erp.first + erd.first - scroll_offset[ 0 ] > v_bot_right[ 0 ] )
+                v_bot_right[ 0 ] = erp.first + erd.first - scroll_offset[ 0 ];
+            if( erp.second + erd.second - scroll_offset[ 1 ] > v_bot_right[ 1 ] )
+                v_bot_right[ 1 ] = erp.second + erd.second - scroll_offset[ 1 ];
+        }
         
         scroll_limits[ 0 ] = ( v_bot_right[ 0 ] - v_top_left[ 0 ] ) - dimensions[ 0 ];
         scroll_limits[ 1 ] = ( v_bot_right[ 1 ] - v_top_left[ 1 ] ) - dimensions[ 1 ];
