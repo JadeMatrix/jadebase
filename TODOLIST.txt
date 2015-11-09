@@ -1,30 +1,12 @@
-problems:
-the offsets of device associations will become invalid if the capturing gui element moves position
-associated devices are not released when parent window is changed
-window and its top_group cannot easily share dimensions
-
-solution:
-remove parent window from gui_element
-add parent element to gui_element
-gui_elements now request redraws from their parent element
-replace windows' top_group with new windowview element
-windowview has null element parent, takes a parent window
-windowview & parent window adjust each others' dimensions
-gui_elements also associate device with parent
-creates chain of gui_elements or possibly just live-updatable offsets
-windowview takes care of device associations (remove from window)
-make sure to implement chain deassociations in parent change (no use cases for carrying support between changes)
-
->> how will this work with future render caching?
-
-this also allows us to remove minimum window dimensions, as they can be programmatically derived from the contained element constraints
+Remove minimum window dimensions and programmatically derive them from the
+windowview's contained element constraints
 
 --------------------------------------------------------------------------------
 
-ensure only 1 window::manip at a time, so we can:
-isolate window updating within window::manip
-have window::manip handle manual (code) window adjustments
-have event parser handle passive (WM) window adjustments
+Ensure only 1 window::manip at a time, so we can:
+  - Isolate window updating within window::manip
+  - Have window::manip handle manual (code) window adjustments
+  - Have event parser handle passive (WM) window adjustments
 ... then we can finish fully implementing window actions cleanly
 
 --------------------------------------------------------------------------------
@@ -43,7 +25,20 @@ clicked.  Super minor but may have unforseen consequences down the line.
 
 --------------------------------------------------------------------------------
 
-Use mipmaps + glScalef() for GUI scaling
+Start using 'enum class' and tags at enum uses
+  - Start using enum class in your code, if possible
+    http://cpphints.com/hints/14
+  - Adding a new constant to enum don't forget to correct switch operators
+    http://cpphints.com/hints/36
+
+--------------------------------------------------------------------------------
+
+Move event position & modifiers from union types to window_event super struct
+
+Even if a given event doesn't need these, it prevents the wrong union member
+from being updated as well as reduces the number of superfluous switch()
+statements just to update a pair of values.  It also does not increase the size
+of window_event as these members are already included in some union types.
 
 --------------------------------------------------------------------------------
 
