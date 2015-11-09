@@ -272,92 +272,111 @@ namespace jade
                                                         rect_dim[ 0 ],
                                                         rect_dim[ 1 ] ) ) )
             {
-                // limit_percent contents_limits = contents -> getScrollLimitPercent();
-                // std::pair< float, float > contents_scroll = contents -> getScrollPercent();
+                auto contents_limits = contents -> getScrollLimitPercent();
+                auto contents_scroll = contents -> getScrollPercent();
                 
-                // float slide_space[ 2 ] =  { ( float )( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ] ),
-                //                             ( float )( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ] ) };
+                float slide_space[ 2 ] =  { ( float )( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ] ),
+                                            ( float )( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ] ) };
                 
-                // // ( ( e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] )
-                // // / slide_space[ 0 ] ) / ( 1.0f + contents_limits.first.second - contents_limits.first.first )
+                // ( ( e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] )
+                // / slide_space[ 0 ] ) / ( 1.0f + contents_limits.first.second - contents_limits.first.first )
                 
-                // if( capturing == HORIZONTAL_BAR )
-                // {
-                //     if( e.stroke.click & CLICK_PRIMARY )
-                //     {
-                //         contents -> setScrollPercent( ( e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] ) / slide_space[ 0 ],
-                //                                       contents_scroll.second );
-                //     }
-                //     else
-                //     {
-                //         deassociateDevice( e.stroke.dev_id );
-                //         capturing = NONE;
-                //     }
-                //     arrangeBars();
-                //     return false;        // didn't use
-                // }
-                // else if( capturing == VERTICAL_BAR )
-                // {
-                //     if( e.stroke.click & CLICK_PRIMARY )
-                //     {
-                //         contents -> setScrollPercent( contents_scroll.first,
-                //                                       ( e.stroke.position[ 1 ] - e.offset[ 1 ] - capture_start[ 1 ] - capture_start[ 2 ] ) / slide_space[ 1 ] );
-                //     }
-                //     else
-                //     {
-                //         deassociateDevice( e.stroke.dev_id );
-                //         capturing = NONE;
-                //     }
-                //     arrangeBars();
-                //     return false;        // didn't use
-                // }
-                // else
+                if( capturing == HORIZONTAL_BAR )
                 {
-                    int scroll_amount[ 2 ];
-                    
-                    switch( capturing )
+                    if( e.stroke.click & CLICK_PRIMARY )
                     {
-                        case LEFT_BUTTON:
-                            scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
-                            scroll_amount[ 1 ] = 0;
-                            break;
-                        case RIGHT_BUTTON:
-                            scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" );
-                            scroll_amount[ 1 ] = 0;
-                            break;
-                        case TOP_BUTTON:
-                            scroll_amount[ 0 ] = 0;
-                            scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
-                            break;
-                        case BOTTOM_BUTTON:
-                            scroll_amount[ 0 ] = 0;
-                            scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" );
-                            break;
-                        case CORNER:
-                            break;
-                        default:
-                            throw exception( "scrollset::acceptEvent(): Unknown/invalid capturing state" );
+                        contents -> setScrollPercent( ( e.stroke.position[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] ) / slide_space[ 0 ],
+                                                      contents_scroll.second );
                     }
-                    
+                    else
+                    {
+                        deassociateDevice( e.stroke.dev_id );
+                        capturing = NONE;
+                    }
+                    arrangeBars();
+                    return false;        // didn't use
+                }
+                else if( capturing == VERTICAL_BAR )
+                {
+                    if( e.stroke.click & CLICK_PRIMARY )
+                    {
+                        contents -> setScrollPercent( contents_scroll.first,
+                                                      ( e.stroke.position[ 1 ] - capture_start[ 1 ] - capture_start[ 2 ] ) / slide_space[ 1 ] );
+                    }
+                    else
+                    {
+                        deassociateDevice( e.stroke.dev_id );
+                        capturing = NONE;
+                    }
+                    arrangeBars();
+                    return false;                                               // Didn't use
+                }
+                else if( capturing == CORNER )
+                {
+                    if( point_in_button )                                       // Successful click
+                    {
+                        if( !( e.stroke.click & CLICK_PRIMARY ) )
+                        {
+                            if( corner_state == DOWN )
+                                corner_state = EVIL;
+                            else
+                                corner_state = UP;
+                            
+                            deassociateDevice( e.stroke.dev_id );
+                            capturing = NONE;
+                            arrangeBars();
+                        }
+                    }
+                    else                                                        // Click cancel
+                    {
+                        if( corner_state == DOWN )
+                            corner_state = UP;
+                        else
+                            corner_state = EVIL;
+                        
+                        deassociateDevice( e.stroke.dev_id );
+                        capturing = NONE;
+                        arrangeBars();
+                    }
+                }
+                else
+                {
                     if( point_in_button )
                     {
+                        int scroll_amount[ 2 ];
+                        
+                        switch( capturing )
+                        {
+                            case LEFT_BUTTON:
+                                scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
+                                scroll_amount[ 1 ] = 0;
+                                break;
+                            case RIGHT_BUTTON:
+                                scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" );
+                                scroll_amount[ 1 ] = 0;
+                                break;
+                            case TOP_BUTTON:
+                                scroll_amount[ 0 ] = 0;
+                                scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
+                                break;
+                            case BOTTOM_BUTTON:
+                                scroll_amount[ 0 ] = 0;
+                                scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" );
+                                break;
+                            default:
+                                // All other cases handled above
+                                throw exception( "scrollset::acceptEvent(): Unknown/invalid capturing state" );
+                        }
+                        
                         if( !( e.stroke.click & CLICK_PRIMARY ) )               // Successful click
                         {
-                            // if( capturing == CORNER )
-                            // {
-                            //     if( corner_state == DOWN )
-                            //         corner_state = EVIL;
-                            //     else
-                            //         corner_state = UP;
-                            // }
-                            // else
-                                contents -> scrollPoints( scroll_amount[ 0 ], scroll_amount[ 1 ] );
+                            contents -> scrollPoints( scroll_amount[ 0 ], scroll_amount[ 1 ] );
                             
                             deassociateDevice( e.stroke.dev_id );
                             capturing = NONE;
                         }
                     }
-                    else                                                        // Click cancel
+                    else
                     {
                         deassociateDevice( e.stroke.dev_id );
                         capturing = NONE;
@@ -395,12 +414,12 @@ namespace jade
             {
                 if( inside_horz && ( e.stroke.click & CLICK_PRIMARY ) )
                 {
-                    // if( e.stroke.position[ 0 ] - e.offset[ 0 ] >= position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH
-                    //     && e.stroke.position[ 0 ] - e.offset[ 0 ] < position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 0 ] )
-                    // {
-                    //     capture_start[ 2 ] = slider_pos[ 0 ];
-                    //     capturing = HORIZONTAL_BAR;
-                    // }
+                    if( e.stroke.position[ 0 ] >= position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH
+                        && e.stroke.position[ 0 ] < position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 0 ] )
+                    {
+                        capture_start[ 2 ] = slider_pos[ 0 ];
+                        capturing = HORIZONTAL_BAR;
+                    }
                     
                     if( e.stroke.position[ 0 ]
                         < position[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
@@ -416,12 +435,12 @@ namespace jade
                 }
                 else if( inside_vert && ( e.stroke.click & CLICK_PRIMARY ) )
                 {
-                    // if( e.stroke.position[ 1 ] - e.offset[ 1 ] >= position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH
-                    //     && e.stroke.position[ 1 ] - e.offset[ 1 ] < position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 1 ] )
-                    // {
-                    //     capture_start[ 2 ] = slider_pos[ 1 ];
-                    //     capturing = VERTICAL_BAR;
-                    // }
+                    if( e.stroke.position[ 1 ] >= position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH
+                        && e.stroke.position[ 1 ] < position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 1 ] )
+                    {
+                        capture_start[ 2 ] = slider_pos[ 1 ];
+                        capturing = VERTICAL_BAR;
+                    }
                     
                     if( e.stroke.position[ 1 ]
                         < position[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
@@ -435,15 +454,15 @@ namespace jade
                         capturing = BOTTOM_BUTTON;
                     }
                 }
-                // else if( inside_corner && ( e.stroke.click & CLICK_PRIMARY ) )
-                // {
-                //     if( corner_state == UP )
-                //         corner_state = DOWN;
-                //     else
-                //         corner_state = EVIL_DOWN;
+                else if( inside_corner && ( e.stroke.click & CLICK_PRIMARY ) )
+                {
+                    if( corner_state == UP )
+                        corner_state = DOWN;
+                    else
+                        corner_state = EVIL_DOWN;
                     
-                //     capturing = CORNER;
-                // }
+                    capturing = CORNER;
+                }
                 
                 if( capturing )
                 {
