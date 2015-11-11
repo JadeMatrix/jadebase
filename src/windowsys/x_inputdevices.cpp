@@ -104,8 +104,13 @@ namespace
     
     // INPUT EVENT ACCUMULATING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    std::map< jb_platform_idevid_t,
-              jade::stroke_waypoint > prev_strokes;
+    // std::map< jb_platform_idevid_t,
+    //           jade::stroke_waypoint > prev_strokes;
+    
+    typedef std::pair< jade::dpi::points, jade::dpi::points > point_pair;
+    typedef std::pair< jade::stroke_waypoint, point_pair > waypoint_info;
+    
+    std::map< jb_platform_idevid_t, waypoint_info > prev_strokes;
     
     static jade::stroke_waypoint initial_waypoint = { 0x00,
                                                       0x00,
@@ -114,7 +119,6 @@ namespace
                                                       false,
                                                       false,
                                                       false,
-                                                      { -INFINITY, -INFINITY }, // Element masking checks left-right, so we want to fail early
                                                       { -INFINITY, -INFINITY },
                                                       0.0f,
                                                       { 0.0f, 0.0f },
@@ -344,7 +348,8 @@ namespace jade
                                 
                                 new_devices[ detail.x_devid ] = detail;         // Add the device to the new list
                                 
-                                prev_strokes[ detail.x_devid ] = initial_waypoint;
+                                // prev_strokes[ detail.x_devid ] = initial_waypoint;
+                                prev_strokes[ detail.x_devid ] = waypoint_info( initial_waypoint, point_pair( -INFINITY, -INFINITY ) );
                                                                                 // Load initial waypoint, no need to change its dev_id
                                 
                                 if( getDevMode() )
@@ -651,8 +656,8 @@ namespace jade
                         if( x_eventdata.state & Button2Mask )                   // Button2 = middle click
                             w_event.stroke.click |= CLICK_ALT;
                         
-                        w_event.stroke.position[ 0 ] = ( dpi::points )x_eventdata.x / target_scale;
-                        w_event.stroke.position[ 1 ] = ( dpi::points )x_eventdata.y / target_scale;
+                        w_event.position[ 0 ] = ( dpi::points )x_eventdata.x / target_scale;
+                        w_event.position[ 1 ] = ( dpi::points )x_eventdata.y / target_scale;
                         
                         w_event.stroke.pressure = 0.0f;                         // Pressure may be set later
                         
@@ -669,12 +674,12 @@ namespace jade
                         if( x_eventdata.state & Button1Mask )
                             w_event.stroke.click |= CLICK_PRIMARY;
                         
-                        w_event.stroke.position[ 0 ] = ( ( dpi::points )x_eventdata.axis_data[ 0 ]
-                                                         / ( dpi::points )device_detail.axes[ 0 ].max_value )
-                                                       * ( dpi::points )x_screen_px[ 0 ] / target_scale;
-                        w_event.stroke.position[ 1 ] = ( ( dpi::points )x_eventdata.axis_data[ 1 ]
-                                                         / ( dpi::points )device_detail.axes[ 1 ].max_value )
-                                                       * ( dpi::points )x_screen_px[ 1 ] / target_scale;
+                        w_event.position[ 0 ] = ( ( dpi::points )x_eventdata.axis_data[ 0 ]
+                                                  / ( dpi::points )device_detail.axes[ 0 ].max_value )
+                                                * ( dpi::points )x_screen_px[ 0 ] / target_scale;
+                        w_event.position[ 1 ] = ( ( dpi::points )x_eventdata.axis_data[ 1 ]
+                                                  / ( dpi::points )device_detail.axes[ 1 ].max_value )
+                                                * ( dpi::points )x_screen_px[ 1 ] / target_scale;
                         
                         if( device_detail.type == TOUCH_STYLUS )                // Unpressured touch events report a 0 pressure
                             w_event.stroke.pressure = 1.0f;
@@ -765,18 +770,22 @@ namespace jade
                     w_event.stroke.cmd = w_event.stroke.ctrl;
                     #endif
                     
-                    stroke_waypoint& prev_waypoint( prev_strokes[ device_detail.x_devid ] );
-                    w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
-                    w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
-                    prev_waypoint = w_event.stroke;                             // Update previous stroke
+                    // stroke_waypoint& prev_waypoint( prev_strokes[ device_detail.x_devid ] );
+                    // w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
+                    // w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
+                    // prev_waypoint = w_event.stroke;                             // Update previous stroke
+                    waypoint_info& prev_waypoint( prev_strokes[ device_detail.x_devid ] );
+                    w_event.stroke.prev_pos[ 0 ] = prev_waypoint.second.first;
+                    w_event.stroke.prev_pos[ 1 ] = prev_waypoint.second.second;
+                    prev_waypoint.first = w_event.stroke;                       // Update previous stroke
                 }
                 break;
             case SCROLL:
                 {
-                    w_event.scroll.position[ 0 ] = ( dpi::points )x_eventdata.x // XDeviceButtonEvent::x & x_root seemt to report the same value
-                                                   / target_scale;
-                    w_event.scroll.position[ 1 ] = ( dpi::points )x_eventdata.y
-                                                   / target_scale;
+                    w_event.position[ 0 ] = ( dpi::points )x_eventdata.x        // XDeviceButtonEvent::x & x_root seemt to report the same value
+                                            / target_scale;
+                    w_event.position[ 1 ] = ( dpi::points )x_eventdata.y
+                                            / target_scale;
                     
                     w_event.scroll.amount[ 0 ] = 0.0f;                          // Initialize to 0.0
                     w_event.scroll.amount[ 1 ] = 0.0f;

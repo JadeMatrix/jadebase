@@ -148,14 +148,14 @@ namespace jade
                 {
                     if( capturing == VERTICAL )
                         setValue( capture_start[ 2 ]
-                                  + ( e.stroke.position[ 1 ] - capture_start[ 1 ] )
+                                  + ( e.position[ 1 ] - capture_start[ 1 ] )
                                   / ( getSetting_num( "jb_DialDragFactor" ) * -1.0f ) );
                     else
                         // atan2 takes y/x, but since our origin is at the top,
                         // we switch that around and multiply y by -1
                         setValue( capture_start[ 2 ]
-                                  + atan2(   e.stroke.position[ 0 ] - position[ 0 ] - radius,
-                                           ( e.stroke.position[ 1 ] - position[ 1 ] - radius ) * -1.0f ) / M_PI );
+                                  + atan2(   e.position[ 0 ] - position[ 0 ] - radius,
+                                           ( e.position[ 1 ] - position[ 1 ] - radius ) * -1.0f ) / M_PI );
                     
                     if( parent != NULL )
                         parent -> requestRedraw();
@@ -166,16 +166,16 @@ namespace jade
             else
             {
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideCircle( e.stroke.position[ 0 ],
-                                          e.stroke.position[ 1 ],
+                    && pointInsideCircle( e.position[ 0 ],
+                                          e.position[ 1 ],
                                           radius,
                                           radius,
                                           radius ) )
                 {
                     if( !getSetting_bln( "jb_DialCircularManip" )
                         || small
-                        || pointInsideCircle( e.stroke.position[ 0 ],
-                                              e.stroke.position[ 1 ],
+                        || pointInsideCircle( e.position[ 0 ],
+                                              e.position[ 1 ],
                                               radius,
                                               radius,
                                               radius - 15.0f ) )
@@ -187,8 +187,8 @@ namespace jade
                         capturing = CIRCULAR;
                     }
                     
-                    capture_start[ 0 ] = e.stroke.position[ 0 ];
-                    capture_start[ 1 ] = e.stroke.position[ 1 ];
+                    capture_start[ 0 ] = e.position[ 0 ];
+                    capture_start[ 1 ] = e.position[ 1 ];
                     capture_start[ 2 ] = value;
                     
                     associateDevice( e.stroke.dev_id );
@@ -203,8 +203,8 @@ namespace jade
         else
         {
             if( e.type == SCROLL
-                && pointInsideCircle( e.scroll.position[ 0 ],
-                                      e.scroll.position[ 1 ],
+                && pointInsideCircle( e.position[ 0 ],
+                                      e.position[ 1 ],
                                       radius,
                                       radius,
                                       radius ) )

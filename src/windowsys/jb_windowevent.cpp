@@ -55,9 +55,9 @@ namespace jade
                 
                 ff::write( str,
                            "@ ",
-                           e.stroke.position[ 0 ],
+                           e.position[ 0 ],
                            ",",
-                           e.stroke.position[ 1 ],
+                           e.position[ 1 ],
                            "  press ",
                            e.stroke.pressure,
                            " tilt ",
@@ -72,10 +72,10 @@ namespace jade
             break;
         case DROP:
             ff::write( str,
-                       "DROP at ",
-                       e.drop.position[ 0 ],
+                       "DROP @ ",
+                       e.position[ 0 ],
                        ",",
-                       e.drop.position[ 1 ],
+                       e.position[ 1 ],
                        " with item 0x",
             #warning DROP event to string not fully implemented
                        ff::to_x( 0x00, 2, 2 ) );
@@ -101,9 +101,9 @@ namespace jade
                        "PINCH ",
                        ( e.pinch.finish ? "(finish) " : "" ),
                        "@ ",
-                       e.pinch.position[ 0 ],
+                       e.position[ 0 ],
                        ",",
-                       e.pinch.position[ 1 ],
+                       e.position[ 1 ],
                        " distance ",
                        e.pinch.distance,
                        " rotation ",
@@ -127,9 +127,9 @@ namespace jade
                 
                 ff::write( str,
                            "@ ",
-                           e.scroll.position[ 0 ],
+                           e.position[ 0 ],
                            ",",
-                           e.scroll.position[ 1 ],
+                           e.position[ 1 ],
                            "  vertical ",
                            e.scroll.amount[ 1 ],
                            " horizontal ",

@@ -244,8 +244,8 @@ namespace jade
             if( stroke_fallthrough )
                 return false;
             else
-                return !pointInsideRect( e.stroke.position[ 0 ],
-                                         e.stroke.position[ 1 ],
+                return !pointInsideRect( e.position[ 0 ],
+                                         e.position[ 1 ],
                                          0,
                                          0,
                                          dimensions[ 0 ],
@@ -372,41 +372,8 @@ namespace jade
     
     bool group::sendEventToChild( int i, window_event e )
     {
-        bool no_position = false;
-        dpi::points e_position[ 2 ];
-        
-        std::pair< dpi::points, dpi::points > element_offset     = elements[ i ] -> getEventOffset();
-        
-        std::pair< dpi::points, dpi::points > element_position   = elements[ i ] -> getVisualPosition();
-        std::pair< dpi::points, dpi::points > element_dimensions = elements[ i ] -> getVisualDimensions();
-        
-        switch( e.type )
-        {
-        case STROKE:
-            e_position[ 0 ] = e.stroke.position[ 0 ];
-            e_position[ 1 ] = e.stroke.position[ 1 ];
-            break;
-        case DROP:
-            e_position[ 0 ] = e.drop.position[ 0 ];
-            e_position[ 1 ] = e.drop.position[ 1 ];
-            break;
-        case KEYCOMMAND:
-        case COMMAND:
-        case TEXT:
-            no_position = true;
-            break;
-        case PINCH:
-            e_position[ 0 ] = e.pinch.position[ 0 ];
-            e_position[ 1 ] = e.pinch.position[ 1 ];
-            break;
-        case SCROLL:
-            e_position[ 0 ] = e.scroll.position[ 0 ];
-            e_position[ 1 ] = e.scroll.position[ 1 ];
-            break;
-        default:
-            throw exception( "group::acceptEvent(): Unknown event type" );
-            break;
-        }
+        auto element_position   = elements[ i ] -> getVisualPosition();
+        auto element_dimensions = elements[ i ] -> getVisualDimensions();
         
         if( ( e.type == STROKE                                                  // Allow elements to see exiting strokes
               && pointInsideRect( e.stroke.prev_pos[ 0 ],
@@ -415,39 +382,32 @@ namespace jade
                                   element_position.second - scroll_offset[ 1 ],
                                   element_dimensions.first,
                                   element_dimensions.second ) )
-            || pointInsideRect( e_position[ 0 ],
-                                e_position[ 1 ],
+            || pointInsideRect( e.position[ 0 ],
+                                e.position[ 1 ],
                                 element_position.first  - scroll_offset[ 0 ],
                                 element_position.second - scroll_offset[ 1 ],
                                 element_dimensions.first,
                                 element_dimensions.second ) )
         {
+            auto element_offset = elements[ i ] -> getEventOffset();
+            
             switch( e.type )
             {
             case STROKE:
-                e.stroke.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
-                e.stroke.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
                 e.stroke.prev_pos[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
                 e.stroke.prev_pos[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
-                break;
             case DROP:
-                e.drop.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
-                e.drop.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
+            case PINCH:
+            case SCROLL:
+                e.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
+                e.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
                 break;
             case KEYCOMMAND:
             case COMMAND:
             case TEXT:
                 break;
-            case PINCH:
-                e.pinch.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
-                e.pinch.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
-                break;
-            case SCROLL:
-                e.scroll.position[ 0 ] -= element_offset.first  - scroll_offset[ 0 ];
-                e.scroll.position[ 1 ] -= element_offset.second - scroll_offset[ 1 ];
-                break;
             default:
-                // We already took care of this case above
+                throw exception( "group::acceptEvent(): Unknown event type" );
                 break;
             }
             

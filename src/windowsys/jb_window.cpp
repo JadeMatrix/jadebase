@@ -175,36 +175,24 @@ namespace jade
         
         // TODO: Move to jade::windowview
         
+        // Window position is stored in pixels, so we need this to scale the
+        // position for normalization.
         dpi::percent scale = getScaleFactor();
-        
-        bool no_position = false;
-        
-        // int e_position[ 2 ];
         
         switch( e.type )                                                        // Normalize event position to window position (if necessary)
         {
         case STROKE:
-            e.stroke.position[ 0 ] -= position[ 0 ] / scale;
-            e.stroke.position[ 1 ] -= position[ 1 ] / scale;
             e.stroke.prev_pos[ 0 ] -= position[ 0 ] / scale;
             e.stroke.prev_pos[ 1 ] -= position[ 1 ] / scale;
-            break;
         case DROP:
-            e.drop.position[ 0 ] -= position[ 0 ] / scale;
-            e.drop.position[ 1 ] -= position[ 1 ] / scale;
+        case PINCH:
+        case SCROLL:
+            e.position[ 0 ] -= position[ 0 ] / scale;
+            e.position[ 1 ] -= position[ 1 ] / scale;
             break;
         case KEYCOMMAND:
         case COMMAND:
         case TEXT:
-            no_position = true;
-            break;
-        case PINCH:
-            e.pinch.position[ 0 ] -= position[ 0 ] / scale;
-            e.pinch.position[ 1 ] -= position[ 1 ] / scale;
-            break;
-        case SCROLL:
-            e.scroll.position[ 0 ] -= position[ 0 ] / scale;
-            e.scroll.position[ 1 ] -= position[ 1 ] / scale;
             break;
         default:
             throw exception( "window::acceptEvent(): Unknown event type" );
@@ -228,30 +216,16 @@ namespace jade
                     switch( e.type )                                       // Normalize event position to element position (if necessary)
                     {
                     case STROKE:
-                        e.stroke.position[ 0 ] -= pos.first;
-                        e.stroke.position[ 1 ] -= pos.second;
                         e.stroke.prev_pos[ 0 ] -= pos.first;
                         e.stroke.prev_pos[ 1 ] -= pos.second;
-                        break;
                     case DROP:
-                        e.drop.position[ 0 ] -= pos.first;
-                        e.drop.position[ 1 ] -= pos.second;
-                        break;
-                    case KEYCOMMAND:
-                    case COMMAND:
-                    case TEXT:
-                        no_position = true;
-                        break;
                     case PINCH:
-                        e.pinch.position[ 0 ] -= pos.first;
-                        e.pinch.position[ 1 ] -= pos.second;
-                        break;
                     case SCROLL:
-                        e.scroll.position[ 0 ] -= pos.first;
-                        e.scroll.position[ 1 ] -= pos.second;
+                        e.position[ 0 ] -= pos.first;
+                        e.position[ 1 ] -= pos.second;
                         break;
                     default:
-                        // We already took care of this case above
+                        // All other cases already handled
                         break;
                     }
                     

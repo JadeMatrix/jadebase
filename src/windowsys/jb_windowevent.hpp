@@ -55,10 +55,9 @@ namespace jade
         bool super : 1;                                                         // Apple Command or Windows key
         bool cmd   : 1;                                                         // Platform command key: CTRL on Windows/Linux, Command on OS X
         
-        dpi::points position[ 2 ];                                              // Position [ x, y ] relative to screen (fractional if supported)
-        dpi::points prev_pos[ 2 ];                                              // Previous position [ x, y ], { NaN, NaN } if no previous
-        float       pressure;                                                   // Pressure, ( 0.0 ... 1.0 )
-        float           tilt[ 2 ];                                              // Tilt [ x, y ], ( -1.0 ... 1.0 )
+        dpi::points prev_pos[ 2 ];                                              // Previous position [ x, y ]; { NaN, NaN } if no previous
+        float       pressure;                                                   // Pressure; ( 0.0 ... 1.0 )
+        float           tilt[ 2 ];                                              // Tilt [ x, y ]; ( -1.0 ... 1.0 )
         float       rotation;                                                   // Rotation (0.0 up to but not including 1.0 is a full rotation, can contain
                                                                                 // multiple rotations but usually not)
         float      wheel;                                                       // Tangential (wheel) pressure -1.0 through 1.0
@@ -69,7 +68,7 @@ namespace jade
     // class droppable;
     struct drop_item
     {
-        dpi::points position[ 2 ];
+        void* foo;
         // droppable* item;
     };
     
@@ -114,13 +113,10 @@ namespace jade
         
         dpi::points distance;                                                   // Relative change in distance
         float       rotation;                                                   // Relative change, 0.0 through 1.0 for a full rotation, repeating
-        dpi::points position[ 2 ];                                              // Absolute position in-window
     };
     
     struct scroll_input
     {
-        dpi::points position[ 2 ];
-        
         dpi::points amount[ 2 ];                                                // Distance scrolled in points on each axis
         
         bool shift : 1;
@@ -147,6 +143,7 @@ namespace jade
     struct window_event
     {
         wevent_type type;
+        dpi::points position[ 2 ];                                              // Position [ x, y ]; { NaN, NaN } if meaningless for given event type
         union
         {
             stroke_waypoint stroke;
@@ -161,6 +158,8 @@ namespace jade
         window_event()
         {
             type = NONE;
+            position[ 0 ] = NAN;
+            position[ 1 ] = NAN;
         }
     };
     

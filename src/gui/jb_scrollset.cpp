@@ -255,37 +255,36 @@ namespace jade
             
             if( capturing == HORIZONTAL_BAR
                 || capturing == VERTICAL_BAR
-                || ( point_in_button = pointInsideRect( e.stroke.position[ 0 ],
-                                                        e.stroke.position[ 1 ],
-                                                        // rect_pos[ 0 ] + position[ 0 ],
-                                                        // rect_pos[ 1 ] + position[ 1 ],
+                || ( point_in_button = pointInsideRect( e.position[ 0 ],
+                                                        e.position[ 1 ],
                                                         rect_pos[ 0 ],
                                                         rect_pos[ 1 ],
                                                         rect_dim[ 0 ],
                                                         rect_dim[ 1 ] ) )
                 || ( prev_in_button  = pointInsideRect( e.stroke.prev_pos[ 0 ],
                                                         e.stroke.prev_pos[ 1 ],
-                                                        // rect_pos[ 0 ] + position[ 0 ],
-                                                        // rect_pos[ 1 ] + position[ 1 ],
                                                         rect_pos[ 0 ],
                                                         rect_pos[ 1 ],
                                                         rect_dim[ 0 ],
                                                         rect_dim[ 1 ] ) ) )
             {
-                auto contents_limits = contents -> getScrollLimitPercent();
+                // auto contents_limits = contents -> getScrollLimitPercent();
                 auto contents_scroll = contents -> getScrollPercent();
                 
                 float slide_space[ 2 ] =  { ( float )( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ] ),
                                             ( float )( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ] ) };
                 
-                // ( ( e.stroke.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] )
+                // ( ( e.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] )
                 // / slide_space[ 0 ] ) / ( 1.0f + contents_limits.first.second - contents_limits.first.first )
                 
                 if( capturing == HORIZONTAL_BAR )
                 {
                     if( e.stroke.click & CLICK_PRIMARY )
                     {
-                        contents -> setScrollPercent( ( e.stroke.position[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] ) / slide_space[ 0 ],
+                        contents -> setScrollPercent( ( e.position[ 0 ]
+                                                        - capture_start[ 0 ]
+                                                        - capture_start[ 2 ] )
+                                                      / slide_space[ 0 ],
                                                       contents_scroll.second );
                     }
                     else
@@ -301,7 +300,10 @@ namespace jade
                     if( e.stroke.click & CLICK_PRIMARY )
                     {
                         contents -> setScrollPercent( contents_scroll.first,
-                                                      ( e.stroke.position[ 1 ] - capture_start[ 1 ] - capture_start[ 2 ] ) / slide_space[ 1 ] );
+                                                      ( e.position[ 1 ]
+                                                        - capture_start[ 1 ]
+                                                        - capture_start[ 2 ] )
+                                                      / slide_space[ 1 ] );
                     }
                     else
                     {
@@ -388,14 +390,14 @@ namespace jade
             }
         }
         
-        bool inside_horz = pointInsideRect( e.stroke.position[ 0 ],
-                                            e.stroke.position[ 1 ],
+        bool inside_horz = pointInsideRect( e.position[ 0 ],
+                                            e.position[ 1 ],
                                             0,
                                             dimensions[ 1 ] - SCROLLBAR_HEIGHT,
                                             dimensions[ 0 ],
                                             SCROLLBAR_HEIGHT );
-        bool inside_vert = pointInsideRect( e.stroke.position[ 0 ],
-                                            e.stroke.position[ 1 ],
+        bool inside_vert = pointInsideRect( e.position[ 0 ],
+                                            e.position[ 1 ],
                                             dimensions[ 0 ] - SCROLLBAR_HEIGHT,
                                             0,
                                             SCROLLBAR_HEIGHT,
@@ -414,20 +416,20 @@ namespace jade
             {
                 if( inside_horz && ( e.stroke.click & CLICK_PRIMARY ) )
                 {
-                    if( e.stroke.position[ 0 ] >= position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH
-                        && e.stroke.position[ 0 ] < position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 0 ] )
+                    if( e.position[ 0 ] >= position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH
+                        && e.position[ 0 ] < position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 0 ] )
                     {
                         capture_start[ 2 ] = slider_pos[ 0 ];
                         capturing = HORIZONTAL_BAR;
                     }
                     
-                    if( e.stroke.position[ 0 ]
+                    if( e.position[ 0 ]
                         < position[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
                     {
                         capturing = LEFT_BUTTON;
                     }
                     
-                    if( e.stroke.position[ 0 ]
+                    if( e.position[ 0 ]
                         >= position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
                     {
                         capturing = RIGHT_BUTTON;
@@ -435,20 +437,20 @@ namespace jade
                 }
                 else if( inside_vert && ( e.stroke.click & CLICK_PRIMARY ) )
                 {
-                    if( e.stroke.position[ 1 ] >= position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH
-                        && e.stroke.position[ 1 ] < position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 1 ] )
+                    if( e.position[ 1 ] >= position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH
+                        && e.position[ 1 ] < position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 1 ] )
                     {
                         capture_start[ 2 ] = slider_pos[ 1 ];
                         capturing = VERTICAL_BAR;
                     }
                     
-                    if( e.stroke.position[ 1 ]
+                    if( e.position[ 1 ]
                         < position[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
                     {
                         capturing = TOP_BUTTON;
                     }
                     
-                    if( e.stroke.position[ 1 ]
+                    if( e.position[ 1 ]
                         >= position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
                     {
                         capturing = BOTTOM_BUTTON;
@@ -466,8 +468,8 @@ namespace jade
                 
                 if( capturing )
                 {
-                    capture_start[ 0 ] = e.stroke.position[ 0 ];
-                    capture_start[ 1 ] = e.stroke.position[ 1 ];
+                    capture_start[ 0 ] = e.position[ 0 ];
+                    capture_start[ 1 ] = e.position[ 1 ];
                     associateDevice( e.stroke.dev_id );
                     captured_dev = e.stroke.dev_id;
                     
@@ -491,8 +493,8 @@ namespace jade
             //            "\n" );
             
             if( inside_corner
-                || !pointInsideRect( e.scroll.position[ 0 ],
-                                     e.scroll.position[ 1 ],
+                || !pointInsideRect( e.position[ 0 ],
+                                     e.position[ 1 ],
                                      0,
                                      0,
                                      dimensions[ 0 ],

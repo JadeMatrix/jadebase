@@ -358,7 +358,7 @@ namespace jade
                             if( current_tab < 0 || current_tab >= tabs.size() )
                                 throw exception( "tabset::acceptEvent(): Capturing without valid tab" );
                             
-                            tabs[ current_tab ].position = capture_start[ 2 ] + e.stroke.position[ 0 ] - capture_start[ 0 ];
+                            tabs[ current_tab ].position = capture_start[ 2 ] + e.position[ 0 ] - capture_start[ 0 ];
                             
                             if( tabs[ current_tab ].position < 0 )
                                 tabs[ current_tab ].position = 0;
@@ -397,8 +397,8 @@ namespace jade
                             deassociateDevice( e.stroke.dev_id );
                             reorganizeTabs();
                             
-                            return pointInsideRect( e.stroke.position[ 0 ],
-                                                    e.stroke.position[ 1 ],
+                            return pointInsideRect( e.position[ 0 ],
+                                                    e.position[ 1 ],
                                                     0,
                                                     0,
                                                     dimensions[ 0 ],
@@ -407,8 +407,8 @@ namespace jade
                     }
                     else
                     {
-                        if( pointInsideRect( e.stroke.position[ 0 ],
-                                             e.stroke.position[ 1 ],
+                        if( pointInsideRect( e.position[ 0 ],
+                                             e.position[ 1 ],
                                              0,
                                              0,
                                              dimensions[ 0 ],
@@ -416,12 +416,12 @@ namespace jade
                         {
                             for( int i = 0; i < tabs.size(); ++i )
                             {
-                                if( e.stroke.position[ 0 ] >= position[ 0 ] + tabs[ i ].position + bar_scroll
-                                    && e.stroke.position[ 0 ] < position[ 0 ] + tabs[ i ].position + bar_scroll + tabs[ i ].width
-                                    && e.stroke.position[ 1 ] < position[ 1 ] + TABSET_TAB_HEIGHT )
+                                if( e.position[ 0 ] >= position[ 0 ] + tabs[ i ].position + bar_scroll
+                                    && e.position[ 0 ] < position[ 0 ] + tabs[ i ].position + bar_scroll + tabs[ i ].width
+                                    && e.position[ 1 ] < position[ 1 ] + TABSET_TAB_HEIGHT )
                                 {
-                                    if( pointInsideCircle( e.stroke.position[ 0 ],
-                                                           e.stroke.position[ 1 ],
+                                    if( pointInsideCircle( e.position[ 0 ],
+                                                           e.position[ 1 ],
                                                            tabs[ i ].position + tabs[ i ].width - 13 + bar_scroll,
                                                            13,
                                                            7 ) )                // Current stroke in button
@@ -467,8 +467,8 @@ namespace jade
                                             current_tab = i;
                                             
                                             capturing = true;
-                                            capture_start[ 0 ] = e.stroke.position[ 0 ];
-                                            capture_start[ 1 ] = e.stroke.position[ 1 ];
+                                            capture_start[ 0 ] = e.position[ 0 ];
+                                            capture_start[ 1 ] = e.position[ 1 ];
                                             capture_start[ 2 ] = tabs[ i ].position;
                                             
                                             associateDevice( e.stroke.dev_id );
@@ -494,8 +494,8 @@ namespace jade
                 break;
             case SCROLL:
                 {
-                    if( pointInsideRect( e.scroll.position[ 0 ],
-                                         e.scroll.position[ 1 ],
+                    if( pointInsideRect( e.position[ 0 ],
+                                         e.position[ 1 ],
                                          0,
                                          0,
                                          dimensions[ 0 ],
@@ -535,26 +535,17 @@ namespace jade
             switch( e_copy.type )
             {
             case STROKE:
-                e_copy.stroke.position[ 0 ] -= contents_offset.first;
-                e_copy.stroke.position[ 1 ] -= contents_offset.second;
                 e_copy.stroke.prev_pos[ 0 ] -= contents_offset.first;
                 e_copy.stroke.prev_pos[ 1 ] -= contents_offset.second;
-                break;
             case DROP:
-                e_copy.drop.position[ 0 ] -= contents_offset.first;
-                e_copy.drop.position[ 1 ] -= contents_offset.second;
+            case PINCH:
+            case SCROLL:
+                e_copy.position[ 0 ] -= contents_offset.first;
+                e_copy.position[ 1 ] -= contents_offset.second;
                 break;
             case KEYCOMMAND:
             case COMMAND:
             case TEXT:
-                break;
-            case PINCH:
-                e_copy.pinch.position[ 0 ] -= contents_offset.first;
-                e_copy.pinch.position[ 1 ] -= contents_offset.second;
-                break;
-            case SCROLL:
-                e_copy.scroll.position[ 0 ] -= contents_offset.first;
-                e_copy.scroll.position[ 1 ] -= contents_offset.second;
                 break;
             default:
                 throw exception( "tabset::acceptEvent(): Unknown event type" );

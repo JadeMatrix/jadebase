@@ -232,8 +232,8 @@ namespace jade
             {
             case OFF_UP:
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ],
-                                        e.stroke.position[ 1 ],
+                    && pointInsideRect( e.position[ 0 ],
+                                        e.position[ 1 ],
                                         0,
                                         0,
                                         dimensions[ 0 ],
@@ -245,8 +245,8 @@ namespace jade
                 }
                 break;
             case OFF_DOWN:
-                if( pointInsideRect( e.stroke.position[ 0 ],
-                                     e.stroke.position[ 1 ],
+                if( pointInsideRect( e.position[ 0 ],
+                                     e.position[ 1 ],
                                      0,
                                      0,
                                      dimensions[ 0 ],
@@ -267,8 +267,8 @@ namespace jade
                 break;
             case ON_UP:
                 if( ( e.stroke.click & CLICK_PRIMARY )
-                    && pointInsideRect( e.stroke.position[ 0 ],
-                                        e.stroke.position[ 1 ],
+                    && pointInsideRect( e.position[ 0 ],
+                                        e.position[ 1 ],
                                         0,
                                         0,
                                         dimensions[ 0 ],
@@ -280,8 +280,8 @@ namespace jade
                 }
                 break;
             case ON_DOWN:
-                if( pointInsideRect( e.stroke.position[ 0 ],
-                                     e.stroke.position[ 1 ],
+                if( pointInsideRect( e.position[ 0 ],
+                                     e.position[ 1 ],
                                      0,
                                      0,
                                      dimensions[ 0 ],
