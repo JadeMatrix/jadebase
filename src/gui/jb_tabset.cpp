@@ -489,22 +489,36 @@ namespace jade
                                          dimensions[ 0 ],
                                          TABSET_BAR_HEIGHT ) )
                     {
+                        dpi::points bar_scrolled = bar_scroll;
+                        
                         if( e.scroll.amount[ 0 ] != 0.0f )                      // If there is any horizontal scroll, use that
                         {
                             if( capturing )
-                                capture_start[ 0 ] += e.scroll.amount[ 0 ];     // Readjust capture start X so tab follows cursor while scrolling
+                            {
+                                capture_start[ 0 ] -= e.scroll.amount[ 0 ];     // Readjust capture start X so tab follows cursor while scrolling
+                                capture_start[ 2 ] -= e.scroll.amount[ 0 ];
+                            }
                             
-                            bar_scroll += e.scroll.amount[ 0 ];
+                            bar_scroll -= e.scroll.amount[ 0 ];
                         }
                         else                                                    // Otherwise use only vertical scroll
                         {
                             if( capturing )
-                                capture_start[ 0 ] += e.scroll.amount[ 1 ];     // Readjust capture start X so tab follows cursor while scrolling
+                            {
+                                capture_start[ 0 ] -= e.scroll.amount[ 1 ];     // Readjust capture start X so tab follows cursor while scrolling
+                                capture_start[ 2 ] -= e.scroll.amount[ 0 ];
+                            }
                             
-                            bar_scroll += e.scroll.amount[ 1 ];
+                            bar_scroll -= e.scroll.amount[ 1 ];
                         }
                         
                         reorganizeTabs();                                       // Clamps bar_scroll & May call parent -> requestRedraw()
+                        
+                        if( capturing )
+                        {
+                            bar_scrolled = bar_scroll - bar_scrolled;           // Get the amount actually scrolled (after clipping)
+                            tabs[ current_tab ].position -= bar_scrolled;
+                        }
                         
                         return true;
                     }

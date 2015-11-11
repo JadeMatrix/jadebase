@@ -41,10 +41,10 @@ function gen_tabset()
     
     test_tabset = jade.gui.new_tabset( 0, 0, 256, 256 )
     
-    -- test_tabset:add_tab( jade.gui.new_tab( "Roman Text testtesttesttest", group_a ) )
-    -- test_tabset:add_tab( jade.gui.new_tab( "متن فارسی", group_b ) )
+    test_tabset:add_tab( jade.gui.new_tab( "Roman Text testtesttesttest", group_a ) )
+    test_tabset:add_tab( jade.gui.new_tab( "متن فارسی", group_b ) )
     test_tabset:add_tab( jade.gui.new_tab( "日本語のテキスト", group_c ) )
-    -- test_tabset:add_tab( jade.gui.new_tab( "טקסט בעברית", jade.gui.new_group( 0, 0, 256, 256 ) ) )
+    test_tabset:add_tab( jade.gui.new_tab( "טקסט בעברית", jade.gui.new_group( 0, 0, 256, 256 ) ) )
     
     return test_tabset
 end
