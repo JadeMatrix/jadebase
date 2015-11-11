@@ -104,9 +104,6 @@ namespace
     
     // INPUT EVENT ACCUMULATING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    // std::map< jb_platform_idevid_t,
-    //           jade::stroke_waypoint > prev_strokes;
-    
     typedef std::pair< jade::dpi::points, jade::dpi::points > point_pair;
     typedef std::pair< jade::stroke_waypoint, point_pair > waypoint_info;
     
@@ -348,7 +345,6 @@ namespace jade
                                 
                                 new_devices[ detail.x_devid ] = detail;         // Add the device to the new list
                                 
-                                // prev_strokes[ detail.x_devid ] = initial_waypoint;
                                 prev_strokes[ detail.x_devid ] = waypoint_info( initial_waypoint, point_pair( -INFINITY, -INFINITY ) );
                                                                                 // Load initial waypoint, no need to change its dev_id
                                 
@@ -770,14 +766,12 @@ namespace jade
                     w_event.stroke.cmd = w_event.stroke.ctrl;
                     #endif
                     
-                    // stroke_waypoint& prev_waypoint( prev_strokes[ device_detail.x_devid ] );
-                    // w_event.stroke.prev_pos[ 0 ] = prev_waypoint.position[ 0 ];
-                    // w_event.stroke.prev_pos[ 1 ] = prev_waypoint.position[ 1 ];
-                    // prev_waypoint = w_event.stroke;                             // Update previous stroke
                     waypoint_info& prev_waypoint( prev_strokes[ device_detail.x_devid ] );
                     w_event.stroke.prev_pos[ 0 ] = prev_waypoint.second.first;
                     w_event.stroke.prev_pos[ 1 ] = prev_waypoint.second.second;
                     prev_waypoint.first = w_event.stroke;                       // Update previous stroke
+                    prev_waypoint.second.first  = w_event.position[ 0 ];
+                    prev_waypoint.second.second = w_event.position[ 1 ];
                 }
                 break;
             case SCROLL:

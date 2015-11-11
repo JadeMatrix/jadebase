@@ -167,13 +167,16 @@ namespace jade
     
     std::string wevent2str( window_event& );                                    // Window EVENT 2 [to] STRing
     
-    #define pointInsideRect( p_x, p_y, r_x, r_y, r_w, r_h ) ( p_x >= r_x\
-                                                              && p_y >= r_y\
-                                                              && p_x <  r_x + r_w\
-                                                              && p_y <  r_y + r_h ) // We assume the compiler can optimize this a bit
+    #define pointInsideRect( p_x, p_y, r_x, r_y, r_w, r_h ) (    ( p_x ) >= ( r_x )\
+                                                              && ( p_y ) >= ( r_y )\
+                                                              && ( p_x ) <  ( r_x ) + ( r_w )\
+                                                              && ( p_y ) <  ( r_y ) + ( r_h ) )
+                                                                                // We assume the compiler can optimize this a bit
     
-    #define pointInsideCircle( p_x, p_y, c_x, c_y, c_r ) ( ( p_x - c_x ) * ( p_x - c_x ) + ( p_y - c_y ) * ( p_y - c_y )\
-                                                            <= c_r * c_r )      // c_x & c_y are the center of the circle
+    #define pointInsideCircle( p_x, p_y, c_x, c_y, c_r ) (   ( ( p_x ) - ( c_x ) ) * ( ( p_x ) - ( c_x ) )\
+                                                           + ( ( p_y ) - ( c_y ) ) * ( ( p_y ) - ( c_y ) )\
+                                                           <= ( c_r ) * ( c_r ) )
+                                                                                // c_x & c_y are the center of the circle
 }
 
 /******************************************************************************//******************************************************************************/

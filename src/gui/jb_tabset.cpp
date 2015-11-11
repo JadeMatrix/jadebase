@@ -427,11 +427,7 @@ namespace jade
                                                            7 ) )                // Current stroke in button
                                     {
                                         if( e.stroke.click & CLICK_PRIMARY )
-                                        {
                                             tabs[ i ].button_state = tab_state::DOWN;
-                                            if( parent != NULL )
-                                                parent -> requestRedraw();
-                                        }
                                         else
                                         {
                                             if( tabs[ i ].button_state == tab_state::DOWN )
@@ -441,12 +437,7 @@ namespace jade
                                             }
                                             else                                // Just a mouseover
                                                 tabs[ i ].button_state = tab_state::OVER;
-                                            
-                                            if( parent != NULL )
-                                                parent -> requestRedraw();
                                         }
-                                        
-                                        return true;
                                     }
                                     else
                                     {
@@ -457,9 +448,6 @@ namespace jade
                                                                7 ) )            // Previous stroke in button
                                         {
                                             tabs[ i ].button_state = tab_state::UP;
-                                            if( parent != NULL )
-                                                parent -> requestRedraw();
-                                            return true;
                                         }
                                         
                                         if( e.stroke.click & CLICK_PRIMARY )    // Start tab dragging
@@ -473,13 +461,13 @@ namespace jade
                                             
                                             associateDevice( e.stroke.dev_id );
                                             captured_dev = e.stroke.dev_id;
-                                            
-                                            if( parent != NULL )
-                                                parent -> requestRedraw();
                                         }
-                                        
-                                        return true;                            // Either way we used the event
                                     }
+                                    
+                                    if( parent != NULL )
+                                        parent -> requestRedraw();
+                                    
+                                    return true;                                // Either way we used the event since it was in the tab
                                 }
                                 
                                 // Will return in some way if true
