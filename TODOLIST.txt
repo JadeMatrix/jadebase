@@ -42,3 +42,8 @@ of window_event as these members are already included in some union types.
 
 --------------------------------------------------------------------------------
 
+Deprecate gui_element::getVisual***() in favor of more functionally explicit
+methods
+
+--------------------------------------------------------------------------------
+
