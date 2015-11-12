@@ -47,3 +47,11 @@ methods
 
 --------------------------------------------------------------------------------
 
+Replace the various jade::getSetting_*() functions with something like:
+    bool getSetting( std::string key, &type value )
+so that they don't have to throw an exception when the key doesn't exist or
+isn't matched to that type.  Instead, they just return true/false (found/not).
+Also consider type coercion for settings.
+
+--------------------------------------------------------------------------------
+
