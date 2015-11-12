@@ -156,6 +156,394 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
+        // Set up area flags ///////////////////////////////////////////////////
+        
+        enum area
+        {                                       // 0000 0000 0000 0000
+            IN_CONTENTS            = 0x800,     // 0000 1000 0000 0000
+            
+            IN_CORNER_AREA         = 0x400,     // 0000 0100 0000 0000
+            
+            IN_BOTTOM_AREA         = 0x01F,     // 0000 0000 0001 1111 - meta
+            IN_BOTTOM_LEFT_BUTTON  = 0x010,     // 0000 0000 0001 0000
+            IN_BOTTOM_LEFT_SPACE   = 0x008,     // 0000 0000 0000 1000
+            IN_BOTTOM_BAR          = 0x004,     // 0000 0000 0000 0100
+            IN_BOTTOM_RIGHT_SPACE  = 0x002,     // 0000 0000 0000 0010
+            IN_BOTTOM_RIGHT_BUTTON = 0x001,     // 0000 0000 0000 0001
+            
+            IN_SIDE_AREA           = 0x3E0,     // 0000 0011 1110 0000 - meta
+            IN_SIDE_TOP_BUTTON     = 0x200,     // 0000 0010 0000 0000
+            IN_SIDE_TOP_SPACE      = 0x100,     // 0000 0001 0000 0000
+            IN_SIDE_BAR            = 0x080,     // 0000 0000 1000 0000
+            IN_SIDE_BOTTOM_SPACE   = 0x040,     // 0000 0000 0100 0000
+            IN_SIDE_BOTTOM_BUTTON  = 0x020,     // 0000 0000 0010 0000
+            
+            IN_ANYWHERE            = 0xFFF,     // 0000 1111 1111 1111 - meta
+            IN_NOWHERE             = 0x000      // 0000 0000 0000 0000 - init
+        };
+        
+        area place = IN_NOWHERE;
+        area prev_place = IN_NOWHERE;
+        
+        switch( e.type )
+        {
+        case STROKE:
+            if( !pointInsideRect( e.stroke.prev_pos[ 0 ],
+                                  e.stroke.prev_pos[ 1 ],
+                                  0,
+                                  0,
+                                  dimensions[ 0 ],
+                                  dimensions[ 1 ] ) )                           // Break early if not in scrollset bounds
+            {
+                goto rest;                                                      // Can't break quite yet
+            }
+
+            if( e.stroke.prev_pos[ 0 ] < dimensions[ 0 ] - SCROLLBAR_HEIGHT )          // Left of the vertical scrollbar
+            {
+                if( e.stroke.prev_pos[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )      // Outside of both bars so inside contents
+                    prev_place = IN_CONTENTS;
+                else
+                {
+                    if( pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                           e.stroke.prev_pos[ 1 ],
+                                           slider_pos[ 0 ] + SCROLLBAR_HEIGHT / 2,
+                                           dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                           SCROLLBAR_HEIGHT / 2 )
+                        || pointInsideRect( e.stroke.prev_pos[ 0 ],
+                                            e.stroke.prev_pos[ 1 ],
+                                            slider_pos[ 0 ] + SCROLLBAR_HEIGHT / 2,
+                                            dimensions[ 1 ] - SCROLLBAR_HEIGHT, // This could also be 0 as we already checked not above
+                                            slider_width[ 0 ] - SCROLLBAR_HEIGHT,
+                                            SCROLLBAR_HEIGHT )
+                        || pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                              e.stroke.prev_pos[ 1 ],
+                                              slider_pos[ 0 ] + slider_width[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                              dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                              SCROLLBAR_HEIGHT / 2 ) )          // Inside scroll bar handle
+                    {
+                        prev_place = IN_BOTTOM_BAR;
+                    }
+                    else
+                        if( e.stroke.prev_pos[ 0 ]
+                            < slider_pos[ 0 ] + slider_width[ 0 ] / 2 )         // Left hand side of bottom area
+                        {
+                            if( e.stroke.prev_pos[ 0 ] < SCROLLBAR_BUTTON_VISUAL_WIDTH
+                                && !pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                                       e.stroke.prev_pos[ 1 ],
+                                                       SCROLLBAR_BUTTON_VISUAL_WIDTH,
+                                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside bottom left button
+                            {
+                                prev_place = IN_BOTTOM_LEFT_BUTTON;
+                            }
+                            else
+                                prev_place = IN_BOTTOM_LEFT_SPACE;
+                        }
+                        else                                                    // Right hand side of bottom area
+                        {
+                            if( e.stroke.prev_pos[ 0 ] >= dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                                && !pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                                       e.stroke.prev_pos[ 1 ],
+                                                       dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside bottom right button
+                            {
+                                prev_place = IN_BOTTOM_RIGHT_BUTTON;
+                            }
+                            else
+                                prev_place = IN_BOTTOM_RIGHT_SPACE;
+                        }
+                }
+            }
+            else                                                                // (Potentially) in the vertical scrollbar
+            {
+                if( e.stroke.prev_pos[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )
+                {
+                    if( pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                           e.stroke.prev_pos[ 1 ],
+                                           dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                           slider_pos[ 1 ] + SCROLLBAR_HEIGHT / 2,
+                                           SCROLLBAR_HEIGHT / 2 )
+                        || pointInsideRect( e.stroke.prev_pos[ 0 ],
+                                            e.stroke.prev_pos[ 1 ],
+                                            dimensions[ 0 ] - SCROLLBAR_HEIGHT, // This could also be 0 as we already checked not left
+                                            slider_pos[ 1 ] + SCROLLBAR_HEIGHT / 2,
+                                            SCROLLBAR_HEIGHT,
+                                            slider_width[ 1 ] - SCROLLBAR_HEIGHT )
+                        || pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                              e.stroke.prev_pos[ 1 ],
+                                              dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                              slider_pos[ 1 ] + slider_width[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                              SCROLLBAR_HEIGHT / 2 ) )          // Inside scroll bar handle
+                    {
+                        prev_place = IN_SIDE_BAR;
+                    }
+                    else
+                        if( e.stroke.prev_pos[ 1 ]
+                            < slider_pos[ 1 ] + slider_width[ 1 ] / 2 )         // Top of side area
+                        {
+                            if( e.stroke.prev_pos[ 1 ] < SCROLLBAR_BUTTON_VISUAL_WIDTH
+                                && !pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                                       e.stroke.prev_pos[ 1 ],
+                                                       dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                                       SCROLLBAR_BUTTON_VISUAL_WIDTH,
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside side top button
+                            {
+                                prev_place = IN_SIDE_TOP_BUTTON;
+                            }
+                            else
+                                prev_place = IN_SIDE_TOP_SPACE;
+                        }
+                        else                                                    // Bottom of side area
+                        {
+                            if( e.stroke.prev_pos[ 1 ] >= dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                                && !pointInsideCircle( e.stroke.prev_pos[ 0 ],
+                                                       e.stroke.prev_pos[ 1 ],
+                                                       dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                                       dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside side bottom button
+                            {
+                                prev_place = IN_SIDE_BOTTOM_BUTTON;
+                            }
+                            else
+                                prev_place = IN_SIDE_BOTTOM_SPACE;
+                        }
+                }
+                else
+                    prev_place = IN_CORNER_AREA;
+            }
+            
+        rest:
+        case DROP:
+        case PINCH:
+        case SCROLL:
+            if( !pointInsideRect( e.position[ 0 ],
+                                  e.position[ 1 ],
+                                  0,
+                                  0,
+                                  dimensions[ 0 ],
+                                  dimensions[ 1 ] ) )                           // Break early if not in scrollset bounds
+            {
+                break;
+            }
+            
+            if( e.position[ 0 ] < dimensions[ 0 ] - SCROLLBAR_HEIGHT )          // Left of the vertical scrollbar
+            {
+                if( e.position[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )      // Outside of both bars so inside contents
+                    place = IN_CONTENTS;
+                else
+                {
+                    if( pointInsideCircle( e.position[ 0 ],
+                                           e.position[ 1 ],
+                                           slider_pos[ 0 ] + SCROLLBAR_HEIGHT / 2,
+                                           dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                           SCROLLBAR_HEIGHT / 2 )
+                        || pointInsideRect( e.position[ 0 ],
+                                            e.position[ 1 ],
+                                            slider_pos[ 0 ] + SCROLLBAR_HEIGHT / 2,
+                                            dimensions[ 1 ] - SCROLLBAR_HEIGHT, // This could also be 0 as we already checked not above
+                                            slider_width[ 0 ] - SCROLLBAR_HEIGHT,
+                                            SCROLLBAR_HEIGHT )
+                        || pointInsideCircle( e.position[ 0 ],
+                                              e.position[ 1 ],
+                                              slider_pos[ 0 ] + slider_width[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                              dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                              SCROLLBAR_HEIGHT / 2 ) )          // Inside scroll bar handle
+                    {
+                        place = IN_BOTTOM_BAR;
+                    }
+                    else
+                        if( e.position[ 0 ]
+                            < slider_pos[ 0 ] + slider_width[ 0 ] / 2 )         // Left hand side of bottom area
+                        {
+                            if( e.position[ 0 ] < SCROLLBAR_BUTTON_VISUAL_WIDTH
+                                && !pointInsideCircle( e.position[ 0 ],
+                                                       e.position[ 1 ],
+                                                       SCROLLBAR_BUTTON_VISUAL_WIDTH,
+                                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside bottom left button
+                            {
+                                place = IN_BOTTOM_LEFT_BUTTON;
+                            }
+                            else
+                                place = IN_BOTTOM_LEFT_SPACE;
+                        }
+                        else                                                    // Right hand side of bottom area
+                        {
+                            if( e.position[ 0 ] >= dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                                && !pointInsideCircle( e.position[ 0 ],
+                                                       e.position[ 1 ],
+                                                       dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside bottom right button
+                            {
+                                place = IN_BOTTOM_RIGHT_BUTTON;
+                            }
+                            else
+                                place = IN_BOTTOM_RIGHT_SPACE;
+                        }
+                }
+            }
+            else                                                                // (Potentially) in the vertical scrollbar
+            {
+                if( e.position[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )
+                {
+                    if( pointInsideCircle( e.position[ 0 ],
+                                           e.position[ 1 ],
+                                           dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                           slider_pos[ 1 ] + SCROLLBAR_HEIGHT / 2,
+                                           SCROLLBAR_HEIGHT / 2 )
+                        || pointInsideRect( e.position[ 0 ],
+                                            e.position[ 1 ],
+                                            dimensions[ 0 ] - SCROLLBAR_HEIGHT, // This could also be 0 as we already checked not left
+                                            slider_pos[ 1 ] + SCROLLBAR_HEIGHT / 2,
+                                            SCROLLBAR_HEIGHT,
+                                            slider_width[ 1 ] - SCROLLBAR_HEIGHT )
+                        || pointInsideCircle( e.position[ 0 ],
+                                              e.position[ 1 ],
+                                              dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                              slider_pos[ 1 ] + slider_width[ 1 ] - SCROLLBAR_HEIGHT / 2,
+                                              SCROLLBAR_HEIGHT / 2 ) )          // Inside scroll bar handle
+                    {
+                        place = IN_SIDE_BAR;
+                    }
+                    else
+                        if( e.position[ 1 ]
+                            < slider_pos[ 1 ] + slider_width[ 1 ] / 2 )         // Top of side area
+                        {
+                            if( e.position[ 1 ] < SCROLLBAR_BUTTON_VISUAL_WIDTH
+                                && !pointInsideCircle( e.position[ 0 ],
+                                                       e.position[ 1 ],
+                                                       dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                                       SCROLLBAR_BUTTON_VISUAL_WIDTH,
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside side top button
+                            {
+                                place = IN_SIDE_TOP_BUTTON;
+                            }
+                            else
+                                place = IN_SIDE_TOP_SPACE;
+                        }
+                        else                                                    // Bottom of side area
+                        {
+                            if( e.position[ 1 ] >= dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                                && !pointInsideCircle( e.position[ 0 ],
+                                                       e.position[ 1 ],
+                                                       dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
+                                                       dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       SCROLLBAR_HEIGHT / 2 ) ) // Inside side bottom button
+                            {
+                                place = IN_SIDE_BOTTOM_BUTTON;
+                            }
+                            else
+                                place = IN_SIDE_BOTTOM_SPACE;
+                        }
+                }
+                else
+                    place = IN_CORNER_AREA;
+            }
+            
+            break;
+        case KEYCOMMAND:
+        case COMMAND:
+        case TEXT:
+            break;
+        default:
+            throw exception( "scrollset::acceptEvent(): Unknown event type" );
+            break;
+        }
+        
+        // Handle events based on area /////////////////////////////////////////
+        
+        if( e.type == STROKE && e.stroke.click & CLICK_PRIMARY )
+            switch( place )
+            {
+            case IN_CONTENTS:
+                ff::write( jb_out, "IN_CONTENTS\n" );
+                break;
+            case IN_CORNER_AREA:
+                ff::write( jb_out, "IN_CORNER_AREA\n" );
+                break;
+            // case IN_BOTTOM_AREA:
+            //     ff::write( jb_out, "IN_BOTTOM_AREA\n" );
+            //     break;
+            case IN_BOTTOM_LEFT_BUTTON:
+                ff::write( jb_out, "IN_BOTTOM_LEFT_BUTTON\n" );
+                break;
+            case IN_BOTTOM_LEFT_SPACE:
+                ff::write( jb_out, "IN_BOTTOM_LEFT_SPACE\n" );
+                break;
+            case IN_BOTTOM_BAR:
+                ff::write( jb_out, "IN_BOTTOM_BAR\n" );
+                break;
+            case IN_BOTTOM_RIGHT_SPACE:
+                ff::write( jb_out, "IN_BOTTOM_RIGHT_SPACE\n" );
+                break;
+            case IN_BOTTOM_RIGHT_BUTTON:
+                ff::write( jb_out, "IN_BOTTOM_RIGHT_BUTTON\n" );
+                break;
+            // case IN_SIDE_AREA:
+            //     ff::write( jb_out, "IN_SIDE_AREA\n" );
+            //     break;
+            case IN_SIDE_TOP_BUTTON:
+                ff::write( jb_out, "IN_SIDE_TOP_BUTTON\n" );
+                break;
+            case IN_SIDE_TOP_SPACE:
+                ff::write( jb_out, "IN_SIDE_TOP_SPACE\n" );
+                break;
+            case IN_SIDE_BAR:
+                ff::write( jb_out, "IN_SIDE_BAR\n" );
+                break;
+            case IN_SIDE_BOTTOM_SPACE:
+                ff::write( jb_out, "IN_SIDE_BOTTOM_SPACE\n" );
+                break;
+            case IN_SIDE_BOTTOM_BUTTON:
+                ff::write( jb_out, "IN_SIDE_BOTTOM_BUTTON\n" );
+                break;
+            // case IN_ANYWHERE:
+            //     ff::write( jb_out, "IN_ANYWHERE\n" );
+            //     break;
+            case IN_NOWHERE:
+                ff::write( jb_out, "IN_NOWHERE\n" );
+                break;
+            }
+        
+        // Pass event to contents //////////////////////////////////////////////
+        
+        bool contents_accepted = false;
+        if( place & IN_CONTENTS )
+            contents_accepted = contents -> acceptEvent( e );                   // The contents have a 0,0 relative position to the scrollset
+        
+        // Check for scrolling around contents /////////////////////////////////
+        
+        if( e.type == SCROLL && !contents_accepted )
+        {
+            if( ( place & IN_CORNER_AREA )
+                || !( place & IN_ANYWHERE ) )
+            {
+                return false;                                                   // No scrolling in corner
+            }
+            
+            contents -> scrollPoints( e.scroll.amount[ 0 ], e.scroll.amount[ 1 ] );
+            
+            arrangeBars();                                                      // May call parent -> requestRedraw()
+            
+            return true;
+        }
+        
+        return false;
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        #if 0
+        
         if( capturing
             && e.type == STROKE
             && e.stroke.dev_id != captured_dev )                                // Ignore other devices wile capturing another (just pass to contents)
@@ -458,6 +846,8 @@ namespace jade
         }
         
         return false;
+        
+        #endif
     }
     
     void scrollset::draw( window* w )
