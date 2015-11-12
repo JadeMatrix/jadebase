@@ -5,39 +5,6 @@
  * 
  */
 
-// FIXME: Everything.
-// FIXME: Fix this entire mess so it works
-
-// offset_temp[ i ] = scroll_offset[ i ] + offset[ i ];
-
-// if( offset_temp[ i ] / scroll_limits[ i ] >= 0 )  // same direction, clip to limit
-// {
-//     if( scroll_limits[ i ] < 0
-//         ? offset_temp[ i ] < scroll_limits[ i ]
-//         : offset_temp[ i ] > scroll_limits[ i ] )
-//     {
-//         offset[ i ] = scroll_limits[ i ] - scroll_offset[ i ];
-//     }
-// }
-// else  // different directions, clip to origin
-// {
-//     offset[ i ] = scroll_offset[ i ] * -1;  // will set scroll_offset[ i ] to 0
-// }
-
-
-
-
-
-
-// visible_dims[ i ] = dimensions[ i ] - SCROLLBAR_HEIGHT;
-// max_length[ i ] = visible_dims[ i ] - ( SCROLLBUTTON_LENGTH * 2 );
-
-// scrollbar_length[ i ] = max_length[ i ] * visible_dims[ i ] / ( visible_dims[ i ] + ( scroll_limits[ i ]
-//                                                                                       * ( scroll_limits[ i ] < 0 ? -1 : 1 ) ) );
-
-// scrollbar_pos[ i ] = SCROLLBUTTON_LENGTH + ( max_length[ i ] - scrollbar_length[ i ] )
-//                      * ( scroll_limit[ i ] < 0 ? ( 1 - ( offset[ i ] / scroll_limit[ i ] ) ) : ( offset[ i ] / scroll_limit[ i ] ) );
-
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "jb_scrollset.hpp"
@@ -147,10 +114,6 @@ namespace jade
         position[ 0 ] = x;
         position[ 1 ] = y;
         
-        // contents -> setRealPosition( position[ 0 ], position[ 1 ] );
-        // contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
-        //                                dimensions[ 1 ] - SCROLLBAR_HEIGHT );
-        
         if( parent != NULL )
             parent -> requestRedraw();
     }
@@ -168,7 +131,6 @@ namespace jade
                    h,
                    "\n" );
         
-        // contents -> setRealPosition( position[ 0 ], position[ 1 ] );
         contents -> setRealDimensions( dimensions[ 0 ] - SCROLLBAR_HEIGHT,
                                        dimensions[ 1 ] - SCROLLBAR_HEIGHT );
         
@@ -193,9 +155,6 @@ namespace jade
     bool scrollset::acceptEvent( window_event& e )
     {
         scoped_lock< mutex > slock( element_mutex );
-        
-        if( parent == NULL )
-            throw exception( "scrollset::acceptEvent(): NULL parent window" );
         
         if( capturing
             && e.type == STROKE
@@ -268,14 +227,10 @@ namespace jade
                                                         rect_dim[ 0 ],
                                                         rect_dim[ 1 ] ) ) )
             {
-                // auto contents_limits = contents -> getScrollLimitPercent();
                 auto contents_scroll = contents -> getScrollPercent();
                 
                 float slide_space[ 2 ] =  { ( float )( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ] ),
                                             ( float )( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ] ) };
-                
-                // ( ( e.position[ 0 ] - e.offset[ 0 ] - capture_start[ 0 ] - capture_start[ 2 ] )
-                // / slide_space[ 0 ] ) / ( 1.0f + contents_limits.first.second - contents_limits.first.first )
                 
                 if( capturing == HORIZONTAL_BAR )
                 {
@@ -293,7 +248,7 @@ namespace jade
                         capturing = NONE;
                     }
                     arrangeBars();
-                    return false;        // didn't use
+                    return false;                                               // Didn't use
                 }
                 else if( capturing == VERTICAL_BAR )
                 {
@@ -484,14 +439,6 @@ namespace jade
         
         if( e.type == SCROLL && !contents_accepted )
         {
-            // DEBUG:
-            // ff::write( jb_out,
-            //            ">>> got here | accepted=",
-            //            contents_accepted ? "true" : "false",
-            //            " inside_corner=",
-            //            inside_corner ? "true" : "false",
-            //            "\n" );
-            
             if( inside_corner
                 || !pointInsideRect( e.position[ 0 ],
                                      e.position[ 1 ],
@@ -500,18 +447,8 @@ namespace jade
                                      dimensions[ 0 ],
                                      dimensions[ 1 ] ) )
             {
-                // DEBUG:
-                // ff::write( jb_out, ">>> Not in bounds\n" );
                 return false;                                                   // No scrolling in corner
             }
-            
-            // DEBUG:
-            // ff::write( jb_out,
-            //            ">>> Scrolling by ",
-            //            e.scroll.amount[ 0 ],
-            //            ",",
-            //            e.scroll.amount[ 1 ],
-            //            "\n" );
             
             contents -> scrollPoints( e.scroll.amount[ 0 ], e.scroll.amount[ 1 ] );
             
@@ -530,39 +467,8 @@ namespace jade
         
         // Draw bars first (below) /////////////////////////////////////////////
         
-        // DEBUG:
-        // ff::write( jb_out,
-        //            ">>> Drawing jade::scrollset at ",
-        //            position[ 0 ],
-        //            ",",
-        //            position[ 1 ],
-        //            " ",
-        //            dimensions[ 0 ],
-        //            "x",
-        //            dimensions[ 1 ],
-        //            "\n" );
-        
         glTranslatef( position[ 0 ], position[ 1 ], 0.0f );
         {
-            // DEBUG:
-            // glColor4f( 1.0f, 0.0f, 0.0f, 0.5f );
-            // {
-            //     glBegin( GL_QUADS );
-            //     {
-            //         glVertex2f( 0.0f, 0.0f );
-                    
-            //         glVertex2f( 0.0f, dimensions[ 1 ] );
-                    
-            //         glVertex2f( dimensions[ 0 ], dimensions[ 1 ] );
-                    
-            //         glVertex2f( dimensions[ 0 ], 0.0f );
-            //     }
-            //     glEnd();
-            // }
-            // glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-            
-            
-            
             for( int i = 0; i < 2; ++i )                                        // Iterate through the 2 scrollbars for code reuse
             {
                 glPushMatrix();
@@ -913,68 +819,6 @@ namespace jade
         
         if( parent != NULL )
             parent -> requestRedraw();
-        
-        // limit_percent contents_limits = contents -> getScrollLimitPercent();
-        
-        // dpi::points slide_space[ 2 ] = { ( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) ),
-        //                                 ( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) ) };
-        
-        // slider_width[ 0 ] = ( 1.0f / ( 1.0f + contents_limits.first.second - contents_limits.first.first ) )
-        //                     * slide_space[ 0 ];
-        // slider_width[ 1 ] = ( 1.0f / ( 1.0f + contents_limits.second.second - contents_limits.second.first ) )
-        //                     * slide_space[ 1 ];
-        
-        // std::pair< dpi::points, dpi::points > contents_scroll = contents -> getScrollPercent();
-        
-        // slider_pos[ 0 ] = slider_width[ 0 ] - ( slide_space[ 0 ] - slider_width[ 0 ] ) * ( contents_scroll.first - contents_limits.first.first );
-        // slider_pos[ 1 ] = slider_width[ 1 ] - ( slide_space[ 1 ] - slider_width[ 1 ] ) * ( contents_scroll.second - contents_limits.second.first );
-        
-        // if( capturing == LEFT_BUTTON )
-        //     horz_state[ 0 ] = DOWN;
-        // else
-        //     horz_state[ 0 ] = UP;
-        // if( capturing == RIGHT_BUTTON )
-        //     horz_state[ 1 ] = DOWN;
-        // else
-        //     horz_state[ 1 ] = UP;
-        // if( capturing == TOP_BUTTON )
-        //     vert_state[ 0 ] = DOWN;
-        // else
-        //     vert_state[ 0 ] = UP;
-        // if( capturing == BOTTOM_BUTTON )
-        //     vert_state[ 1 ] = DOWN;
-        // else
-        //     vert_state[ 1 ] = UP;
-        
-        // if( slider_width[ 0 ] > slide_space[ 0 ] )
-        // {
-        //     slider_state[ 0 ] = DISABLED;
-        //     horz_state[ 0 ] = DISABLED;
-        //     horz_state[ 1 ] = DISABLED;
-        // }
-        // else
-        // {
-        //     if( capturing == HORIZONTAL_BAR )
-        //         slider_state[ 0 ] = DOWN;
-        //     else
-        //         slider_state[ 0 ] = UP;
-        // }
-        
-        // if( slider_width[ 1 ] > slide_space[ 1 ] )
-        // {
-        //     slider_state[ 1 ] = DISABLED;
-        //     vert_state[ 0 ] = DISABLED;
-        //     vert_state[ 1 ] = DISABLED;
-        // }
-        // else
-        // {
-        //     if( capturing == VERTICAL_BAR )
-        //         slider_state[ 1 ] = DOWN;
-        //     else
-        //         slider_state[ 1 ] = UP;
-        // }
-        
-        // parent.requestRedraw();
     }
     
     void scrollset::init()
@@ -998,18 +842,6 @@ namespace jade
         contents -> setRealPosition( position[ 0 ], position[ 1 ] );
         
         arrangeBars();
-        
-        // DEBUG:
-        // ff::write( jb_out,
-        //            ">>> Created jade::scrollset at ",
-        //            position[ 0 ],
-        //            ",",
-        //            position[ 1 ],
-        //            " ",
-        //            dimensions[ 0 ],
-        //            "x",
-        //            dimensions[ 1 ],
-        //            "\n" );
         
         scoped_lock< mutex > slock( scroll_rsrc_mutex );
         

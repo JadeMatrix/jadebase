@@ -5,6 +5,18 @@
  * jb_scrollable.hpp
  * 
  * Abstract class for scrollable gui elements
+ *
+ * The simplest way to implement scrollable areas would be with a group - offset
+ * the group's position & mask during rendering.  However, we want scrollsets
+ * to be content-agnostic.  They must be usable not only for areas containing
+ * other GUI elements but also for such things as drawing canvasses and text
+ * areas.  Rendering these in their entirety and simply masking the result would
+ * potentially be drastic, especially if some scrollable element has no hard
+ * logical extents.  The scrolled element must know how much of itself and at
+ * what offset it is being drawn.  jade::scrollable is an interface that gives
+ * jade::scrollset just as much information it needs about its contents to give
+ * the user scroll feedback and interactivity, leaving the implementation
+ * entirely up to the inheriting class.
  * 
  * scroll***(): Scroll a relative amount
  * setScroll***(): Scroll an absolute amount
