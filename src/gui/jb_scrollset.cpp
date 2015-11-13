@@ -60,11 +60,11 @@ namespace
 
 /******************************************************************************//******************************************************************************/
 
-#define SCROLLBAR_HEIGHT                12
-#define MIN_SCROLLBAR_LENGTH            12
-#define SCROLLBAR_BUTTON_REAL_WIDTH     18                                      // Width of the button bounds
-#define SCROLLBAR_BUTTON_VISUAL_WIDTH   25                                      // Width of the button sprite
-#define SLIDER_END_WIDTH                6
+#define SCROLLBAR_HEIGHT                ( ( dpi::points )12 )
+#define MIN_SCROLLBAR_LENGTH            ( ( dpi::points )12 )
+#define SCROLLBAR_BUTTON_REAL_WIDTH     ( ( dpi::points )18 )                   // Width of the button bounds
+#define SCROLLBAR_BUTTON_VISUAL_WIDTH   ( ( dpi::points )25 )                   // Width of the button sprite
+#define SLIDER_END_WIDTH                ( ( dpi::points )6  )
 
 // #define DEPRESSABLE_SLIDER_BARS
 
@@ -316,8 +316,6 @@ namespace jade
             }
             
         rest:
-        case DROP:
-        case PINCH:
         case SCROLL:
             if( !pointInsideRect( e.position[ 0 ],
                                   e.position[ 1 ],
@@ -445,6 +443,8 @@ namespace jade
             }
             
             break;
+        case DROP:
+        case PINCH:
         case KEYCOMMAND:
         case COMMAND:
         case TEXT:
@@ -456,72 +456,184 @@ namespace jade
         
         // Handle events based on area /////////////////////////////////////////
         
-        // DEBUG:
-        // if( e.type == STROKE && e.stroke.click & CLICK_PRIMARY )
-        //     switch( place )
-        //     {
-        //     case IN_CONTENTS:
-        //         ff::write( jb_out, "IN_CONTENTS\n" );
-        //         break;
-        //     case IN_CORNER_AREA:
-        //         ff::write( jb_out, "IN_CORNER_AREA\n" );
-        //         break;
-        //     // case IN_BOTTOM_AREA:
-        //     //     ff::write( jb_out, "IN_BOTTOM_AREA\n" );
-        //     //     break;
-        //     case IN_BOTTOM_LEFT_BUTTON:
-        //         ff::write( jb_out, "IN_BOTTOM_LEFT_BUTTON\n" );
-        //         break;
-        //     case IN_BOTTOM_LEFT_SPACE:
-        //         ff::write( jb_out, "IN_BOTTOM_LEFT_SPACE\n" );
-        //         break;
-        //     case IN_BOTTOM_BAR:
-        //         ff::write( jb_out, "IN_BOTTOM_BAR\n" );
-        //         break;
-        //     case IN_BOTTOM_RIGHT_SPACE:
-        //         ff::write( jb_out, "IN_BOTTOM_RIGHT_SPACE\n" );
-        //         break;
-        //     case IN_BOTTOM_RIGHT_BUTTON:
-        //         ff::write( jb_out, "IN_BOTTOM_RIGHT_BUTTON\n" );
-        //         break;
-        //     // case IN_SIDE_AREA:
-        //     //     ff::write( jb_out, "IN_SIDE_AREA\n" );
-        //     //     break;
-        //     case IN_SIDE_TOP_BUTTON:
-        //         ff::write( jb_out, "IN_SIDE_TOP_BUTTON\n" );
-        //         break;
-        //     case IN_SIDE_TOP_SPACE:
-        //         ff::write( jb_out, "IN_SIDE_TOP_SPACE\n" );
-        //         break;
-        //     case IN_SIDE_BAR:
-        //         ff::write( jb_out, "IN_SIDE_BAR\n" );
-        //         break;
-        //     case IN_SIDE_BOTTOM_SPACE:
-        //         ff::write( jb_out, "IN_SIDE_BOTTOM_SPACE\n" );
-        //         break;
-        //     case IN_SIDE_BOTTOM_BUTTON:
-        //         ff::write( jb_out, "IN_SIDE_BOTTOM_BUTTON\n" );
-        //         break;
-        //     // case IN_ANYWHERE:
-        //     //     ff::write( jb_out, "IN_ANYWHERE\n" );
-        //     //     break;
-        //     case IN_NOWHERE:
-        //         ff::write( jb_out, "IN_NOWHERE\n" );
-        //         break;
-        //     }
-        
-        if( place != IN_NOWHERE && e.type == STROKE )                           // We only care about stroke events here, scrolling is handled later
+        enum
         {
-            // if( capturing )
-            if( false )
+            NOTHING = 0,
+            EVENT_USED = 1,
+            SHOULD_ARRANGE = 2
+        } final = NOTHING;
+        
+        if( e.type == STROKE
+            && ( place != IN_NOWHERE || prev_place != IN_NOWHERE ) )            // We only care about stroke events here, scrolling is handled later
+                                                                                // Also, given jade::group's implementation, this second check may be redundant
+        {
+            if( capturing )
             {
                 if( e.stroke.dev_id == captured_dev )
                 {
+                    switch( capturing )
+                    {
+                    case NONE:
+                        // Not possible
+                        break;
+                    case HORIZONTAL_BAR:
+                        if( !( e.stroke.click & CLICK_PRIMARY ) )               // Released
+                        {
+                            slider_state[ 0 ] = UP;
+                            capturing = NONE;
+                            final = NOTHING;
+                        }
+                        else
+                        {
+                            dpi::points slide_space = dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ];
+                            
+                            contents -> setScrollPercent( ( ( e.position[ 0 ] - capture_start[ 0 ] )
+                                                            + ( capture_start[ 2 ] - SCROLLBAR_BUTTON_REAL_WIDTH ) )
+                                                          / slide_space,
+                                                          contents -> getScrollPercent().second );
+                            
+                            final = SHOULD_ARRANGE;
+                        }
+                        break;
+                    case VERTICAL_BAR:
+                        if( !( e.stroke.click & CLICK_PRIMARY ) )               // Released
+                        {
+                            slider_state[ 1 ] = UP;
+                            capturing = NONE;
+                            final = NOTHING;
+                        }
+                        else
+                        {
+                            dpi::points slide_space = dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ];
+                            
+                            contents -> setScrollPercent( contents -> getScrollPercent().first,
+                                                          ( e.position[ 1 ] - capture_start[ 1 ]
+                                                            + capture_start[ 2 ] - SCROLLBAR_BUTTON_REAL_WIDTH )
+                                                          / slide_space );
+                            
+                            final = SHOULD_ARRANGE;
+                        }
+                        break;
+                    case LEFT_BUTTON:
+                        if( !( place & IN_BOTTOM_LEFT_BUTTON )
+                            && prev_place & IN_BOTTOM_LEFT_BUTTON )
+                        {
+                            horz_state[ 0 ] = UP;
+                            capturing = NONE;
+                            final = SHOULD_ARRANGE;
+                        }
+                        else
+                            if( place & IN_BOTTOM_LEFT_BUTTON
+                                && !( e.stroke.click & CLICK_PRIMARY ) )
+                            {
+                                contents -> scrollPoints( getSetting_num( "jb_ScrollDistance" ) * -1, 0 );
+                                horz_state[ 0 ] = UP;
+                                capturing = NONE;
+                                final = SHOULD_ARRANGE;
+                            }
+                            else
+                                final = EVENT_USED;
+                        break;
+                    case RIGHT_BUTTON:
+                        if( !( place & IN_BOTTOM_RIGHT_BUTTON )
+                            && prev_place & IN_BOTTOM_RIGHT_BUTTON )
+                        {
+                            horz_state[ 0 ] = UP;
+                            capturing = NONE;
+                            final = SHOULD_ARRANGE;
+                        }
+                        else
+                            if( place & IN_BOTTOM_RIGHT_BUTTON
+                                && !( e.stroke.click & CLICK_PRIMARY ) )
+                            {
+                                contents -> scrollPoints( getSetting_num( "jb_ScrollDistance" ), 0 );
+                                horz_state[ 0 ] = UP;
+                                capturing = NONE;
+                                final = SHOULD_ARRANGE;
+                            }
+                            else
+                                final = EVENT_USED;
+                        break;
+                    case TOP_BUTTON:
+                        if( !( place & IN_SIDE_TOP_BUTTON )
+                            && prev_place & IN_SIDE_TOP_BUTTON )
+                        {
+                            horz_state[ 0 ] = UP;
+                            capturing = NONE;
+                            final = SHOULD_ARRANGE;
+                        }
+                        else
+                            if( place & IN_SIDE_TOP_BUTTON
+                                && !( e.stroke.click & CLICK_PRIMARY ) )
+                            {
+                                contents -> scrollPoints( 0, getSetting_num( "jb_ScrollDistance" ) * -1 );
+                                horz_state[ 0 ] = UP;
+                                capturing = NONE;
+                                final = SHOULD_ARRANGE;
+                            }
+                            else
+                                final = EVENT_USED;
+                        break;
+                    case BOTTOM_BUTTON:
+                        if( !( place & IN_SIDE_BOTTOM_BUTTON )
+                            && prev_place & IN_SIDE_BOTTOM_BUTTON )
+                        {
+                            horz_state[ 0 ] = UP;
+                            capturing = NONE;
+                            final = SHOULD_ARRANGE;
+                        }
+                        else
+                            if( place & IN_SIDE_BOTTOM_BUTTON
+                                && !( e.stroke.click & CLICK_PRIMARY ) )
+                            {
+                                contents -> scrollPoints( 0, getSetting_num( "jb_ScrollDistance" ) );
+                                horz_state[ 0 ] = UP;
+                                capturing = NONE;
+                                final = SHOULD_ARRANGE;
+                            }
+                            else
+                                final = EVENT_USED;
+                        break;
+                    case CORNER:
+                        if( !( place & IN_CORNER_AREA )
+                            && prev_place & IN_CORNER_AREA )                    // Moved out of area
+                        {
+                            if( corner_state == DOWN )
+                                corner_state = UP;
+                            else
+                                corner_state = EVIL;
+                            
+                            capturing = NONE;
+                            
+                            final = SHOULD_ARRANGE;
+                        }
+                        else
+                            if( place & IN_CORNER_AREA
+                                && !( e.stroke.click & CLICK_PRIMARY ) )        // Click release = trigger
+                            {
+                                if( corner_state == DOWN )
+                                    corner_state = EVIL;
+                                else
+                                    corner_state = UP;
+                                
+                                capturing = NONE;
+                                
+                                final = SHOULD_ARRANGE;
+                            }
+                            else
+                                final = EVENT_USED;
+                        break;
+                    default:
+                        throw exception( "scrollset::acceptEvent(): Unknown capturing state" );
+                    }
                     
+                    if( !capturing )
+                        deassociateDevice( captured_dev );
                 }
                 // else pass on to contents
             }
-            else
+            
+            if( !capturing )                                                    // Explicitly check else condition, as above may alter capturing state
             {
                 if( place & IN_CONTROL_AREA && e.stroke.click & CLICK_PRIMARY )
                 {
@@ -535,6 +647,7 @@ namespace jade
                         capturing = CORNER;
                         break;
                     case IN_BOTTOM_LEFT_BUTTON:
+                        ff::write( jb_out, "Left button clicked\n" );
                         horz_state[ 0 ] = DOWN;
                         capturing = LEFT_BUTTON;
                         break;
@@ -544,6 +657,7 @@ namespace jade
                     case IN_BOTTOM_BAR:
                         slider_state[ 0 ] = DOWN;
                         capturing = HORIZONTAL_BAR;
+                        capture_start[ 2 ] = slider_pos[ 0 ];
                         break;
                     case IN_BOTTOM_RIGHT_SPACE:
                         // TODO: Click-to-jump
@@ -562,6 +676,7 @@ namespace jade
                     case IN_SIDE_BAR:
                         slider_state[ 1 ] = DOWN;
                         capturing = VERTICAL_BAR;
+                        capture_start[ 2 ] = slider_pos[ 1 ];
                         break;
                     case IN_SIDE_BOTTOM_SPACE:
                         // TODO: Click-to-jump
@@ -571,18 +686,23 @@ namespace jade
                         capturing = BOTTOM_BUTTON;
                         break;
                     default:
-                        throw exception( "scrollset::acceptEvent(): Meta or unknown value for place bitfield" );
+                        // All other cases handled in above sanity check
+                        break;
                     }
                     
                     if( capturing )
                     {
                         captured_dev = e.stroke.dev_id;
+                        associateDevice( captured_dev );
+                        
                         capture_start[ 0 ] = e.position[ 0 ];
                         capture_start[ 1 ] = e.position[ 1 ];
                         
-                        arrangeBars();
-                        
-                        return true;
+                        final = SHOULD_ARRANGE;
+                    }
+                    else if( final != SHOULD_ARRANGE )
+                    {
+                        final = EVENT_USED;
                     }
                 }
                 // else we don't care, so pass on to contents
@@ -592,7 +712,7 @@ namespace jade
         // Pass event to contents //////////////////////////////////////////////
         
         bool contents_accepted = false;
-        if( place & IN_CONTENTS )
+        if( place & IN_CONTENTS )                                               // Due to reasons, this and event_used can not both be true or false
             contents_accepted = contents -> acceptEvent( e );                   // The contents have a 0,0 relative position to the scrollset
         
         // Check for scrolling around contents /////////////////////////////////
@@ -612,324 +732,10 @@ namespace jade
             return true;
         }
         
-        return false;
+        if( final == SHOULD_ARRANGE )
+            arrangeBars();
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        #if 0
-        
-        if( capturing
-            && e.type == STROKE
-            && e.stroke.dev_id != captured_dev )                                // Ignore other devices wile capturing another (just pass to contents)
-        {
-            return contents -> acceptEvent( e );
-        }
-        
-        if( capturing && e.type == STROKE )
-        {
-            dpi::points rect_pos[ 2 ];
-            dpi::points rect_dim[ 2 ];
-            
-            switch( capturing )
-            {
-                case HORIZONTAL_BAR:
-                case VERTICAL_BAR:                                              // Bars capture even outside
-                    break;
-                case LEFT_BUTTON:
-                    rect_pos[ 0 ] = 0;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
-                    rect_dim[ 0 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_dim[ 1 ] = SCROLLBAR_HEIGHT;
-                    break;
-                case RIGHT_BUTTON:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT - SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
-                    rect_dim[ 0 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_dim[ 1 ] = SCROLLBAR_HEIGHT;
-                    break;
-                case TOP_BUTTON:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
-                    rect_pos[ 1 ] = 0;
-                    rect_dim[ 0 ] = SCROLLBAR_HEIGHT;
-                    rect_dim[ 1 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
-                    break;
-                case BOTTOM_BUTTON:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT - SCROLLBAR_BUTTON_REAL_WIDTH;
-                    rect_dim[ 0 ] = SCROLLBAR_HEIGHT;
-                    rect_dim[ 1 ] = SCROLLBAR_BUTTON_REAL_WIDTH;
-                    break;
-                case CORNER:
-                    rect_pos[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
-                    rect_pos[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
-                    rect_dim[ 0 ] = SCROLLBAR_HEIGHT;
-                    rect_dim[ 1 ] = SCROLLBAR_HEIGHT;
-                    break;
-                case NONE:
-                    /* won't get here */
-                default:
-                    throw exception( "scrollset::acceptEvent(): Unknown capturing state" );
-            }
-            
-            bool point_in_button;
-            bool prev_in_button;
-            
-            if( capturing == HORIZONTAL_BAR
-                || capturing == VERTICAL_BAR
-                || ( point_in_button = pointInsideRect( e.position[ 0 ],
-                                                        e.position[ 1 ],
-                                                        rect_pos[ 0 ],
-                                                        rect_pos[ 1 ],
-                                                        rect_dim[ 0 ],
-                                                        rect_dim[ 1 ] ) )
-                || ( prev_in_button  = pointInsideRect( e.stroke.prev_pos[ 0 ],
-                                                        e.stroke.prev_pos[ 1 ],
-                                                        rect_pos[ 0 ],
-                                                        rect_pos[ 1 ],
-                                                        rect_dim[ 0 ],
-                                                        rect_dim[ 1 ] ) ) )
-            {
-                auto contents_scroll = contents -> getScrollPercent();
-                
-                float slide_space[ 2 ] =  { ( float )( dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ] ),
-                                            ( float )( dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ] ) };
-                
-                if( capturing == HORIZONTAL_BAR )
-                {
-                    if( e.stroke.click & CLICK_PRIMARY )
-                    {
-                        contents -> setScrollPercent( ( e.position[ 0 ]
-                                                        - capture_start[ 0 ]
-                                                        - capture_start[ 2 ] )
-                                                      / slide_space[ 0 ],
-                                                      contents_scroll.second );
-                    }
-                    else
-                    {
-                        deassociateDevice( e.stroke.dev_id );
-                        capturing = NONE;
-                    }
-                    arrangeBars();
-                    return false;                                               // Didn't use
-                }
-                else if( capturing == VERTICAL_BAR )
-                {
-                    if( e.stroke.click & CLICK_PRIMARY )
-                    {
-                        contents -> setScrollPercent( contents_scroll.first,
-                                                      ( e.position[ 1 ]
-                                                        - capture_start[ 1 ]
-                                                        - capture_start[ 2 ] )
-                                                      / slide_space[ 1 ] );
-                    }
-                    else
-                    {
-                        deassociateDevice( e.stroke.dev_id );
-                        capturing = NONE;
-                    }
-                    arrangeBars();
-                    return false;                                               // Didn't use
-                }
-                else if( capturing == CORNER )
-                {
-                    if( point_in_button )                                       // Successful click
-                    {
-                        if( !( e.stroke.click & CLICK_PRIMARY ) )
-                        {
-                            if( corner_state == DOWN )
-                                corner_state = EVIL;
-                            else
-                                corner_state = UP;
-                            
-                            deassociateDevice( e.stroke.dev_id );
-                            capturing = NONE;
-                            arrangeBars();
-                        }
-                    }
-                    else                                                        // Click cancel
-                    {
-                        if( corner_state == DOWN )
-                            corner_state = UP;
-                        else
-                            corner_state = EVIL;
-                        
-                        deassociateDevice( e.stroke.dev_id );
-                        capturing = NONE;
-                        arrangeBars();
-                    }
-                }
-                else
-                {
-                    if( point_in_button )
-                    {
-                        int scroll_amount[ 2 ];
-                        
-                        switch( capturing )
-                        {
-                            case LEFT_BUTTON:
-                                scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
-                                scroll_amount[ 1 ] = 0;
-                                break;
-                            case RIGHT_BUTTON:
-                                scroll_amount[ 0 ] = getSetting_num( "jb_ScrollDistance" );
-                                scroll_amount[ 1 ] = 0;
-                                break;
-                            case TOP_BUTTON:
-                                scroll_amount[ 0 ] = 0;
-                                scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" ) * -1;
-                                break;
-                            case BOTTOM_BUTTON:
-                                scroll_amount[ 0 ] = 0;
-                                scroll_amount[ 1 ] = getSetting_num( "jb_ScrollDistance" );
-                                break;
-                            default:
-                                // All other cases handled above
-                                throw exception( "scrollset::acceptEvent(): Unknown/invalid capturing state" );
-                        }
-                        
-                        if( !( e.stroke.click & CLICK_PRIMARY ) )               // Successful click
-                        {
-                            contents -> scrollPoints( scroll_amount[ 0 ], scroll_amount[ 1 ] );
-                            
-                            deassociateDevice( e.stroke.dev_id );
-                            capturing = NONE;
-                        }
-                    }
-                    else
-                    {
-                        deassociateDevice( e.stroke.dev_id );
-                        capturing = NONE;
-                    }
-                    arrangeBars();
-                }
-                
-                return true;
-            }
-        }
-        
-        bool inside_horz = pointInsideRect( e.position[ 0 ],
-                                            e.position[ 1 ],
-                                            0,
-                                            dimensions[ 1 ] - SCROLLBAR_HEIGHT,
-                                            dimensions[ 0 ],
-                                            SCROLLBAR_HEIGHT );
-        bool inside_vert = pointInsideRect( e.position[ 0 ],
-                                            e.position[ 1 ],
-                                            dimensions[ 0 ] - SCROLLBAR_HEIGHT,
-                                            0,
-                                            SCROLLBAR_HEIGHT,
-                                            dimensions[ 1 ] );
-        bool inside_corner = inside_horz && inside_vert;
-        
-        if( inside_corner )
-        {
-            inside_horz = false;
-            inside_vert = false;
-        }
-        
-        if( inside_horz || inside_vert || inside_corner )
-        {
-            if( e.type == STROKE )
-            {
-                if( inside_horz && ( e.stroke.click & CLICK_PRIMARY ) )
-                {
-                    if( e.position[ 0 ] >= position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH
-                        && e.position[ 0 ] < position[ 0 ] + slider_pos[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 0 ] )
-                    {
-                        capture_start[ 2 ] = slider_pos[ 0 ];
-                        capturing = HORIZONTAL_BAR;
-                    }
-                    
-                    if( e.position[ 0 ]
-                        < position[ 0 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
-                    {
-                        capturing = LEFT_BUTTON;
-                    }
-                    
-                    if( e.position[ 0 ]
-                        >= position[ 0 ] + dimensions[ 0 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
-                    {
-                        capturing = RIGHT_BUTTON;
-                    }
-                }
-                else if( inside_vert && ( e.stroke.click & CLICK_PRIMARY ) )
-                {
-                    if( e.position[ 1 ] >= position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH
-                        && e.position[ 1 ] < position[ 1 ] + slider_pos[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH + slider_width[ 1 ] )
-                    {
-                        capture_start[ 2 ] = slider_pos[ 1 ];
-                        capturing = VERTICAL_BAR;
-                    }
-                    
-                    if( e.position[ 1 ]
-                        < position[ 1 ] + SCROLLBAR_BUTTON_REAL_WIDTH )
-                    {
-                        capturing = TOP_BUTTON;
-                    }
-                    
-                    if( e.position[ 1 ]
-                        >= position[ 1 ] + dimensions[ 1 ] - SCROLLBAR_BUTTON_REAL_WIDTH - SCROLLBAR_HEIGHT )
-                    {
-                        capturing = BOTTOM_BUTTON;
-                    }
-                }
-                else if( inside_corner && ( e.stroke.click & CLICK_PRIMARY ) )
-                {
-                    if( corner_state == UP )
-                        corner_state = DOWN;
-                    else
-                        corner_state = EVIL_DOWN;
-                    
-                    capturing = CORNER;
-                }
-                
-                if( capturing )
-                {
-                    capture_start[ 0 ] = e.position[ 0 ];
-                    capture_start[ 1 ] = e.position[ 1 ];
-                    associateDevice( e.stroke.dev_id );
-                    captured_dev = e.stroke.dev_id;
-                    
-                    arrangeBars();
-                }
-                
-                return true;
-            }
-        }
-        
-        bool contents_accepted = contents -> acceptEvent( e );                  // The contents have a 0,0 relative position to the scrollset
-        
-        if( e.type == SCROLL && !contents_accepted )
-        {
-            if( inside_corner
-                || !pointInsideRect( e.position[ 0 ],
-                                     e.position[ 1 ],
-                                     0,
-                                     0,
-                                     dimensions[ 0 ],
-                                     dimensions[ 1 ] ) )
-            {
-                return false;                                                   // No scrolling in corner
-            }
-            
-            contents -> scrollPoints( e.scroll.amount[ 0 ], e.scroll.amount[ 1 ] );
-            
-            arrangeBars();                                                      // May call parent -> requestRedraw()
-            
-            return true;
-        }
-        
-        return false;
-        
-        #endif
+        return final > NONE || contents_accepted;
     }
     
     void scrollset::draw( window* w )
