@@ -70,7 +70,7 @@ namespace jade
         
         enum
         {
-            NONE = 0,
+            NONE = 0,                                                           // Defined as 0 so we can use if( capturing )
             HORIZONTAL_BAR,
             VERTICAL_BAR,
             LEFT_BUTTON,

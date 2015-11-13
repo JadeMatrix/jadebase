@@ -159,8 +159,10 @@ namespace jade
         // Set up area flags ///////////////////////////////////////////////////
         
         enum area
-        {                                       // 0000 0000 0000 0000
+        {
             IN_CONTENTS            = 0x800,     // 0000 1000 0000 0000
+            
+            IN_CONTROL_AREA        = 0x7FF,     // 0000 0111 1111 1111 - meta
             
             IN_CORNER_AREA         = 0x400,     // 0000 0100 0000 0000
             
@@ -454,58 +456,138 @@ namespace jade
         
         // Handle events based on area /////////////////////////////////////////
         
-        if( e.type == STROKE && e.stroke.click & CLICK_PRIMARY )
-            switch( place )
+        // DEBUG:
+        // if( e.type == STROKE && e.stroke.click & CLICK_PRIMARY )
+        //     switch( place )
+        //     {
+        //     case IN_CONTENTS:
+        //         ff::write( jb_out, "IN_CONTENTS\n" );
+        //         break;
+        //     case IN_CORNER_AREA:
+        //         ff::write( jb_out, "IN_CORNER_AREA\n" );
+        //         break;
+        //     // case IN_BOTTOM_AREA:
+        //     //     ff::write( jb_out, "IN_BOTTOM_AREA\n" );
+        //     //     break;
+        //     case IN_BOTTOM_LEFT_BUTTON:
+        //         ff::write( jb_out, "IN_BOTTOM_LEFT_BUTTON\n" );
+        //         break;
+        //     case IN_BOTTOM_LEFT_SPACE:
+        //         ff::write( jb_out, "IN_BOTTOM_LEFT_SPACE\n" );
+        //         break;
+        //     case IN_BOTTOM_BAR:
+        //         ff::write( jb_out, "IN_BOTTOM_BAR\n" );
+        //         break;
+        //     case IN_BOTTOM_RIGHT_SPACE:
+        //         ff::write( jb_out, "IN_BOTTOM_RIGHT_SPACE\n" );
+        //         break;
+        //     case IN_BOTTOM_RIGHT_BUTTON:
+        //         ff::write( jb_out, "IN_BOTTOM_RIGHT_BUTTON\n" );
+        //         break;
+        //     // case IN_SIDE_AREA:
+        //     //     ff::write( jb_out, "IN_SIDE_AREA\n" );
+        //     //     break;
+        //     case IN_SIDE_TOP_BUTTON:
+        //         ff::write( jb_out, "IN_SIDE_TOP_BUTTON\n" );
+        //         break;
+        //     case IN_SIDE_TOP_SPACE:
+        //         ff::write( jb_out, "IN_SIDE_TOP_SPACE\n" );
+        //         break;
+        //     case IN_SIDE_BAR:
+        //         ff::write( jb_out, "IN_SIDE_BAR\n" );
+        //         break;
+        //     case IN_SIDE_BOTTOM_SPACE:
+        //         ff::write( jb_out, "IN_SIDE_BOTTOM_SPACE\n" );
+        //         break;
+        //     case IN_SIDE_BOTTOM_BUTTON:
+        //         ff::write( jb_out, "IN_SIDE_BOTTOM_BUTTON\n" );
+        //         break;
+        //     // case IN_ANYWHERE:
+        //     //     ff::write( jb_out, "IN_ANYWHERE\n" );
+        //     //     break;
+        //     case IN_NOWHERE:
+        //         ff::write( jb_out, "IN_NOWHERE\n" );
+        //         break;
+        //     }
+        
+        if( place != IN_NOWHERE && e.type == STROKE )                           // We only care about stroke events here, scrolling is handled later
+        {
+            // if( capturing )
+            if( false )
             {
-            case IN_CONTENTS:
-                ff::write( jb_out, "IN_CONTENTS\n" );
-                break;
-            case IN_CORNER_AREA:
-                ff::write( jb_out, "IN_CORNER_AREA\n" );
-                break;
-            // case IN_BOTTOM_AREA:
-            //     ff::write( jb_out, "IN_BOTTOM_AREA\n" );
-            //     break;
-            case IN_BOTTOM_LEFT_BUTTON:
-                ff::write( jb_out, "IN_BOTTOM_LEFT_BUTTON\n" );
-                break;
-            case IN_BOTTOM_LEFT_SPACE:
-                ff::write( jb_out, "IN_BOTTOM_LEFT_SPACE\n" );
-                break;
-            case IN_BOTTOM_BAR:
-                ff::write( jb_out, "IN_BOTTOM_BAR\n" );
-                break;
-            case IN_BOTTOM_RIGHT_SPACE:
-                ff::write( jb_out, "IN_BOTTOM_RIGHT_SPACE\n" );
-                break;
-            case IN_BOTTOM_RIGHT_BUTTON:
-                ff::write( jb_out, "IN_BOTTOM_RIGHT_BUTTON\n" );
-                break;
-            // case IN_SIDE_AREA:
-            //     ff::write( jb_out, "IN_SIDE_AREA\n" );
-            //     break;
-            case IN_SIDE_TOP_BUTTON:
-                ff::write( jb_out, "IN_SIDE_TOP_BUTTON\n" );
-                break;
-            case IN_SIDE_TOP_SPACE:
-                ff::write( jb_out, "IN_SIDE_TOP_SPACE\n" );
-                break;
-            case IN_SIDE_BAR:
-                ff::write( jb_out, "IN_SIDE_BAR\n" );
-                break;
-            case IN_SIDE_BOTTOM_SPACE:
-                ff::write( jb_out, "IN_SIDE_BOTTOM_SPACE\n" );
-                break;
-            case IN_SIDE_BOTTOM_BUTTON:
-                ff::write( jb_out, "IN_SIDE_BOTTOM_BUTTON\n" );
-                break;
-            // case IN_ANYWHERE:
-            //     ff::write( jb_out, "IN_ANYWHERE\n" );
-            //     break;
-            case IN_NOWHERE:
-                ff::write( jb_out, "IN_NOWHERE\n" );
-                break;
+                if( e.stroke.dev_id == captured_dev )
+                {
+                    
+                }
+                // else pass on to contents
             }
+            else
+            {
+                if( place & IN_CONTROL_AREA && e.stroke.click & CLICK_PRIMARY )
+                {
+                    switch( place )
+                    {
+                    case IN_CORNER_AREA:
+                        if( corner_state == EVIL )
+                            corner_state = EVIL_DOWN;
+                        else
+                            corner_state = DOWN;
+                        capturing = CORNER;
+                        break;
+                    case IN_BOTTOM_LEFT_BUTTON:
+                        horz_state[ 0 ] = DOWN;
+                        capturing = LEFT_BUTTON;
+                        break;
+                    case IN_BOTTOM_LEFT_SPACE:
+                        // TODO: Click-to-jump
+                        break;
+                    case IN_BOTTOM_BAR:
+                        slider_state[ 0 ] = DOWN;
+                        capturing = HORIZONTAL_BAR;
+                        break;
+                    case IN_BOTTOM_RIGHT_SPACE:
+                        // TODO: Click-to-jump
+                        break;
+                    case IN_BOTTOM_RIGHT_BUTTON:
+                        horz_state[ 1 ] = DOWN;
+                        capturing = RIGHT_BUTTON;
+                        break;
+                    case IN_SIDE_TOP_BUTTON:
+                        vert_state[ 0 ] = DOWN;
+                        capturing = TOP_BUTTON;
+                        break;
+                    case IN_SIDE_TOP_SPACE:
+                        // TODO: Click-to-jump
+                        break;
+                    case IN_SIDE_BAR:
+                        slider_state[ 1 ] = DOWN;
+                        capturing = VERTICAL_BAR;
+                        break;
+                    case IN_SIDE_BOTTOM_SPACE:
+                        // TODO: Click-to-jump
+                        break;
+                    case IN_SIDE_BOTTOM_BUTTON:
+                        vert_state[ 1 ] = DOWN;
+                        capturing = BOTTOM_BUTTON;
+                        break;
+                    default:
+                        throw exception( "scrollset::acceptEvent(): Meta or unknown value for place bitfield" );
+                    }
+                    
+                    if( capturing )
+                    {
+                        captured_dev = e.stroke.dev_id;
+                        capture_start[ 0 ] = e.position[ 0 ];
+                        capture_start[ 1 ] = e.position[ 1 ];
+                        
+                        arrangeBars();
+                        
+                        return true;
+                    }
+                }
+                // else we don't care, so pass on to contents
+            }
+        }
         
         // Pass event to contents //////////////////////////////////////////////
         
