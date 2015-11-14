@@ -712,7 +712,7 @@ namespace jade
         // Pass event to contents //////////////////////////////////////////////
         
         bool contents_accepted = false;
-        if( place & IN_CONTENTS )                                               // Due to reasons, this and event_used can not both be true or false
+        if( final == NOTHING && place & IN_CONTENTS )                           // Due to reasons, this and event_used can not both be true or false
             contents_accepted = contents -> acceptEvent( e );                   // The contents have a 0,0 relative position to the scrollset
         
         // Check for scrolling around contents /////////////////////////////////
@@ -1038,9 +1038,6 @@ namespace jade
         
         if( release_capture )
         {
-            if( parent == NULL )
-                throw exception( "scrollset::arrangeBars(): NULL parent for capture release" );
-            
             deassociateDevice( captured_dev );
             capturing = NONE;
         }
@@ -1066,6 +1063,8 @@ namespace jade
             
             slider_width[ i ] = max_length * visible_dim
                                 / ( visible_dim + ( scroll_limit * ( scroll_limit < 0 ? -1 : 1 ) ) );
+            // slider_width[ i ] = max_length
+            //                     * ( visible_dim / ( scroll_limit * ( scroll_limit < 0 ? -1 : 1 ) ) );
             
             slider_pos[ i ] = SCROLLBAR_BUTTON_REAL_WIDTH + ( max_length - slider_width[ i ] )
                      * ( scroll_limit < 0 ? ( 1 - ( scroll_offset / scroll_limit ) ) : ( scroll_offset / scroll_limit ) );
