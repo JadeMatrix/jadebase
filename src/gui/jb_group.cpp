@@ -307,13 +307,7 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        scroll_offset[ 0 ] += x;
-        scroll_offset[ 1 ] += y;
-        
-        clampScroll();
-        
-        if( parent != NULL )
-            parent -> requestRedraw();
+        setScrollPoints( scroll_offset[ 0 ] + x, scroll_offset[ 1 ] + y );
     }
     void group::scrollPercent( dpi::percent x, dpi::percent y )
     {
@@ -326,14 +320,19 @@ namespace jade
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        scrollPoints( x - scroll_offset[ 0 ], y - scroll_offset[ 1 ] );
+        scroll_offset[ 0 ] = x;
+        scroll_offset[ 1 ] = y;
+        
+        clampScroll();
+        
+        if( parent != NULL )
+            parent -> requestRedraw();
     }
     void group::setScrollPercent( dpi::percent x, dpi::percent y )
     {
         scoped_lock< mutex > slock( element_mutex );
         
-        scrollPoints( x * dimensions[ 0 ] - scroll_offset[ 0 ],
-                      y * dimensions[ 1 ] - scroll_offset[ 1 ] );
+        setScrollPoints( x * dimensions[ 0 ], y * dimensions[ 1 ] );
     }
     
     std::pair< dpi::points, dpi::points > group::getScrollPoints()
@@ -445,6 +444,16 @@ namespace jade
             scroll_limits[ 0 ] = 0;
         if( scroll_limits[ 1 ] < 0 )
             scroll_limits[ 1 ] = 0;
+        
+        // DEBUG:
+        ff::write( jb_out,
+                   ">>> Set group ",
+                   ff::to_X( (unsigned long)this ),
+                   " scroll limits to ",
+                   scroll_limits[ 0 ],
+                   "x",
+                   scroll_limits[ 1 ],
+                   "\n" );
         
         clampScroll();
     }
