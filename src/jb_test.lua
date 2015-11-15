@@ -31,11 +31,11 @@ function gen_tabset()
     inner_group:add_element( jade.gui.new_button( 40, 10, 300, 30 ) )
     inner_group:add_element( jade.gui.new_button( 250, 250, 50, 50 ) )
     
-    test_scrollset = jade.gui.new_scrollset( 0, 0, 200, 200, inner_group )
-    test_scrollset:bars_always_visible( true )
+    test_scrollset = jade.gui.new_scrollset( 0, 0, 220, 200, inner_group )
+    -- test_scrollset:bars_always_visible( true )
     
     group_c = jade.gui.new_group( 0, 0, 256, 256 )
-    group_c:add_element(test_scrollset  )
+    group_c:add_element( test_scrollset )
     
     -- Group D (empty for now)
     

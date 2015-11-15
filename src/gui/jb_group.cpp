@@ -445,16 +445,6 @@ namespace jade
         if( scroll_limits[ 1 ] < 0 )
             scroll_limits[ 1 ] = 0;
         
-        // DEBUG:
-        ff::write( jb_out,
-                   ">>> Set group ",
-                   ff::to_X( (unsigned long)this ),
-                   " scroll limits to ",
-                   scroll_limits[ 0 ],
-                   "x",
-                   scroll_limits[ 1 ],
-                   "\n" );
-        
         clampScroll();
     }
     void group::clampScroll()

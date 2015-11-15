@@ -78,11 +78,11 @@ namespace jade
                         : gui_element( x, y, w, h ),
                           contents( c )
     {
-        init();
-        
         contents -> setParentElement( this );
         contents -> setRealDimensions( dimensions[ 0 ],
                                        dimensions[ 1 ] );
+        
+        init();                                                                 // Yes, this calls arrangeBars() on purpose
         
         arrangeBars();
     }
@@ -92,13 +92,13 @@ namespace jade
                         : gui_element( x, y, 0, 0 ),
                           contents( c )
     {
-        init();
-        
         std::pair< dpi::points, dpi::points > c_dims( contents -> getRealDimensions() );
         
         setRealDimensions( c_dims.first, c_dims.second );
         
         contents -> setParentElement( this );
+        
+        init();
         
         arrangeBars();
     }
@@ -187,6 +187,9 @@ namespace jade
         area place = IN_NOWHERE;
         area prev_place = IN_NOWHERE;
         
+        bool bar_visible[ 2 ] = { slider_state[ 0 ] != DISABLED || bars_always_visible,
+                                  slider_state[ 1 ] != DISABLED || bars_always_visible };
+        
         switch( e.type )
         {
         case STROKE:
@@ -200,12 +203,16 @@ namespace jade
                 goto rest;                                                      // Can't break quite yet
             }
 
-            if( e.stroke.prev_pos[ 0 ] < dimensions[ 0 ] - SCROLLBAR_HEIGHT )          // Left of the vertical scrollbar
+            if( !bar_visible[ 1 ]
+                || e.stroke.prev_pos[ 0 ] < dimensions[ 0 ] - SCROLLBAR_HEIGHT )// Left of the vertical scrollbar
             {
-                if( e.stroke.prev_pos[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )      // Outside of both bars so inside contents
-                    prev_place = IN_CONTENTS;
-                else
+                if( !bar_visible[ 0 ]
+                    || e.stroke.prev_pos[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )    // Outside of both bars so inside contents
                 {
+                    prev_place = IN_CONTENTS;
+                }
+                else
+                {                                                               // If we get here, horizontal bar is enabled
                     if( pointInsideCircle( e.stroke.prev_pos[ 0 ],
                                            e.stroke.prev_pos[ 1 ],
                                            slider_pos[ 0 ] + SCROLLBAR_HEIGHT / 2,
@@ -243,10 +250,12 @@ namespace jade
                         }
                         else                                                    // Right hand side of bottom area
                         {
-                            if( e.stroke.prev_pos[ 0 ] >= dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                            dpi::points vert_offset = bar_visible[ 1 ] ? SCROLLBAR_HEIGHT : 0;
+                            
+                            if( e.stroke.prev_pos[ 0 ] >= dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + vert_offset )
                                 && !pointInsideCircle( e.stroke.prev_pos[ 0 ],
                                                        e.stroke.prev_pos[ 1 ],
-                                                       dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + vert_offset ),
                                                        dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
                                                        SCROLLBAR_HEIGHT / 2 ) ) // Inside bottom right button
                             {
@@ -259,7 +268,8 @@ namespace jade
             }
             else                                                                // (Potentially) in the vertical scrollbar
             {
-                if( e.stroke.prev_pos[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )
+                if( !bar_visible[ 0 ]
+                    || e.stroke.prev_pos[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )
                 {
                     if( pointInsideCircle( e.stroke.prev_pos[ 0 ],
                                            e.stroke.prev_pos[ 1 ],
@@ -298,11 +308,13 @@ namespace jade
                         }
                         else                                                    // Bottom of side area
                         {
-                            if( e.stroke.prev_pos[ 1 ] >= dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                            dpi::points horz_offset = bar_visible[ 0 ] ? SCROLLBAR_HEIGHT : 0;
+                            
+                            if( e.stroke.prev_pos[ 1 ] >= dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + horz_offset )
                                 && !pointInsideCircle( e.stroke.prev_pos[ 0 ],
                                                        e.stroke.prev_pos[ 1 ],
                                                        dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
-                                                       dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + horz_offset ),
                                                        SCROLLBAR_HEIGHT / 2 ) ) // Inside side bottom button
                             {
                                 prev_place = IN_SIDE_BOTTOM_BUTTON;
@@ -327,12 +339,16 @@ namespace jade
                 break;
             }
             
-            if( e.position[ 0 ] < dimensions[ 0 ] - SCROLLBAR_HEIGHT )          // Left of the vertical scrollbar
+            if( !bar_visible[ 1 ]
+                || e.position[ 0 ] < dimensions[ 0 ] - SCROLLBAR_HEIGHT )       // Left of the vertical scrollbar
             {
-                if( e.position[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )      // Outside of both bars so inside contents
-                    place = IN_CONTENTS;
-                else
+                if( !bar_visible[ 0 ]
+                    || e.position[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )    // Outside of both bars so inside contents
                 {
+                    place = IN_CONTENTS;
+                }
+                else
+                {                                                               // If we get here, horizontal bar is enabled
                     if( pointInsideCircle( e.position[ 0 ],
                                            e.position[ 1 ],
                                            slider_pos[ 0 ] + SCROLLBAR_HEIGHT / 2,
@@ -370,10 +386,12 @@ namespace jade
                         }
                         else                                                    // Right hand side of bottom area
                         {
-                            if( e.position[ 0 ] >= dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                            dpi::points vert_offset = bar_visible[ 1 ] ? SCROLLBAR_HEIGHT : 0;
+                            
+                            if( e.position[ 0 ] >= dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + vert_offset )
                                 && !pointInsideCircle( e.position[ 0 ],
                                                        e.position[ 1 ],
-                                                       dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       dimensions[ 0 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + vert_offset ),
                                                        dimensions[ 1 ] - SCROLLBAR_HEIGHT / 2,
                                                        SCROLLBAR_HEIGHT / 2 ) ) // Inside bottom right button
                             {
@@ -386,7 +404,8 @@ namespace jade
             }
             else                                                                // (Potentially) in the vertical scrollbar
             {
-                if( e.position[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )
+                if( !bar_visible[ 0 ]
+                    || e.position[ 1 ] < dimensions[ 1 ] - SCROLLBAR_HEIGHT )
                 {
                     if( pointInsideCircle( e.position[ 0 ],
                                            e.position[ 1 ],
@@ -425,11 +444,13 @@ namespace jade
                         }
                         else                                                    // Bottom of side area
                         {
-                            if( e.position[ 1 ] >= dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT )
+                            dpi::points horz_offset = bar_visible[ 0 ] ? SCROLLBAR_HEIGHT : 0;
+                            
+                            if( e.position[ 1 ] >= dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + horz_offset )
                                 && !pointInsideCircle( e.position[ 0 ],
                                                        e.position[ 1 ],
                                                        dimensions[ 0 ] - SCROLLBAR_HEIGHT / 2,
-                                                       dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + SCROLLBAR_HEIGHT ),
+                                                       dimensions[ 1 ] - ( SCROLLBAR_BUTTON_VISUAL_WIDTH + horz_offset ),
                                                        SCROLLBAR_HEIGHT / 2 ) ) // Inside side bottom button
                             {
                                 place = IN_SIDE_BOTTOM_BUTTON;
@@ -485,7 +506,13 @@ namespace jade
                         }
                         else
                         {
-                            dpi::points slide_space = dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 0 ];
+                            dpi::points slide_space = dimensions[ 0 ] - slider_width[ 0 ];
+                            
+                            if( bars_always_visible
+                                || slider_state[ 1 ] != DISABLED )
+                            {
+                                slide_space -= SCROLLBAR_HEIGHT;
+                            }
                             
                             contents -> setScrollPercent( ( ( e.position[ 0 ] - capture_start[ 0 ] )
                                                             + ( capture_start[ 2 ] - SCROLLBAR_BUTTON_REAL_WIDTH ) )
@@ -504,7 +531,13 @@ namespace jade
                         }
                         else
                         {
-                            dpi::points slide_space = dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 + SCROLLBAR_HEIGHT ) - slider_width[ 1 ];
+                            dpi::points slide_space = dimensions[ 1 ] - slider_width[ 1 ];
+                            
+                            if( bars_always_visible
+                                || slider_state[ 0 ] != DISABLED )
+                            {
+                                slide_space -= SCROLLBAR_HEIGHT;
+                            }
                             
                             contents -> setScrollPercent( contents -> getScrollPercent().first,
                                                           ( e.position[ 1 ] - capture_start[ 1 ]
@@ -647,12 +680,14 @@ namespace jade
                         capturing = CORNER;
                         break;
                     case IN_BOTTOM_LEFT_BUTTON:
-                        ff::write( jb_out, "Left button clicked\n" );
                         horz_state[ 0 ] = DOWN;
                         capturing = LEFT_BUTTON;
                         break;
                     case IN_BOTTOM_LEFT_SPACE:
-                        // TODO: Click-to-jump
+                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
+                        // TODO: Jump-page vs. jump-to-point setting
+                        contents -> scrollPercent( -1.0, 0.0 );
+                        final = SHOULD_ARRANGE;
                         break;
                     case IN_BOTTOM_BAR:
                         slider_state[ 0 ] = DOWN;
@@ -660,7 +695,10 @@ namespace jade
                         capture_start[ 2 ] = slider_pos[ 0 ];
                         break;
                     case IN_BOTTOM_RIGHT_SPACE:
-                        // TODO: Click-to-jump
+                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
+                        // TODO: Jump-page vs. jump-to-point setting
+                        contents -> scrollPercent( 1.0, 0.0 );
+                        final = SHOULD_ARRANGE;
                         break;
                     case IN_BOTTOM_RIGHT_BUTTON:
                         horz_state[ 1 ] = DOWN;
@@ -671,7 +709,10 @@ namespace jade
                         capturing = TOP_BUTTON;
                         break;
                     case IN_SIDE_TOP_SPACE:
-                        // TODO: Click-to-jump
+                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
+                        // TODO: Jump-page vs. jump-to-point setting
+                        contents -> scrollPercent( 0.0, -1.0 );
+                        final = SHOULD_ARRANGE;
                         break;
                     case IN_SIDE_BAR:
                         slider_state[ 1 ] = DOWN;
@@ -679,7 +720,10 @@ namespace jade
                         capture_start[ 2 ] = slider_pos[ 1 ];
                         break;
                     case IN_SIDE_BOTTOM_SPACE:
-                        // TODO: Click-to-jump
+                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
+                        // TODO: Jump-page vs. jump-to-point setting
+                        contents -> scrollPercent( 0.0, 1.0 );
+                        final = SHOULD_ARRANGE;
                         break;
                     case IN_SIDE_BOTTOM_BUTTON:
                         vert_state[ 1 ] = DOWN;
@@ -773,7 +817,7 @@ namespace jade
                         {
                             for( int j = 0; j < 2; ++j )
                             {
-                                switch( ( i ? horz_state : vert_state )[ j ] )  // Nice little bit of pointer magic
+                                switch( ( i ? vert_state : horz_state )[ j ] )  // Nice little bit of pointer magic
                                 {
                                 case UP:
                                     if( j )
@@ -789,6 +833,7 @@ namespace jade
                                     break;
                                 default:
                                     throw exception( "scrollset::draw(): Invalid/unknown button state" );
+                                    break;
                                 }
                                 
                                 if( !j )
@@ -877,6 +922,8 @@ namespace jade
                         
                         #endif
                     }
+                    
+                    glColor4f( 1.0, 1.0, 1.0, 1.0 );
                 }
                 glPopMatrix();
             }
@@ -886,8 +933,8 @@ namespace jade
         // Then draw corner ////////////////////////////////////////////////////
         
         if( bars_always_visible
-            || slider_state[ 0 ] != DISABLED 
-            || slider_state[ 1 ] != DISABLED )
+            || ( slider_state[ 0 ] != DISABLED 
+                 && slider_state[ 1 ] != DISABLED ) )
         {
             glPushMatrix();
             {
@@ -946,7 +993,8 @@ namespace jade
         
         // Enable/disable slider bars, corner //////////////////////////////////
         
-        if( scroll_limits.first == 0 )                                          // Horizontal
+        if( scroll_limits.first == 0
+            && !bars_always_visible )                                           // Horizontal
         {
             horz_state[ 0 ] = DISABLED;
             horz_state[ 1 ] = DISABLED;
@@ -959,7 +1007,8 @@ namespace jade
             slider_state[ 0 ] = UP;
         }
         
-        if( scroll_limits.second == 0 )                                         // Vertical
+        if( scroll_limits.second == 0
+            && !bars_always_visible )                                           // Vertical
         {
             vert_state[ 0 ] = DISABLED;
             vert_state[ 1 ] = DISABLED;
@@ -1004,28 +1053,28 @@ namespace jade
                     slider_state[ 1 ] = DOWN;
                 break;
             case LEFT_BUTTON:
-                if( vert_state[ 0 ] == DISABLED )
-                    release_capture = true;
-                else
-                    vert_state[ 0 ] = DOWN;
-                break;
-            case RIGHT_BUTTON:
-                if( vert_state[ 1 ] == DISABLED )
-                    release_capture = true;
-                else
-                    vert_state[ 1 ] = DOWN;
-                break;
-            case TOP_BUTTON:
                 if( horz_state[ 0 ] == DISABLED )
                     release_capture = true;
                 else
                     horz_state[ 0 ] = DOWN;
                 break;
-            case BOTTOM_BUTTON:
+            case RIGHT_BUTTON:
                 if( horz_state[ 1 ] == DISABLED )
                     release_capture = true;
                 else
                     horz_state[ 1 ] = DOWN;
+                break;
+            case TOP_BUTTON:
+                if( vert_state[ 0 ] == DISABLED )
+                    release_capture = true;
+                else
+                    vert_state[ 0 ] = DOWN;
+                break;
+            case BOTTOM_BUTTON:
+                if( vert_state[ 1 ] == DISABLED )
+                    release_capture = true;
+                else
+                    vert_state[ 1 ] = DOWN;
                 break;
             case CORNER:
                 if( corner_state == DISABLED )
@@ -1042,39 +1091,11 @@ namespace jade
             capturing = NONE;
         }
         
-        // Position slider bars ////////////////////////////////////////////////
-        
-        for( int i = 0; i < 2; ++i )
-        {
-            dpi::points scroll_limit = i ? scroll_limits.second : scroll_limits.first;
-            dpi::points scroll_offset = i ? scroll_offsets.second : scroll_offsets.first;
-            
-            dpi::points visible_dim;
-            
-            if( bars_always_visible
-                || slider_state[ 1 - i ] != DISABLED )
-            {
-                visible_dim = dimensions[ i ] - SCROLLBAR_HEIGHT;
-            }
-            else
-                visible_dim = dimensions[ i ];                                  // If the other bar is invisible use entire width
-            
-            dpi::points max_length = visible_dim - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 );
-            
-            slider_width[ i ] = max_length * visible_dim
-                                / ( visible_dim + ( scroll_limit * ( scroll_limit < 0 ? -1 : 1 ) ) );
-            // slider_width[ i ] = max_length
-            //                     * ( visible_dim / ( scroll_limit * ( scroll_limit < 0 ? -1 : 1 ) ) );
-            
-            slider_pos[ i ] = SCROLLBAR_BUTTON_REAL_WIDTH + ( max_length - slider_width[ i ] )
-                     * ( scroll_limit < 0 ? ( 1 - ( scroll_offset / scroll_limit ) ) : ( scroll_offset / scroll_limit ) );
-        }
-        
         // Resize contents /////////////////////////////////////////////////////
         
         dpi::points internal_dims[ 2 ];
         
-        if( slider_state[ 0 ] != DISABLED
+        if( slider_state[ 1 ] != DISABLED                                       // Check if vertical is disabled for horizontal size
             || bars_always_visible )
         {
             internal_dims[ 0 ] = dimensions[ 0 ] - SCROLLBAR_HEIGHT;
@@ -1082,7 +1103,7 @@ namespace jade
         else
             internal_dims[ 0 ] = dimensions[ 0 ];
         
-        if( slider_state[ 1 ] != DISABLED
+        if( slider_state[ 0 ] != DISABLED                                       // Check if horizontal is disabled for vertical size
             || bars_always_visible )
         {
             internal_dims[ 1 ] = dimensions[ 1 ] - SCROLLBAR_HEIGHT;
@@ -1091,6 +1112,29 @@ namespace jade
             internal_dims[ 1 ] = dimensions[ 1 ];
         
         contents -> setRealDimensions( internal_dims[ 0 ], internal_dims[ 1 ] );
+        
+        // Position slider bars ////////////////////////////////////////////////
+        
+        for( int i = 0; i < 2; ++i )
+        {
+            if( bars_always_visible
+                || slider_state[ i ] != DISABLED )
+            {
+                dpi::points scroll_limit = i ? scroll_limits.second : scroll_limits.first;
+                dpi::points scroll_offset = i ? scroll_offsets.second : scroll_offsets.first;
+                
+                scroll_limit *= ( scroll_limit < 0 ? -1 : 1 );                  // For this we want it always positive
+                
+                dpi::points max_length = internal_dims[ i ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 );
+                
+                slider_width[ i ] = max_length * internal_dims[ i ]
+                                    / ( internal_dims[ i ] + scroll_limit );
+                
+                slider_pos[ i ] = SCROLLBAR_BUTTON_REAL_WIDTH
+                                  + ( max_length - slider_width[ i ] )
+                                  * ( scroll_offset / scroll_limit );
+            }
+        }
         
         // Request redraw //////////////////////////////////////////////////////
         
