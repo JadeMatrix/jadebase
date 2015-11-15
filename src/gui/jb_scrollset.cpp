@@ -484,9 +484,7 @@ namespace jade
             SHOULD_ARRANGE = 2
         } final = NOTHING;
         
-        if( e.type == STROKE
-            && ( place != IN_NOWHERE || prev_place != IN_NOWHERE ) )            // We only care about stroke events here, scrolling is handled later
-                                                                                // Also, given jade::group's implementation, this second check may be redundant
+        if( e.type == STROKE )
         {
             if( capturing )
             {
@@ -506,7 +504,7 @@ namespace jade
                         }
                         else
                         {
-                            dpi::points slide_space = dimensions[ 0 ] - slider_width[ 0 ];
+                            dpi::points slide_space = dimensions[ 0 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 ) - slider_width[ 0 ];
                             
                             if( bars_always_visible
                                 || slider_state[ 1 ] != DISABLED )
@@ -514,9 +512,11 @@ namespace jade
                                 slide_space -= SCROLLBAR_HEIGHT;
                             }
                             
-                            contents -> setScrollPercent( ( ( e.position[ 0 ] - capture_start[ 0 ] )
+                            auto percent_limits = contents -> getScrollLimitPercent();
+                            
+                            contents -> setScrollPercent( ( ( ( e.position[ 0 ] - capture_start[ 0 ] )
                                                             + ( capture_start[ 2 ] - SCROLLBAR_BUTTON_REAL_WIDTH ) )
-                                                          / slide_space,
+                                                            / slide_space ) * percent_limits.first,
                                                           contents -> getScrollPercent().second );
                             
                             final = SHOULD_ARRANGE;
@@ -531,7 +531,7 @@ namespace jade
                         }
                         else
                         {
-                            dpi::points slide_space = dimensions[ 1 ] - slider_width[ 1 ];
+                            dpi::points slide_space = dimensions[ 1 ] - ( SCROLLBAR_BUTTON_REAL_WIDTH * 2 ) - slider_width[ 1 ];
                             
                             if( bars_always_visible
                                 || slider_state[ 0 ] != DISABLED )
@@ -539,10 +539,12 @@ namespace jade
                                 slide_space -= SCROLLBAR_HEIGHT;
                             }
                             
+                            auto percent_limits = contents -> getScrollLimitPercent();
+                            
                             contents -> setScrollPercent( contents -> getScrollPercent().first,
-                                                          ( e.position[ 1 ] - capture_start[ 1 ]
+                                                          ( ( e.position[ 1 ] - capture_start[ 1 ]
                                                             + capture_start[ 2 ] - SCROLLBAR_BUTTON_REAL_WIDTH )
-                                                          / slide_space );
+                                                            / slide_space ) * percent_limits.second );
                             
                             final = SHOULD_ARRANGE;
                         }
@@ -656,6 +658,17 @@ namespace jade
                             else
                                 final = EVENT_USED;
                         break;
+                    case SPACES:
+                        // if( (    !( place & IN_BOTTOM_LEFT_SPACE  )
+                        //       && !( place & IN_BOTTOM_RIGHT_SPACE )
+                        //       && !( place & IN_SIDE_TOP_SPACE     )
+                        //       && !( place & IN_SIDE_BOTTOM_SPACE  ) )
+                        //     || !( e.stroke.click & CLICK_PRIMARY ) )
+                        if( !( e.stroke.click & CLICK_PRIMARY ) )
+                        {
+                            capturing = NONE;
+                        }
+                        break;
                     default:
                         throw exception( "scrollset::acceptEvent(): Unknown capturing state" );
                     }
@@ -684,9 +697,9 @@ namespace jade
                         capturing = LEFT_BUTTON;
                         break;
                     case IN_BOTTOM_LEFT_SPACE:
-                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
                         // TODO: Jump-page vs. jump-to-point setting
                         contents -> scrollPercent( -1.0, 0.0 );
+                        capturing = SPACES;
                         final = SHOULD_ARRANGE;
                         break;
                     case IN_BOTTOM_BAR:
@@ -695,9 +708,9 @@ namespace jade
                         capture_start[ 2 ] = slider_pos[ 0 ];
                         break;
                     case IN_BOTTOM_RIGHT_SPACE:
-                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
                         // TODO: Jump-page vs. jump-to-point setting
                         contents -> scrollPercent( 1.0, 0.0 );
+                        capturing = SPACES;
                         final = SHOULD_ARRANGE;
                         break;
                     case IN_BOTTOM_RIGHT_BUTTON:
@@ -709,9 +722,9 @@ namespace jade
                         capturing = TOP_BUTTON;
                         break;
                     case IN_SIDE_TOP_SPACE:
-                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
                         // TODO: Jump-page vs. jump-to-point setting
                         contents -> scrollPercent( 0.0, -1.0 );
+                        capturing = SPACES;
                         final = SHOULD_ARRANGE;
                         break;
                     case IN_SIDE_BAR:
@@ -720,9 +733,9 @@ namespace jade
                         capture_start[ 2 ] = slider_pos[ 1 ];
                         break;
                     case IN_SIDE_BOTTOM_SPACE:
-                        // FIXME: Capture so we don't jump whenever the cursor is moved when pressed
                         // TODO: Jump-page vs. jump-to-point setting
                         contents -> scrollPercent( 0.0, 1.0 );
+                        capturing = SPACES;
                         final = SHOULD_ARRANGE;
                         break;
                     case IN_SIDE_BOTTOM_BUTTON:
@@ -977,6 +990,7 @@ namespace jade
         case TOP_BUTTON:
         case BOTTOM_BUTTON:
         case CORNER:
+        case SPACES:
             deassociateDevice( captured_dev );
             break;
         default:
@@ -1081,6 +1095,8 @@ namespace jade
                     release_capture = true;
                 // No else, acceptEvent() takes care of non-DISABLED state
                 break;
+            case SPACES:
+                break;                                                          // Next time we get an event while capturing==SPACES, it'll release if necessary
             default:
                 throw exception( "scrollset::arrangeBars(): Unknown capturing state" );
         }

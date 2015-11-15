@@ -77,7 +77,8 @@ namespace jade
             RIGHT_BUTTON,
             TOP_BUTTON,
             BOTTOM_BUTTON,
-            CORNER
+            CORNER,
+            SPACES
         } capturing;
         jb_platform_idevid_t captured_dev;
         dpi::points capture_start[ 3 ];
