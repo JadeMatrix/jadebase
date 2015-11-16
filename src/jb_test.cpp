@@ -67,6 +67,52 @@ namespace jade
             
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
                 
+                double val_num;
+                std::string val_str;
+                bool val_bln;
+                
+                coerceSetting( "jb_BlockExponent", val_num );
+                coerceSetting( "jb_BlockExponent", val_str );
+                coerceSetting( "jb_BlockExponent", val_bln );
+                
+                ff::write( jb_out,
+                           ">>> setting \"jb_BlockExponent\" as a",
+                           "\n\tnumber: ",
+                           val_num,
+                           "\n\tstring: \"",
+                           val_str,
+                           "\"\n\tboolean: ",
+                           val_bln,
+                           "\n" );
+                
+                coerceSetting( "jb_LuaAPISubNames", val_num );
+                coerceSetting( "jb_LuaAPISubNames", val_str );
+                coerceSetting( "jb_LuaAPISubNames", val_bln );
+                
+                ff::write( jb_out,
+                           ">>> setting \"jb_LuaAPISubNames\" as a",
+                           "\n\tnumber: ",
+                           val_num,
+                           "\n\tstring: \"",
+                           val_str,
+                           "\"\n\tboolean: ",
+                           val_bln,
+                           "\n" );
+                
+                coerceSetting( "jb_test_WindowName", val_num );
+                coerceSetting( "jb_test_WindowName", val_str );
+                coerceSetting( "jb_test_WindowName", val_bln );
+                
+                ff::write( jb_out,
+                           ">>> setting \"jb_test_WindowName\" as a",
+                           "\n\tnumber: ",
+                           val_num,
+                           "\n\tstring: \"",
+                           val_str,
+                           "\"\n\tboolean: ",
+                           val_bln,
+                           "\n" );
+                
                 // window* test_window = new window();
                 
                 // window::manipulate* manip = new window::manipulate( test_window );

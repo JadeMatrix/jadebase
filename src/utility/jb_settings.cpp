@@ -556,43 +556,124 @@ namespace jade
             return false;
     }
     
-    // void coerceSetting( std::string key, double& val )
-    // {
-    //     scoped_lock< mutex > slock( settings_mutex );
+    void coerceSetting( std::string key, double& val )
+    {
+        scoped_lock< mutex > slock( settings_mutex );
         
+        auto finder_num = settings_num.find( key );
         
-    // }
-    // void coerceSetting( std::string key, std::string& val )
-    // {
-    //     scoped_lock< mutex > slock( settings_mutex );
-        
-        
-    // }
-    // void coerceSetting( std::string key, bool& val )
-    // {
-    //     scoped_lock< mutex > slock( settings_mutex );
-        
-    //     auto finder_bln = settings_bln.find( key );
-        
-    //     if( finder_bln != settings_bln.end() )
-    //         val = finder_bln -> second.first;
-    //     else
-    //     {
-    //         auto finder_num = settings_num.find( key );
+        if( finder_num != settings_num.end() )
+            val = finder_num -> second.first;
+        else
+        {
+            auto finder_str = settings_str.find( key );
             
-    //         if( finder_num != settings_num.end() )
-    //             val = finder_num -> second.first == 0.0;
-    //         else
-    //         {
-    //             auto finder_str = settings_str.find( key );
+            if( finder_str != settings_str.end() )
+            {
+                std::stringstream ns( finder_str -> second.first );
                 
-    //             if( finder_str != settings_str.end() )
-    //                 ///;
-    //             else
+                ns >> val;
+                
+                if( ns.fail() )
+                    val = NAN;
+            }
+            else
+            {
+                auto finder_bln = settings_bln.find( key );
+                
+                if( finder_bln != settings_bln.end() )
+                    val = finder_bln -> second.first ? 1 : 0;
+                else
+                {
+                    exception e;
+                    ff::write( *e,
+                               "coerceSetting() number: No value to coerce for setting \"",
+                               key,
+                               "\"" );
+                    throw e;
+                }
+            }
+        }
+    }
+    void coerceSetting( std::string key, std::string& val )
+    {
+        scoped_lock< mutex > slock( settings_mutex );
+        
+        auto finder_str = settings_str.find( key );
+        
+        if( finder_str != settings_str.end() )
+        {
+            val = finder_str -> second.first;
+        }
+        else
+        {
+            auto finder_bln = settings_bln.find( key );
+            
+            if( finder_bln != settings_bln.end() )
+            {
+                val.clear();
+                ff::write( val, finder_bln -> second.first );
+            }
+            else
+            {
+                auto finder_num = settings_num.find( key );
+                
+                if( finder_num != settings_num.end() )
+                {
+                    val.clear();
+                    ff::write( val, finder_num -> second.first );
+                }
+                else
+                {
+                    exception e;
+                    ff::write( *e,
+                               "coerceSetting() string: No value to coerce for setting \"",
+                               key,
+                               "\"" );
+                    throw e;
+                }
+            }
+        }
+    }
+    void coerceSetting( std::string key, bool& val )
+    {
+        scoped_lock< mutex > slock( settings_mutex );
+        
+        auto finder_bln = settings_bln.find( key );
+        
+        if( finder_bln != settings_bln.end() )
+            val = finder_bln -> second.first;
+        else
+        {
+            auto finder_num = settings_num.find( key );
+            
+            if( finder_num != settings_num.end() )
+                val = finder_num -> second.first != 0.0;
+            else
+            {
+                auto finder_str = settings_str.find( key );
+                
+                if( finder_str != settings_str.end() )
+                {
+                    std::stringstream bs( finder_str -> second.first );
                     
-    //         }
-    //     }
-    // }
+                    bs >> std::boolalpha >> val;
+                    
+                    if( bs.fail() )
+                        val = ( finder_str -> second.first != "" );
+                }
+                else
+                {
+                    exception e;
+                    ff::write( *e,
+                               "coerceSetting() bool: No value to coerce for setting \"",
+                               key,
+                               "\"" );
+                    throw e;
+                }
+            }
+        }
+    }
 }
 
 /* jb_luaapi.hpp **************************************************************//******************************************************************************/
@@ -645,9 +726,9 @@ namespace jade
                 
                 std::string noreturn_err;
                 ff::write( noreturn_err,
-                           "No value associated with setting key '",
+                           "No value associated with setting key \"",
                            key_str,
-                           "'" );
+                           "\"" );
                 luaL_error( state, noreturn_err.c_str() );
                 return 0;
             }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
