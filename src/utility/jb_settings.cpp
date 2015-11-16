@@ -512,6 +512,87 @@ namespace jade
             throw e;
         }
     }
+    
+    bool getSetting( std::string key, double& val )
+    {
+        scoped_lock< mutex > slock( settings_mutex );
+        
+        auto finder = settings_num.find( key );
+        
+        if( finder != settings_num.end() )
+        {
+            val = finder -> second.first;
+            return true;
+        }
+        else
+            return false;
+    }
+    bool getSetting( std::string key, std::string& val )
+    {
+        scoped_lock< mutex > slock( settings_mutex );
+        
+        auto finder = settings_str.find( key );
+        
+        if( finder != settings_str.end() )
+        {
+            val = finder -> second.first;
+            return true;
+        }
+        else
+            return false;
+    }
+    bool getSetting( std::string key, bool& val )
+    {
+        scoped_lock< mutex > slock( settings_mutex );
+        
+        auto finder = settings_bln.find( key );
+        
+        if( finder != settings_bln.end() )
+        {
+            val = finder -> second.first;
+            return true;
+        }
+        else
+            return false;
+    }
+    
+    // void coerceSetting( std::string key, double& val )
+    // {
+    //     scoped_lock< mutex > slock( settings_mutex );
+        
+        
+    // }
+    // void coerceSetting( std::string key, std::string& val )
+    // {
+    //     scoped_lock< mutex > slock( settings_mutex );
+        
+        
+    // }
+    // void coerceSetting( std::string key, bool& val )
+    // {
+    //     scoped_lock< mutex > slock( settings_mutex );
+        
+    //     auto finder_bln = settings_bln.find( key );
+        
+    //     if( finder_bln != settings_bln.end() )
+    //         val = finder_bln -> second.first;
+    //     else
+    //     {
+    //         auto finder_num = settings_num.find( key );
+            
+    //         if( finder_num != settings_num.end() )
+    //             val = finder_num -> second.first == 0.0;
+    //         else
+    //         {
+    //             auto finder_str = settings_str.find( key );
+                
+    //             if( finder_str != settings_str.end() )
+    //                 ///;
+    //             else
+                    
+    //         }
+    //     }
+    // }
 }
 
 /* jb_luaapi.hpp **************************************************************//******************************************************************************/
@@ -542,21 +623,23 @@ namespace jade
                 
                 const char* key_str = lua_tostring( state, 1 );
                 
-                scoped_lock< mutex > slock( settings_mutex );
+                double      val_num;
+                std::string val_str;
+                bool        val_bln;
                 
-                if( settings_num.count( key_str ) )                             // Return number value
+                if( getSetting( key_str, val_num ) )
                 {
-                    lua_pushnumber( state, settings_num[ key_str ].first );
+                    lua_pushnumber( state, val_num );
                     return 1;
                 }
-                if( settings_str.count( key_str ) )                             // Return string value
+                if( getSetting( key_str, val_str ) )
                 {
-                    lua_pushstring( state, settings_str[ key_str ].first.c_str() );
+                    lua_pushstring( state, val_str.c_str() );
                     return 1;
                 }
-                if( settings_bln.count( key_str ) )                             // Return boolean value
+                if( getSetting( key_str, val_bln ) )
                 {
-                    lua_pushboolean( state, settings_bln[ key_str ].first );
+                    lua_pushboolean( state, val_bln );
                     return 1;
                 }
                 

@@ -70,6 +70,19 @@ namespace jade
     double      getSetting_num( std::string key );                              // Retrieve setting as a double
     std::string getSetting_str( std::string key );                              // Retrieve setting as a string
     bool        getSetting_bln( std::string key );                              // Retrieve setting as a boolean
+    
+    // The following functions return true if a setting with that key & type
+    // exists, and place the value in the supplied reference.  If they key does
+    // not point to a setting of that type, they return false and the reference
+    // is not used.
+    bool getSetting( std::string, double&      );                               // Retrieve a double setting
+    bool getSetting( std::string, std::string& );                               // Retrieve a string setting
+    bool getSetting( std::string, bool&        );                               // Retrieve a boolean setting
+    // The following functions attempt type coercion, and so always place some
+    // value in the supplied reference.
+    void coerceSetting( std::string, double&      );                            // Retrieve setting as a double
+    void coerceSetting( std::string, std::string& );                            // Retrieve setting as a string
+    void coerceSetting( std::string, bool&        );                            // Retrieve setting as a boolean
 }
 
 /******************************************************************************//******************************************************************************/

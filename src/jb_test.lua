@@ -2,6 +2,13 @@
 
 jade.gui.new_group( 0, 0, 256, 256 )
 
+window_counter = 1
+function window_name()
+    name = jade.utility.get_setting( "jb_test_WindowName" ) .. " #" .. window_counter
+    window_counter = window_counter + 1
+    return name
+end
+
 function gen_tabset()
     -- Group A (Buttons)
     
@@ -12,7 +19,12 @@ function gen_tabset()
     t:baseline( false )
     b:set_contents( t, jade.gui.CENTER_CENTER )
     
-    b:set_toggle_on_callback( jade.utility.new_callback( function () jade.windowsys.new_window() end ) )
+    b:set_toggle_on_callback( jade.utility.new_callback(
+        function ()
+            new_test_window = jade.windowsys.new_window()
+            new_test_window:set_title( window_name() )
+        end
+    ) )
     b:set_toggle_off_callback( jade.utility.new_callback( function () collectgarbage() end ) )
     
     group_a:add_element( b )
@@ -55,10 +67,12 @@ function gen_tabset()
     return test_tabset
 end
 
-name, major, minor, patch = jade.utility.get_program_version()
-
 test_window = jade.windowsys.new_window()
-test_window:set_title( name .. " " .. major .. "." .. minor .. "." .. patch .. " (Lua)" )
+
+-- name, major, minor, patch = jade.utility.get_program_version()
+-- test_window:set_title( name .. " " .. major .. "." .. minor .. "." .. patch .. " (Lua)" )
+
+test_window:set_title( window_name() )
 
 -- Add to window
 
