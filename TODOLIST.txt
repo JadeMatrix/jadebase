@@ -33,25 +33,12 @@ Start using 'enum class' and tags at enum uses
 
 --------------------------------------------------------------------------------
 
-Move event position & modifiers from union types to window_event super struct
-
-Even if a given event doesn't need these, it prevents the wrong union member
-from being updated as well as reduces the number of superfluous switch()
-statements just to update a pair of values.  It also does not increase the size
-of window_event as these members are already included in some union types.
-
---------------------------------------------------------------------------------
-
 Deprecate gui_element::getVisual***() in favor of more functionally explicit
 methods
 
 --------------------------------------------------------------------------------
 
-Replace the various jade::getSetting_*() functions with something like:
-    bool getSetting( std::string key, &type value )
-so that they don't have to throw an exception when the key doesn't exist or
-isn't matched to that type.  Instead, they just return true/false (found/not).
-Also consider type coercion for settings.
+Start using the new jade::getSetting() where appropriate
 
 --------------------------------------------------------------------------------
 
