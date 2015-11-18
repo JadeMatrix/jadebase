@@ -63,6 +63,7 @@ namespace jade
                        "  - ", LUA_VERSION, " [ http://lua.org ]\n",
                        "  - Pango ", pango_version_string(), " [ http://pango.org/ ]\n" );
             
+            // TODO: Remove this
             submitTask( new HandleEvents_task() );
             
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,6 +128,8 @@ void jb_registerLaunchArgs()
 
 int jb_main()
 {
+    // TODO: Move most of this to main()
+    
     int exit_code = EXIT_FINE;
     
     try

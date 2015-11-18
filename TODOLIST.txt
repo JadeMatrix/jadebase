@@ -1,3 +1,35 @@
+Events:
+ - pausing event loop using XNextEvent()
+    - ClientMessage XEvent with Atom "jade::stopEventLoop"
+    - when event loop gets this, it exits immediately
+ - startEventSystem() and stopEventSystem()
+    - startEventSystem() starts event loop
+    - stopEventSystem() sends the ClientMessage
+ - jade::windows should get closed callbacks through their windowviews
+
+Quit chain:
+ - quit requested
+ - quit request callback called
+    - may call jade::cancelQuit() to cancel a quit
+ - if not cancelled, stopEventSystem()
+    - calls closeInputDevices()
+ - quit cleanup callback
+    - this allows windows to be closed in an arbitrary manner before quitting
+    - no interruption from events so as to prevent cleanup process breaking, like in Chrome
+ - closeAllWindows()
+    - may all already be closed
+ - deInitNamedResources()
+ - stopTaskSystem()
+    - closes task queue
+    - sets stop flag for workers
+    - does NOT wait for workers
+ - deInitTaskSystem()
+    - called in main thread
+    - waits for non-main workers
+    - cleans up memory
+
+--------------------------------------------------------------------------------
+
 Remove minimum window dimensions and programmatically derive them from the
 windowview's contained element constraints
 

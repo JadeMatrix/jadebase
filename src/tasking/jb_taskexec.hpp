@@ -32,6 +32,7 @@ namespace jade
     
     void deInitTaskSystem();                                                    // Must only be called AFTER stopTaskSystem(), which allows self-stopping
     
+    // TODO: Remove
     class StopTaskSystem_task : public task
     {
     public:

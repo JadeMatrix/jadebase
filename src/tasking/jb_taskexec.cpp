@@ -229,6 +229,7 @@ namespace jade
     {
         global_task_queue -> close();                                           // Task queue will now pop NULLs
         
+        // TODO: Move to deInitTaskSystem()
         for( int i = 0; i < spawned_task_thread_count; ++i )
         {
             exit_code ec = task_threads[i].wait();
