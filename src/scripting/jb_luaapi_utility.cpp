@@ -68,7 +68,7 @@ namespace jade
                 {
                     if( getDevMode() )
                         ff::write( jb_out, "Quit requested from Lua script\n" );
-                    jb_setQuitFlag();
+                    requestQuit();
                 }
                 
                 return 0;

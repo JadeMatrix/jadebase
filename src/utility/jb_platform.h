@@ -111,6 +111,7 @@ extern "C"
     
     #include <X11/X.h>
     #include <GL/glxew.h>
+    #include <X11/extensions/XIproto.h>
     #include <X11/extensions/XInput.h>
     #ifdef USE_DMX
     #include <X11/extensions/dmxext.h>
@@ -136,13 +137,6 @@ extern "C"
     typedef unsigned int jb_platform_keycode_t;                                 // XLib's keycode type
     
     #endif
-    
-// General / Other /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    // TODO: Move to a different header?
-    
-    void jb_setQuitFlag();
-    int jb_getQuitFlag();                                                       // 'bool'
 
 #ifdef __cplusplus
 }

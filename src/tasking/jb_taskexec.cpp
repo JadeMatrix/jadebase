@@ -26,6 +26,7 @@
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_launchargs.hpp"
 #include "../utility/jb_log.hpp"
+#include "../utility/jb_quitting.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -131,7 +132,7 @@ namespace
             {
                 ff::write( jb_out, "jadebase exception from task thread: ", e.what(), "\n" );
                 
-                jb_setQuitFlag();
+                jade::requestQuit();
                 
                 code = jade::EXITCODE_JBERR;
             }
@@ -139,7 +140,7 @@ namespace
             {
                 ff::write( jb_out, "Exception from task thread: ", e.what(), "\n" );
                 
-                jb_setQuitFlag();
+                jade::requestQuit();
                 
                 code = jade::EXITCODE_STDERR;
             }

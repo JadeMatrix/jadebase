@@ -86,14 +86,18 @@ namespace jade
     
     exit_code thread::wait()
     {
-        exit_code return_value;
+        exit_code return_value = EXITCODE_FINE;
         
-        int err;
-        
-        if( ( err = pthread_join( platform_thread.pt_thread, &return_value ) ) )
-            throw exception( "thread::wait(): Failed to join thread: " + errc2str( err ) );
-        
-        has_thread = false;
+        if( has_thread )
+        {
+            int err;
+            
+            if( ( err = pthread_join( platform_thread.pt_thread, &return_value ) ) )
+                throw exception( "thread::wait(): Failed to join thread: "
+                                 + errc2str( err ) );
+            
+            has_thread = false;
+        }
         
         return return_value;
     }

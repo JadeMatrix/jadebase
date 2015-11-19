@@ -64,7 +64,7 @@ namespace jade
                        "  - Pango ", pango_version_string(), " [ http://pango.org/ ]\n" );
             
             // TODO: Remove this
-            submitTask( new HandleEvents_task() );
+            startEventSystem();
             
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
                 

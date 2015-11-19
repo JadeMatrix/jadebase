@@ -16,6 +16,7 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "jb_events.hpp"
+#include "../utility/jb_quitting.hpp"
 
 #include <cmath>
 #include <map>
@@ -28,6 +29,7 @@
 #include "../gui/jb_named_resources.hpp"
 #include "../tasking/jb_taskexec.hpp"
 #include "../threading/jb_mutex.hpp"
+#include "../threading/jb_thread.hpp"
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_launchargs.hpp"
 #include "../utility/jb_log.hpp"
@@ -50,14 +52,119 @@ namespace
     
     #endif
     
-    // X QUIT HANDLING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // GENERAL EVENT GLOBALS  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    #ifdef PLATFORM_XWS_GNUPOSIX
+    jade::thread event_loop;
+    
+    #if defined PLATFORM_XWS_GNUPOSIX
+    Atom wakeup_atom;
+    #endif
+    
+    // QUIT HANDLING ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     jade::mutex quit_mutex;
     bool quit_flag = false;
+    bool quit_callback_pending = false;
+    bool cleanup_flag = false;
+    std::shared_ptr< jade::callback > quit_callback;
+    std::shared_ptr< jade::callback > cleanup_callback;
     
-    #endif
+    class QuitRequestCallback_task : public jade::task
+    {
+    private:
+        #ifdef PLATFORM_XWS_GNUPOSIX
+        
+        void sendWakeupEvent()
+        {
+            Display* x_display = getXDisplay();
+            XEvent x_event;
+            
+            x_event.type = ClientMessage;
+            x_event.xclient.message_type = wakeup_atom;
+            
+            Status error = XSendEvent( x_display,
+                                       // DefaultRootWindow( x_display ),
+                                       jade::getAnyWindow().getPlatformWindow().x_window,
+                                       0x00,
+                                       0x00,
+                                       &x_event );
+            
+            if( error )
+            {
+                jade::exception e;
+                
+                switch( error )
+                {
+                case BadValue:
+                    ff::write( *e,
+                               "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue" );
+                    break;
+                case BadWindow:
+                    ff::write( *e,
+                               "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow" );
+                    break;
+                default:
+                    ff::write( *e,
+                               "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown error" );
+                    break;
+                }
+                
+                throw e;
+            }
+        }
+        
+        #endif
+    public:
+        QuitRequestCallback_task()
+        {
+            jade::scoped_lock< jade::mutex > slock( quit_mutex );               // Not strictly neccessary as this task is only created on a single thread
+            quit_callback_pending = true;
+        }
+        bool execute( jade::task_mask* )
+        {
+            quit_mutex.lock();
+            
+            if( quit_callback )
+                quit_callback -> call();
+            
+            quit_mutex.unlock();                                                // Allow any other threads possibly trying to cancel quitting to do so
+            quit_mutex.lock();
+            
+            if( quit_flag )
+            {
+                cleanup_flag = true;
+                quit_callback_pending = false;
+                
+                quit_mutex.unlock();
+                
+                // jade::stopEventSystem();
+                
+                jade::closeInputDevices();
+                
+                sendWakeupEvent();
+                
+                jade::exit_code elc = event_loop.wait();
+                
+                if( elc != jade::EXITCODE_FINE )
+                    ff::write( jb_out,
+                               "Warning: Event loop exited with code ",
+                               jade::exc2str( elc ),
+                               "\n" );
+            }
+            else
+            {
+                quit_callback_pending = false;
+                quit_mutex.unlock();
+                ff::write( jb_out, "Quit interrupted\n" );
+            }
+            
+            return true;
+        }
+        jade::task_mask getMask()
+        {
+            return jade::TASK_ALL;
+        }
+    };
     
     // EVENT HANDLERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -230,76 +337,78 @@ namespace
     }
     
     #endif
-}
-
-/******************************************************************************//******************************************************************************/
-
-#if defined PLATFORM_XWS_GNUPOSIX
-
-void jb_setQuitFlag()
-{
-    jade::scoped_lock< jade::mutex > slock( quit_mutex );
-    quit_flag = true;
-}
-int jb_getQuitFlag()
-{
-    jade::scoped_lock< jade::mutex > slock( quit_mutex );
-    return ( int )quit_flag;
-}
-
-namespace jade
-{
-    bool HandleEvents_task::execute( task_mask* caller_mask )
+    
+    // EVENT LOOP FUNCTION /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    #if defined PLATFORM_XWS_GNUPOSIX
+    
+    int x_event_queue_size = 0;
+    
+    jade::exit_code eventLoop( void* data )
     {
-        if( jb_getQuitFlag() )
+        try
         {
-            ff::write( jb_out, "Quitting...\n" );
+            // TODO: Rework for DevicePresenceNotify
+            jade::refreshInputDevices();                                                  // Set up input devices right off the bat
             
-            #warning Quitting does not check open documents
-            if( false /* !closeAllDocuments() */ )
-            {
-                scoped_lock< mutex > slock( quit_mutex );
-                quit_flag = false;
-                
-                ff::write( jb_out, "Quit interrupted\n" );
-            }
-            else
-            {
-                closeInputDevices();
-                closeAllWindows();
-                
-                deInitNamedResources();
-                
-                submitTask( new StopTaskSystem_task() );
-            }
-        }
-        else
-        {
             XEvent x_event;
             Display* x_display = getXDisplay();
             
-            refreshInputDevices();
-            
-            XEvent last_x_dmevent;                                              // For storing DeviceMotion events until we can fill out their window field
-                                                                                // Ideally we'd have a map of device ids -> XEvents in case we have multiple
-                                                                                // devices' worth of events waiting for windows, but MotionEvents don't include
-                                                                                // device information, so we just have to trust that X gives us events grouped
-                                                                                // together (DeviceMotion event will be followed by its MotionEvent before any
-                                                                                // other DeviceMotion events).
+            XEvent last_x_dmevent;                                                  // For storing DeviceMotion events until we can fill out their window field
+                                                                                    // Ideally we'd have a map of device ids -> XEvents in case we have multiple
+                                                                                    // devices' worth of events waiting for windows, but MotionEvents don't include
+                                                                                    // device information, so we just have to trust that X gives us events grouped
+                                                                                    // together (DeviceMotion event will be followed by its MotionEvent before any
+                                                                                    // other DeviceMotion events).
             bool dmevent_waiting = false;
             
-            for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )
-                 queue_size > 0;
-                 --queue_size )                                                 // Yay we can guarantee termination
+            int dpne_type;
+            XEventClass dpne_class;
+            DevicePresence( x_display, dpne_type, dpne_class );
+            
+            while( true )
             {
-                XNextEvent( x_display, &x_event );
+                XNextEvent( x_display, &x_event );                                  // Blocks
                 
+                // TODO: Rework for DevicePresenceNotify
+                jade::refreshInputDevices();
                 
+                {
+                    jade::scoped_lock< jade::mutex > slock( quit_mutex );
+                    
+                    if( quit_flag )
+                    {
+                        if( cleanup_flag )
+                        {
+                            ff::write( jb_out, "Cleaning up...\n" );
+                            
+                            if( cleanup_callback )
+                                cleanup_callback -> call();
+                            
+                            jade::closeAllWindows();
+                            
+                            jade::deInitNamedResources();
+                            
+                            return EXIT_FINE;
+                        }
+                        else
+                            if( !quit_callback_pending )
+                            {
+                                ff::write( jb_out, "Quitting...\n" );
+                                
+                                jade::submitTask( new QuitRequestCallback_task() );
+                            }
+                            
+                    }
+                }
+                
+                if( x_event_queue_size == 0 )
+                    x_event_queue_size = XEventsQueued( x_display, QueuedAfterFlush );  // AKA XPending( x_display )
                 
                 switch( x_event.type )
                 {
                 case KeyRelease:
-                    if( XEventsQueued( x_display, QueuedAfterReading ) )        // Skip key repeats
+                    if( XEventsQueued( x_display, QueuedAfterReading ) )            // Skip key repeats
                     {
                         XEvent x_nextevent;
                         XPeekEvent( x_display, &x_nextevent );
@@ -308,10 +417,10 @@ namespace jade
                             && x_nextevent.xkey.time == x_event.xkey.time
                             && x_nextevent.xkey.keycode == x_event.xkey.keycode )   // Key repeat
                         {
-                            XNextEvent( x_display, &x_event );                  // Get the repeated key press
-                            XNextEvent( x_display, &x_event );                  // Get the event after the repeat
+                            XNextEvent( x_display, &x_event );                      // Get the repeated key press
+                            XNextEvent( x_display, &x_event );                      // Get the event after the repeat
                         }
-                    }                                                           // Fall through
+                    }                                                               // Fall through
                 case KeyPress:
                     handleKeyEvent( x_event );
                     break;
@@ -320,11 +429,16 @@ namespace jade
                 case ConfigureNotify:
                 case MapNotify:
                 case MapRequest:
-                case ClientMessage:
                 case VisibilityNotify:
                 case FocusIn:
                 case FocusOut:
                     handleWindowEvent( x_event );
+                    break;
+                case ClientMessage:
+                    // TODO: Handle/ignore Atom "jade::eventLoopWakeup"
+                    if( x_event.xclient.message_type == wakeup_atom )
+                        ff::write( jb_out,
+                                   ">>> Got ClientMessage with wakeup atom\n" );
                     break;
                 case DestroyNotify:
                 case CreateNotify:
@@ -342,7 +456,7 @@ namespace jade
                 case SelectionNotify:
                 case ColormapNotify:
                 case PropertyNotify:
-                    break;                                                      // Ignore, for now
+                    break;                                                          // Ignore, for now
                 case MotionNotify:
                     if( dmevent_waiting )
                     {
@@ -350,9 +464,9 @@ namespace jade
                         
                         if( x_dmevent.time == x_event.xmotion.time )
                         {
-                            x_dmevent.window = x_event.xmotion.window;          // Copy over window
+                            x_dmevent.window = x_event.xmotion.window;              // Copy over window
                             
-                            handleStrokeEvent( last_x_dmevent );
+                            jade::handleStrokeEvent( last_x_dmevent );
                             
                             dmevent_waiting = false;
                         }
@@ -366,32 +480,121 @@ namespace jade
                         
                         if( x_dmevent.time == x_event.xbutton.time )
                         {
-                            x_dmevent.window = x_event.xmotion.window;          // Copy over window
+                            x_dmevent.window = x_event.xmotion.window;              // Copy over window
                             
-                            handleStrokeEvent( last_x_dmevent );
+                            jade::handleStrokeEvent( last_x_dmevent );
                             
                             dmevent_waiting = false;
                         }
                     }
                     break;
                 default:
-                    last_x_dmevent = x_event;                                   // Save event so we can fill out the window field later
+                    if( x_event.type == dpne_type )
+                        // DEBUG:
+                        ff::write( jb_out, ">>> Got XI_DevicePresenceNotify (holy shit!)\n" );
+                    
+                    last_x_dmevent = x_event;                                       // Save event so we can fill out the window field later
                     dmevent_waiting = true;
                     break;
                 }
+                
+                --x_event_queue_size;
+                
+                if( x_event_queue_size == 0 )
+                {
+                    for( auto iter = window_manipulates.begin();
+                         iter != window_manipulates.end();
+                         ++iter )
+                    {
+                        submitTask( iter -> second );
+                    }
+                    window_manipulates.clear();
+                }
             }
-            
-            for( std::map< Window, jade::window::manipulate* >::iterator iter = window_manipulates.begin();
-                 iter != window_manipulates.end();
-                 ++iter )
-            {
-                submitTask( iter -> second );
-            }
-            window_manipulates.clear();
         }
-        
-        return false;                                                           // Requeue instead of submitting a new copy
+        catch( jade::exception& e )
+        {
+            ff::write( jb_out, "jadebase exception from event loop: ", e.what(), "\n" );
+            
+            return jade::EXITCODE_JBERR;
+        }
+        catch( std::exception& e )
+        {
+            ff::write( jb_out, "Exception from event loop: ", e.what(), "\n" );
+            
+            return jade::EXITCODE_STDERR;
+        }
     }
+    
+    #endif
+}
+
+/******************************************************************************//******************************************************************************/
+
+#if defined PLATFORM_XWS_GNUPOSIX
+
+namespace jade
+{
+    void requestQuit()
+    {
+        jade::scoped_lock< jade::mutex > slock( quit_mutex );
+        quit_flag = true;
+        
+        #if 0
+        // Possible semi-blocking implementation
+        if( !quit_flag )
+        {
+            jade::scoped_lock< jade::mutex > slock( quit_mutex );
+            quit_flag = true;
+        }
+        #endif
+    }
+    void cancelQuit()
+    {
+        jade::scoped_lock< jade::mutex > slock( quit_mutex );
+        if( !cleanup_flag )
+            quit_flag = false;
+    }
+    bool isQuitting()
+    {
+        jade::scoped_lock< jade::mutex > slock( quit_mutex );
+        return quit_flag;
+    }
+    bool isCleaningUp()
+    {
+        jade::scoped_lock< jade::mutex > slock( quit_mutex );
+        return cleanup_flag;
+    }
+    
+    void setQuitRequestCallback( const std::shared_ptr< callback >& c )
+    {
+        jade::scoped_lock< jade::mutex > slock( quit_mutex );
+        quit_callback = c;
+    }
+    void setQuitCleanupCallback( const std::shared_ptr< callback >& c )
+    {
+        jade::scoped_lock< jade::mutex > slock( quit_mutex );
+        cleanup_callback = c;
+    }
+    
+    void startEventSystem()
+    {
+        #if defined PLATFORM_XWS_GNUPOSIX
+        wakeup_atom = XInternAtom( getXDisplay(),
+                                   "jade::eventLoopWakeup",
+                                   0x00 );
+        #endif
+        
+        event_loop.start( eventLoop );
+    }
+    // void stopEventSystem()
+    // {
+    //     closeInputDevices();
+        
+    //     // send wakeup
+        
+    //     // wait on thread
+    // }
 }
 
 #else

@@ -32,6 +32,7 @@
 #include "../utility/jb_launchargs.hpp"
 #include "../utility/jb_log.hpp"
 #include "../utility/jb_settings.hpp"
+#include "../utility/jb_quitting.hpp"
 
 /******************************************************************************//******************************************************************************/
 
@@ -168,7 +169,7 @@ namespace jade
 ////////// DEVEL: //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
         {
-            jb_setQuitFlag();
+            requestQuit();
             return;
         }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -548,7 +549,7 @@ namespace jade
                 if( getDevMode() )
                     ff::write( jb_out, "All windows closed, quitting\n" );
                 
-                jb_setQuitFlag();
+                requestQuit();
             }
         }
         else

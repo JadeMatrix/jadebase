@@ -55,6 +55,7 @@
 #include "utility/jb_timestamp.hpp"
 #include "utility/jb_exception.hpp"
 // #include "utility/jb_trackable.hpp"
+#include "utility/jb_quitting.hpp"
 #include "utility/jb_version.hpp"
 
 #include "windowsys/jb_events.hpp"

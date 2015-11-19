@@ -1,7 +1,6 @@
 Events:
  - pausing event loop using XNextEvent()
-    - ClientMessage XEvent with Atom "jade::stopEventLoop"
-    - when event loop gets this, it exits immediately
+    - ClientMessage XEvent with Atom "jade::eventLoopWakeup"
  - startEventSystem() and stopEventSystem()
     - startEventSystem() starts event loop
     - stopEventSystem() sends the ClientMessage
