@@ -452,6 +452,7 @@ namespace jade
         
         prev_strokes.clear();
         event_type_map.clear();
+        x_input_devices.clear();
     }
     void refreshInputDevices()
     {

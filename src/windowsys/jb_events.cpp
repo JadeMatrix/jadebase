@@ -55,6 +55,7 @@ namespace
     // GENERAL EVENT GLOBALS  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     jade::thread event_loop;
+    jade::mutex event_loop_kill_mutex;
     
     #if defined PLATFORM_XWS_GNUPOSIX
     Atom wakeup_atom;
@@ -81,47 +82,75 @@ namespace
             
             x_event.type = ClientMessage;
             x_event.xclient.message_type = wakeup_atom;
+            x_event.xclient.format = 8;
+            
+            Window x_window = jade::getAnyWindow().getPlatformWindow().x_window;
+            
+            ff::write( jb_out,
+                       ">>>\tXSendEvent(\t0x",
+                       ff::to_X( ( unsigned long )x_display ),
+                       ",\n\t\t\t0x",
+                       ff::to_X( ( unsigned long )x_window ),
+                       ",\n\t\t\t0x00,\n\t\t\t0x00,\n\t\t\t0x",
+                       ff::to_X( ( unsigned long )&x_event ),
+                       " );\n" );
+            ff::write( jb_out,
+                       ">>> wakeup_atom = 0x",
+                       ff::to_X( wakeup_atom ),
+                       "\n" );
             
             Status error = XSendEvent( x_display,
                                        // DefaultRootWindow( x_display ),
-                                       jade::getAnyWindow().getPlatformWindow().x_window,
+                                       x_window,
                                        0x00,
                                        0x00,
                                        &x_event );
             
-            if( error )
-            {
-                jade::exception e;
+            // // if( error )
+            // {
+            //     // jade::exception e;
                 
-                switch( error )
-                {
-                case BadValue:
-                    ff::write( *e,
-                               "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue" );
-                    break;
-                case BadWindow:
-                    ff::write( *e,
-                               "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow" );
-                    break;
-                default:
-                    ff::write( *e,
-                               "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown error" );
-                    break;
-                }
+            //     switch( error )
+            //     {
+            //     case BadValue:
+            //         // ff::write( *e,
+            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue" );
+            //         throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue\n" );
+            //         break;
+            //     case BadWindow:
+            //         // ff::write( *e,
+            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow" );
+            //         throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow\n" );
+            //         break;
+            //     default:
+            //         // ff::write( *e,
+            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown error" );
+            //         ff::write( jb_out,
+            //                    "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown Status ",
+            //                    ff::to_X( error ),
+            //                    "\n" );
+            //         break;
+            //     }
                 
-                throw e;
-            }
+            //     // throw e;
+            // }
         }
         
         #endif
     public:
         QuitRequestCallback_task()
         {
+            // DEBUG:
+            ff::write( jb_out, ">>> QuitRequestCallback_task()\n" );
+            
             jade::scoped_lock< jade::mutex > slock( quit_mutex );               // Not strictly neccessary as this task is only created on a single thread
             quit_callback_pending = true;
         }
         bool execute( jade::task_mask* )
         {
+            // DEBUG:
+            ff::write( jb_out, ">>> QuitRequestCallback_task::execute()\n" );
+            
             quit_mutex.lock();
             
             if( quit_callback )
@@ -141,9 +170,26 @@ namespace
                 
                 jade::closeInputDevices();
                 
+                // LOLNOPE:
                 sendWakeupEvent();
-                
                 jade::exit_code elc = event_loop.wait();
+                // // HELLYES:
+                // jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
+                // event_loop.kill();
+                // ff::write( jb_out, "Event loop killed\n" );
+                
+                {
+                    ff::write( jb_out, "Cleaning up...\n" );
+                    
+                    if( cleanup_callback )
+                        cleanup_callback -> call();
+                    
+                    jade::closeAllWindows();
+                    
+                    jade::deInitNamedResources();
+                    
+                    jade::stopTaskSystem();
+                }
                 
                 if( elc != jade::EXITCODE_FINE )
                     ff::write( jb_out,
@@ -162,7 +208,7 @@ namespace
         }
         jade::task_mask getMask()
         {
-            return jade::TASK_ALL;
+            return jade::TASK_SYSTEM;
         }
     };
     
@@ -371,11 +417,17 @@ namespace
             ff::write( jb_out, ">>> Hello\n" );
             
             while( true )
+            // while( !jade::isQuitting() )
             {
                 XNextEvent( x_display, &x_event );                                  // Blocks
                 
+                jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
+                
+                // DEBUG:
+                // ff::write( jb_out, ">>> event~!\n" );
+                
                 // TODO: Rework for DevicePresenceNotify
-                // jade::refreshInputDevices();
+                jade::refreshInputDevices();
                 
                 {
                     jade::scoped_lock< jade::mutex > slock( quit_mutex );
@@ -384,14 +436,19 @@ namespace
                     {
                         if( cleanup_flag )
                         {
-                            ff::write( jb_out, "Cleaning up...\n" );
+                        //     ff::write( jb_out, "Cleaning up...\n" );
                             
-                            if( cleanup_callback )
-                                cleanup_callback -> call();
+                        //     if( cleanup_callback )
+                        //         cleanup_callback -> call();
                             
-                            jade::closeAllWindows();
+                        //     jade::closeAllWindows();
                             
-                            jade::deInitNamedResources();
+                        //     jade::deInitNamedResources();
+                            
+                        //     jade::stopTaskSystem();
+                            
+                        //     // DEBUG:
+                        //     ff::write( jb_out, ">>> exiting event loop\n" );
                             
                             return EXIT_FINE;
                         }
@@ -406,8 +463,8 @@ namespace
                     }
                 }
                 
-                if( x_event_queue_size == 0 )
-                    x_event_queue_size = XEventsQueued( x_display, QueuedAfterFlush );  // AKA XPending( x_display )
+                // if( x_event_queue_size == 0 )
+                //     x_event_queue_size = XEventsQueued( x_display, QueuedAfterFlush );  // AKA XPending( x_display )
                 
                 switch( x_event.type )
                 {
@@ -436,6 +493,7 @@ namespace
                 case VisibilityNotify:
                 case FocusIn:
                 case FocusOut:
+                    ff::write( jb_out, ">>> handleWindowEvent()\n" );
                     handleWindowEvent( x_event );
                     break;
                 case ClientMessage:
@@ -504,7 +562,7 @@ namespace
                 
                 --x_event_queue_size;
                 
-                if( x_event_queue_size == 0 )
+                // if( x_event_queue_size == 0 )
                 {
                     for( auto iter = window_manipulates.begin();
                          iter != window_manipulates.end();
@@ -515,6 +573,9 @@ namespace
                     window_manipulates.clear();
                 }
             }
+            
+            // DEBUG:
+            ff::write( jb_out, "Leaving event loop...\n" );
         }
         catch( jade::exception& e )
         {
@@ -528,6 +589,11 @@ namespace
             
             return jade::EXITCODE_STDERR;
         }
+        
+        // DEBUG:
+        ff::write( jb_out, "Exiting event loop\n" );
+        
+        return jade::EXITCODE_FINE;
     }
     
     #endif
@@ -591,14 +657,19 @@ namespace jade
         
         event_loop.start( eventLoop );
     }
-    // void stopEventSystem()
-    // {
-    //     closeInputDevices();
+    void stopEventSystem()
+    {
+        // closeInputDevices();
         
-    //     // send wakeup
+        // // send wakeup
         
-    //     // wait on thread
-    // }
+        // // wait on thread
+        
+        // // HELLYES:
+        // jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
+        // event_loop.kill();
+        // ff::write( jb_out, "Event loop killed\n" );
+    }
 }
 
 #else

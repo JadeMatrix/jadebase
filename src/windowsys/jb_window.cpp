@@ -456,12 +456,18 @@ namespace jade
         
         if( platform_window.good )
         {
+            // DEBUG:
+            ff::write( jb_out, "Destroying X window...\n" );
+            
             Display* x_display = getXDisplay();
             
             glXMakeCurrent( x_display, None, NULL );
             glXDestroyContext( x_display, platform_window.glx_context );
             XDestroyWindow( x_display, platform_window.x_window );
             XFree( platform_window.x_visual_info );
+            
+            // DEBUG:
+            ff::write( jb_out, "X window destroyed\n" );
             
             platform_window.good = false;
         }
@@ -545,6 +551,9 @@ namespace jade
             delete target;                                                      // Delete window AFTER calling requestQuit() so we can send the wakeup event
                                                                                 // FIXME: This is still a potential race condition, as there's no guarantee that
                                                                                 // the event loop receives the wakeup event before delete is called.
+            
+            // DEBUG:
+            ff::write( jb_out, "Deleted window at 0x", ff::to_X( ( unsigned long )target ), "\n" );
         }
         else
         {

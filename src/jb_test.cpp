@@ -145,6 +145,7 @@ int jb_main()
             jade::becomeTaskThread( &main_mask );
             
             jade::deInitTaskSystem();
+            jade::stopEventSystem();
             
             std::string user_settings_file( jade::getUserSettingsFileName() );
             if( user_settings_file != "" )

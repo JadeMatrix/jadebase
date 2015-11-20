@@ -55,6 +55,8 @@ namespace jade
         exit_code wait();                                                       // Waits for the thread to finish execution and joins with it, returning the
                                                                                 // thread's return code.
         
+        void kill();
+        
     protected:
         jb_platform_thread_t platform_thread;
         bool has_thread;
@@ -62,8 +64,6 @@ namespace jade
         void* data;
         
         void createPlatformThread( thread_func, void* );
-        
-        void kill();
     };
 }
 

@@ -102,6 +102,17 @@ namespace jade
         return return_value;
     }
     
+    void thread::kill()
+    {
+        if( has_thread )
+        {
+            int err;
+            
+            if( ( err = pthread_cancel( platform_thread.pt_thread ) ) )
+                throw exception( "thread::kill(): Failed to cancel thread: " + errc2str( err ) );
+        }
+    }
+    
     void thread::createPlatformThread( thread_func function, void* data )
     {
         if( has_thread )
@@ -126,17 +137,6 @@ namespace jade
         }
         else
             has_thread = true;
-    }
-    
-    void thread::kill()
-    {
-        if( has_thread )
-        {
-            int err;
-            
-            if( ( err = pthread_cancel( platform_thread.pt_thread ) ) )
-                throw exception( "thread::kill(): Failed to cancel thread: " + errc2str( err ) );
-        }
     }
     
     #else

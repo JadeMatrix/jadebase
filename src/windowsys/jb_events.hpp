@@ -21,7 +21,7 @@
 namespace jade
 {
     void startEventSystem();                                                    // Not thread-safe
-    // void stopEventSystem();
+    void stopEventSystem();
 }
 
 /******************************************************************************//******************************************************************************/

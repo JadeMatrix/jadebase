@@ -51,8 +51,17 @@ int main( int argc, char* argv[] )
         if( jb_parseLaunchArgs( argc, argv ) )
             return_code = jb_main();
         
+        // DEBUG:
+        ff::write( jb_out, "here...\n" );
+        
         XCloseDisplay( x_display );
+        
+        // DEBUG:
+        ff::write( jb_out, "and here...\n" );
     }
+    
+    // DEBUG:
+    ff::write( jb_out, "asdf\n" );
     
     return return_code;
 }

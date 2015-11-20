@@ -153,7 +153,7 @@ namespace jade
                 throw exception( "closeAllWindows(): Failed to close a window" );
         }
         
-        id_window_map.clear();                                                  // Just in case, but shouldn't be needed
+        // id_window_map.clear();                                                  // Just in case, but shouldn't be needed
     }
     
     void redrawAllWindows()

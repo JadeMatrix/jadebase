@@ -19,10 +19,15 @@ function gen_tabset()
     t:baseline( false )
     b:set_contents( t, jade.gui.CENTER_CENTER )
     
+    -- b:set_toggle_on_callback( jade.utility.new_callback(
+    --     function ()
+    --         new_test_window = jade.windowsys.new_window()
+    --         new_test_window:set_title( window_name() )
+    --     end
+    -- ) )
     b:set_toggle_on_callback( jade.utility.new_callback(
         function ()
-            new_test_window = jade.windowsys.new_window()
-            new_test_window:set_title( window_name() )
+            jade.utility.quit()
         end
     ) )
     b:set_toggle_off_callback( jade.utility.new_callback( function () collectgarbage() end ) )
