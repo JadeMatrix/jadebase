@@ -18,6 +18,9 @@
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_launchargs.hpp"
 #include "../utility/jb_log.hpp"
+#include "../utility/jb_settings.hpp"
+#include "../utility/jb_quitting.hpp"
+#include "../windowsys/jb_events.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
@@ -42,6 +45,9 @@ namespace jade
             throw exception( "registerWindow(): Window already registered" );
         else
             id_window_map[ window_id ] = &w;
+        
+        if( id_window_map.size() == 1 )
+            jade::startEventSystem();
         
         if( getDevMode() )
             ff::write( jb_out,
@@ -73,6 +79,19 @@ namespace jade
                         "), currently ",
                         id_window_map.size(),
                         " windows registered\n" );
+        
+        if( id_window_map.size() < 1 )
+        {
+            if( getSetting_bln( "jb_QuitOnNoWindows" ) )
+            {
+                if( getDevMode() )
+                    ff::write( jb_out, "All windows closed, quitting\n" );
+                
+                requestQuit();
+            }
+            // else
+            //     stopEventSystem();
+        }
     }
     
     bool isRegisteredWindow( jb_platform_window_t& w )

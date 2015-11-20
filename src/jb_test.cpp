@@ -63,9 +63,6 @@ namespace jade
                        "  - ", LUA_VERSION, " [ http://lua.org ]\n",
                        "  - Pango ", pango_version_string(), " [ http://pango.org/ ]\n" );
             
-            // TODO: Remove this
-            startEventSystem();
-            
             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
                 
                 // window* test_window = new window();

@@ -542,15 +542,9 @@ namespace jade
             
             deregisterWindow( *target );
             target -> window_mutex.unlock();
-            delete target;
-            
-            if( getSetting_bln( "jb_QuitOnNoWindows" ) && getRegisteredWindowCount() < 1 )
-            {
-                if( getDevMode() )
-                    ff::write( jb_out, "All windows closed, quitting\n" );
-                
-                requestQuit();
-            }
+            delete target;                                                      // Delete window AFTER calling requestQuit() so we can send the wakeup event
+                                                                                // FIXME: This is still a potential race condition, as there's no guarantee that
+                                                                                // the event loop receives the wakeup event before delete is called.
         }
         else
         {

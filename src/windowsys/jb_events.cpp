@@ -346,6 +346,7 @@ namespace
     
     jade::exit_code eventLoop( void* data )
     {
+        // return EXIT_FINE;
         try
         {
             // TODO: Rework for DevicePresenceNotify
@@ -366,12 +367,15 @@ namespace
             XEventClass dpne_class;
             DevicePresence( x_display, dpne_type, dpne_class );
             
+            // DEBUG:
+            ff::write( jb_out, ">>> Hello\n" );
+            
             while( true )
             {
                 XNextEvent( x_display, &x_event );                                  // Blocks
                 
                 // TODO: Rework for DevicePresenceNotify
-                jade::refreshInputDevices();
+                // jade::refreshInputDevices();
                 
                 {
                     jade::scoped_lock< jade::mutex > slock( quit_mutex );

@@ -401,7 +401,7 @@ ${OBJDIR}/jb_window.o: ${SOURCEDIR}/windowsys/jb_window.cpp ${JADEBASE_WINDOW_HP
 ${OBJDIR}/jb_windowevent.o: ${SOURCEDIR}/windowsys/jb_windowevent.cpp ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_LOG_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_windowevent.cpp -o ${OBJDIR}/jb_windowevent.o
-${OBJDIR}/jb_windowmanagement.o: ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP}
+${OBJDIR}/jb_windowmanagement.o: ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP} ${JADEBASE_QUITTING_HPP} ${JADEBASE_EVENTS_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp -o ${OBJDIR}/jb_windowmanagement.o
 
