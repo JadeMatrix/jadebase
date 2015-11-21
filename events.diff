@@ -1,0 +1,1059 @@
+diff --git a/Makefile b/Makefile
+index 9c7e272..92d8ea6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -128,6 +128,7 @@ JADEBASE_PLATFORM_H = src/utility/jb_platform.h
+ JADEBASE_SETTINGS_HPP = src/utility/jb_settings.hpp
+ JADEBASE_TIMESTAMP_HPP = src/utility/jb_timestamp.hpp
+ JADEBASE_TRACKABLE_HPP = src/utility/jb_trackable.hpp ${JADEBASE_TIMESTAMP_HPP}
++JADEBASE_QUITTING_HPP = src/utility/jb_quitting.hpp ${JADEBASE_CALLBACK_HPP}
+ JADEBASE_VERSION_HPP = src/utility/jb_version.hpp
+ 
+ JADEBASE_EVENTS_HPP = src/windowsys/jb_events.hpp ${JADEBASE_TASK_HPP} ${JADEBASE_LOG_HPP}
+@@ -181,6 +182,7 @@ JADEBASE_HPP =	${JADEBASE_PNG_HPP} \
+ 				${JADEBASE_SETTINGS_HPP} \
+ 				${JADEBASE_TIMESTAMP_HPP} \
+ 				${JADEBASE_EXCEPTION_HPP} \
++				${JADEBASE_QUITTING_HPP} \
+ 				${JADEBASE_VERSION_HPP} \
+ 				\
+ 				${JADEBASE_EVENTS_HPP} \
+@@ -338,7 +340,7 @@ ${OBJDIR}/jb_luaapi_windowsys.o: ${SOURCEDIR}/scripting/jb_luaapi_windowsys.cpp
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/scripting/jb_luaapi_windowsys.cpp -o ${OBJDIR}/jb_luaapi_windowsys.o
+ 
+-${OBJDIR}/jb_taskexec.o: ${SOURCEDIR}/tasking/jb_taskexec.cpp ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_PLATFORM_H} ${JADEBASE_TASKQUEUE_HPP} ${JADEBASE_CONDITION_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_THREAD_HPP} ${JADEBASE_THREADUTIL_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP}
++${OBJDIR}/jb_taskexec.o: ${SOURCEDIR}/tasking/jb_taskexec.cpp ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_PLATFORM_H} ${JADEBASE_TASKQUEUE_HPP} ${JADEBASE_CONDITION_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_THREAD_HPP} ${JADEBASE_THREADUTIL_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_QUITTING_HPP}
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/tasking/jb_taskexec.cpp -o ${OBJDIR}/jb_taskexec.o
+ ${OBJDIR}/jb_taskqueue.o: ${SOURCEDIR}/tasking/jb_taskqueue.cpp ${JADEBASE_TASKQUEUE_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP}
+@@ -387,19 +389,19 @@ ${OBJDIR}/jb_version.o: ${SOURCEDIR}/utility/jb_version.cpp ${JADEBASE_VERSION_H
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_version.cpp -o ${OBJDIR}/jb_version.o
+ 
+-${OBJDIR}/jb_events.o: ${SOURCEDIR}/windowsys/jb_events.cpp ${JADEBASE_EVENTS_HPP} ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOW_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_NAMED_RESOURCES} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
++${OBJDIR}/jb_events.o: ${SOURCEDIR}/windowsys/jb_events.cpp ${JADEBASE_EVENTS_HPP} ${JADEBASE_QUITTING_HPP} ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOW_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_NAMED_RESOURCES} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_events.cpp -o ${OBJDIR}/jb_events.o
+ ${OBJDIR}/jb_keycode.o: ${SOURCEDIR}/windowsys/jb_keycode.cpp ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_EXCEPTION_HPP}
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_keycode.cpp -o ${OBJDIR}/jb_keycode.o
+-${OBJDIR}/jb_window.o: ${SOURCEDIR}/windowsys/jb_window.cpp ${JADEBASE_WINDOW_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_NAMED_RESOURCES} ${JADEBASE_WINDOWVIEW_HPP} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_GL_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP}
++${OBJDIR}/jb_window.o: ${SOURCEDIR}/windowsys/jb_window.cpp ${JADEBASE_WINDOW_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_NAMED_RESOURCES} ${JADEBASE_WINDOWVIEW_HPP} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_GL_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP} ${JADEBASE_QUITTING_HPP}
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_window.cpp -o ${OBJDIR}/jb_window.o
+ ${OBJDIR}/jb_windowevent.o: ${SOURCEDIR}/windowsys/jb_windowevent.cpp ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_LOG_HPP}
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_windowevent.cpp -o ${OBJDIR}/jb_windowevent.o
+-${OBJDIR}/jb_windowmanagement.o: ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP}
++${OBJDIR}/jb_windowmanagement.o: ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP} ${JADEBASE_QUITTING_HPP} ${JADEBASE_EVENTS_HPP}
+ 	@mkdir -p ${OBJDIR}
+ 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_windowmanagement.cpp -o ${OBJDIR}/jb_windowmanagement.o
+ 
+diff --git a/TODOLIST.txt b/TODOLIST.txt
+index 6c4877d..8f73a22 100644
+--- a/TODOLIST.txt
++++ b/TODOLIST.txt
+@@ -1,7 +1,6 @@
+ Events:
+  - pausing event loop using XNextEvent()
+-    - ClientMessage XEvent with Atom "jade::stopEventLoop"
+-    - when event loop gets this, it exits immediately
++    - ClientMessage XEvent with Atom "jade::eventLoopWakeup"
+  - startEventSystem() and stopEventSystem()
+     - startEventSystem() starts event loop
+     - stopEventSystem() sends the ClientMessage
+diff --git a/src/jadebase.hpp b/src/jadebase.hpp
+index 4545553..5981eda 100644
+--- a/src/jadebase.hpp
++++ b/src/jadebase.hpp
+@@ -55,6 +55,7 @@
+ #include "utility/jb_timestamp.hpp"
+ #include "utility/jb_exception.hpp"
+ // #include "utility/jb_trackable.hpp"
++#include "utility/jb_quitting.hpp"
+ #include "utility/jb_version.hpp"
+ 
+ #include "windowsys/jb_events.hpp"
+diff --git a/src/jb_test.cpp b/src/jb_test.cpp
+index 7f27be0..dba9f5c 100644
+--- a/src/jb_test.cpp
++++ b/src/jb_test.cpp
+@@ -63,9 +63,6 @@ namespace jade
+                        "  - ", LUA_VERSION, " [ http://lua.org ]\n",
+                        "  - Pango ", pango_version_string(), " [ http://pango.org/ ]\n" );
+             
+-            // TODO: Remove this
+-            submitTask( new HandleEvents_task() );
+-            
+             { // Your program startup code goes here ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+                 
+                 // window* test_window = new window();
+@@ -148,6 +145,7 @@ int jb_main()
+             jade::becomeTaskThread( &main_mask );
+             
+             jade::deInitTaskSystem();
++            jade::stopEventSystem();
+             
+             std::string user_settings_file( jade::getUserSettingsFileName() );
+             if( user_settings_file != "" )
+diff --git a/src/jb_test.lua b/src/jb_test.lua
+index 33427d8..c2225af 100644
+--- a/src/jb_test.lua
++++ b/src/jb_test.lua
+@@ -19,10 +19,15 @@ function gen_tabset()
+     t:baseline( false )
+     b:set_contents( t, jade.gui.CENTER_CENTER )
+     
++    -- b:set_toggle_on_callback( jade.utility.new_callback(
++    --     function ()
++    --         new_test_window = jade.windowsys.new_window()
++    --         new_test_window:set_title( window_name() )
++    --     end
++    -- ) )
+     b:set_toggle_on_callback( jade.utility.new_callback(
+         function ()
+-            new_test_window = jade.windowsys.new_window()
+-            new_test_window:set_title( window_name() )
++            jade.utility.quit()
+         end
+     ) )
+     b:set_toggle_off_callback( jade.utility.new_callback( function () collectgarbage() end ) )
+diff --git a/src/main/x_main.cpp b/src/main/x_main.cpp
+index dc799cc..ab21f6c 100644
+--- a/src/main/x_main.cpp
++++ b/src/main/x_main.cpp
+@@ -51,9 +51,18 @@ int main( int argc, char* argv[] )
+         if( jb_parseLaunchArgs( argc, argv ) )
+             return_code = jb_main();
+         
++        // DEBUG:
++        ff::write( jb_out, "here...\n" );
++        
+         XCloseDisplay( x_display );
++        
++        // DEBUG:
++        ff::write( jb_out, "and here...\n" );
+     }
+     
++    // DEBUG:
++    ff::write( jb_out, "asdf\n" );
++    
+     return return_code;
+ }
+ 
+diff --git a/src/scripting/jb_luaapi_utility.cpp b/src/scripting/jb_luaapi_utility.cpp
+index 2b9a673..a25aa86 100644
+--- a/src/scripting/jb_luaapi_utility.cpp
++++ b/src/scripting/jb_luaapi_utility.cpp
+@@ -68,7 +68,7 @@ namespace jade
+                 {
+                     if( getDevMode() )
+                         ff::write( jb_out, "Quit requested from Lua script\n" );
+-                    jb_setQuitFlag();
++                    requestQuit();
+                 }
+                 
+                 return 0;
+diff --git a/src/tasking/jb_taskexec.cpp b/src/tasking/jb_taskexec.cpp
+index 3fe5d6c..e774c5b 100644
+--- a/src/tasking/jb_taskexec.cpp
++++ b/src/tasking/jb_taskexec.cpp
+@@ -26,6 +26,7 @@
+ #include "../utility/jb_exception.hpp"
+ #include "../utility/jb_launchargs.hpp"
+ #include "../utility/jb_log.hpp"
++#include "../utility/jb_quitting.hpp"
+ 
+ /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
+ 
+@@ -131,7 +132,7 @@ namespace
+             {
+                 ff::write( jb_out, "jadebase exception from task thread: ", e.what(), "\n" );
+                 
+-                jb_setQuitFlag();
++                jade::requestQuit();
+                 
+                 code = jade::EXITCODE_JBERR;
+             }
+@@ -139,7 +140,7 @@ namespace
+             {
+                 ff::write( jb_out, "Exception from task thread: ", e.what(), "\n" );
+                 
+-                jb_setQuitFlag();
++                jade::requestQuit();
+                 
+                 code = jade::EXITCODE_STDERR;
+             }
+diff --git a/src/threading/jb_thread.cpp b/src/threading/jb_thread.cpp
+index a8e6c42..ee34d53 100644
+--- a/src/threading/jb_thread.cpp
++++ b/src/threading/jb_thread.cpp
+@@ -86,18 +86,33 @@ namespace jade
+     
+     exit_code thread::wait()
+     {
+-        exit_code return_value;
++        exit_code return_value = EXITCODE_FINE;
+         
+-        int err;
+-        
+-        if( ( err = pthread_join( platform_thread.pt_thread, &return_value ) ) )
+-            throw exception( "thread::wait(): Failed to join thread: " + errc2str( err ) );
+-        
+-        has_thread = false;
++        if( has_thread )
++        {
++            int err;
++            
++            if( ( err = pthread_join( platform_thread.pt_thread, &return_value ) ) )
++                throw exception( "thread::wait(): Failed to join thread: "
++                                 + errc2str( err ) );
++            
++            has_thread = false;
++        }
+         
+         return return_value;
+     }
+     
++    void thread::kill()
++    {
++        if( has_thread )
++        {
++            int err;
++            
++            if( ( err = pthread_cancel( platform_thread.pt_thread ) ) )
++                throw exception( "thread::kill(): Failed to cancel thread: " + errc2str( err ) );
++        }
++    }
++    
+     void thread::createPlatformThread( thread_func function, void* data )
+     {
+         if( has_thread )
+@@ -124,17 +139,6 @@ namespace jade
+             has_thread = true;
+     }
+     
+-    void thread::kill()
+-    {
+-        if( has_thread )
+-        {
+-            int err;
+-            
+-            if( ( err = pthread_cancel( platform_thread.pt_thread ) ) )
+-                throw exception( "thread::kill(): Failed to cancel thread: " + errc2str( err ) );
+-        }
+-    }
+-    
+     #else
+     
+     #error "Threads not implemented on non-POSIX platforms"
+diff --git a/src/threading/jb_thread.hpp b/src/threading/jb_thread.hpp
+index f863733..6e3000f 100644
+--- a/src/threading/jb_thread.hpp
++++ b/src/threading/jb_thread.hpp
+@@ -55,6 +55,8 @@ namespace jade
+         exit_code wait();                                                       // Waits for the thread to finish execution and joins with it, returning the
+                                                                                 // thread's return code.
+         
++        void kill();
++        
+     protected:
+         jb_platform_thread_t platform_thread;
+         bool has_thread;
+@@ -62,8 +64,6 @@ namespace jade
+         void* data;
+         
+         void createPlatformThread( thread_func, void* );
+-        
+-        void kill();
+     };
+ }
+ 
+diff --git a/src/utility/jb_callback.hpp b/src/utility/jb_callback.hpp
+index 4c1b1af..2c1c778 100644
+--- a/src/utility/jb_callback.hpp
++++ b/src/utility/jb_callback.hpp
+@@ -10,7 +10,7 @@
+ 
+ /* INCLUDES *******************************************************************//******************************************************************************/
+ 
+-
++#include <memory>                                                               // jade::callback is almost exclusively used with std::shared_ptr
+ 
+ /******************************************************************************//******************************************************************************/
+ 
+diff --git a/src/utility/jb_platform.h b/src/utility/jb_platform.h
+index 4e31d52..d0be790 100644
+--- a/src/utility/jb_platform.h
++++ b/src/utility/jb_platform.h
+@@ -111,6 +111,7 @@ extern "C"
+     
+     #include <X11/X.h>
+     #include <GL/glxew.h>
++    #include <X11/extensions/XIproto.h>
+     #include <X11/extensions/XInput.h>
+     #ifdef USE_DMX
+     #include <X11/extensions/dmxext.h>
+@@ -136,13 +137,6 @@ extern "C"
+     typedef unsigned int jb_platform_keycode_t;                                 // XLib's keycode type
+     
+     #endif
+-    
+-// General / Other /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-    
+-    // TODO: Move to a different header?
+-    
+-    void jb_setQuitFlag();
+-    int jb_getQuitFlag();                                                       // 'bool'
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/src/utility/jb_quitting.hpp b/src/utility/jb_quitting.hpp
+new file mode 100644
+index 0000000..4c4d65a
+--- /dev/null
++++ b/src/utility/jb_quitting.hpp
+@@ -0,0 +1,33 @@
++#ifndef JADEBASE_QUITTING_HPP
++#define JADEBASE_QUITTING_HPP
++
++/* 
++ * jb_quitting.hpp
++ * 
++ * Utilities for requesting & handling application quitting & cleanup
++ * 
++ * Implemented in jb_events.cpp
++ */
++
++/* INCLUDES *******************************************************************//******************************************************************************/
++
++#include "jb_callback.hpp"
++
++/******************************************************************************//******************************************************************************/
++
++namespace jade
++{
++    void requestQuit();
++    void cancelQuit();                                                          // Calling this does nothing if isCleaningUp() is true
++    bool isQuitting();
++    bool isCleaningUp();
++    
++    void setQuitRequestCallback( const std::shared_ptr< callback >& );
++    void setQuitCleanupCallback( const std::shared_ptr< callback >& );
++}
++
++/******************************************************************************//******************************************************************************/
++
++#endif
++
++
+diff --git a/src/windowsys/jb_events.cpp b/src/windowsys/jb_events.cpp
+index dee85de..43dfad3 100644
+--- a/src/windowsys/jb_events.cpp
++++ b/src/windowsys/jb_events.cpp
+@@ -16,6 +16,7 @@
+ /* INCLUDES *******************************************************************//******************************************************************************/
+ 
+ #include "jb_events.hpp"
++#include "../utility/jb_quitting.hpp"
+ 
+ #include <cmath>
+ #include <map>
+@@ -28,6 +29,7 @@
+ #include "../gui/jb_named_resources.hpp"
+ #include "../tasking/jb_taskexec.hpp"
+ #include "../threading/jb_mutex.hpp"
++#include "../threading/jb_thread.hpp"
+ #include "../utility/jb_exception.hpp"
+ #include "../utility/jb_launchargs.hpp"
+ #include "../utility/jb_log.hpp"
+@@ -50,14 +52,165 @@ namespace
+     
+     #endif
+     
+-    // X QUIT HANDLING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
++    // GENERAL EVENT GLOBALS  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     
+-    #ifdef PLATFORM_XWS_GNUPOSIX
++    jade::thread event_loop;
++    jade::mutex event_loop_kill_mutex;
++    
++    #if defined PLATFORM_XWS_GNUPOSIX
++    Atom wakeup_atom;
++    #endif
++    
++    // QUIT HANDLING ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     
+     jade::mutex quit_mutex;
+     bool quit_flag = false;
++    bool quit_callback_pending = false;
++    bool cleanup_flag = false;
++    std::shared_ptr< jade::callback > quit_callback;
++    std::shared_ptr< jade::callback > cleanup_callback;
+     
+-    #endif
++    class QuitRequestCallback_task : public jade::task
++    {
++    private:
++        #ifdef PLATFORM_XWS_GNUPOSIX
++        
++        void sendWakeupEvent()
++        {
++            Display* x_display = getXDisplay();
++            XEvent x_event;
++            
++            x_event.type = ClientMessage;
++            x_event.xclient.message_type = wakeup_atom;
++            x_event.xclient.format = 8;
++            
++            Window x_window = jade::getAnyWindow().getPlatformWindow().x_window;
++            
++            ff::write( jb_out,
++                       ">>>\tXSendEvent(\t0x",
++                       ff::to_X( ( unsigned long )x_display ),
++                       ",\n\t\t\t0x",
++                       ff::to_X( ( unsigned long )x_window ),
++                       ",\n\t\t\t0x00,\n\t\t\t0x00,\n\t\t\t0x",
++                       ff::to_X( ( unsigned long )&x_event ),
++                       " );\n" );
++            ff::write( jb_out,
++                       ">>> wakeup_atom = 0x",
++                       ff::to_X( wakeup_atom ),
++                       "\n" );
++            
++            Status error = XSendEvent( x_display,
++                                       // DefaultRootWindow( x_display ),
++                                       x_window,
++                                       0x00,
++                                       0x00,
++                                       &x_event );
++            
++            // // if( error )
++            // {
++            //     // jade::exception e;
++                
++            //     switch( error )
++            //     {
++            //     case BadValue:
++            //         // ff::write( *e,
++            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue" );
++            //         throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue\n" );
++            //         break;
++            //     case BadWindow:
++            //         // ff::write( *e,
++            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow" );
++            //         throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow\n" );
++            //         break;
++            //     default:
++            //         // ff::write( *e,
++            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown error" );
++            //         ff::write( jb_out,
++            //                    "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown Status ",
++            //                    ff::to_X( error ),
++            //                    "\n" );
++            //         break;
++            //     }
++                
++            //     // throw e;
++            // }
++        }
++        
++        #endif
++    public:
++        QuitRequestCallback_task()
++        {
++            // DEBUG:
++            ff::write( jb_out, ">>> QuitRequestCallback_task()\n" );
++            
++            jade::scoped_lock< jade::mutex > slock( quit_mutex );               // Not strictly neccessary as this task is only created on a single thread
++            quit_callback_pending = true;
++        }
++        bool execute( jade::task_mask* )
++        {
++            // DEBUG:
++            ff::write( jb_out, ">>> QuitRequestCallback_task::execute()\n" );
++            
++            quit_mutex.lock();
++            
++            if( quit_callback )
++                quit_callback -> call();
++            
++            quit_mutex.unlock();                                                // Allow any other threads possibly trying to cancel quitting to do so
++            quit_mutex.lock();
++            
++            if( quit_flag )
++            {
++                cleanup_flag = true;
++                quit_callback_pending = false;
++                
++                quit_mutex.unlock();
++                
++                // jade::stopEventSystem();
++                
++                jade::closeInputDevices();
++                
++                // LOLNOPE:
++                sendWakeupEvent();
++                jade::exit_code elc = event_loop.wait();
++                // // HELLYES:
++                // jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
++                // event_loop.kill();
++                // ff::write( jb_out, "Event loop killed\n" );
++                
++                {
++                    ff::write( jb_out, "Cleaning up...\n" );
++                    
++                    if( cleanup_callback )
++                        cleanup_callback -> call();
++                    
++                    jade::closeAllWindows();
++                    
++                    jade::deInitNamedResources();
++                    
++                    jade::stopTaskSystem();
++                }
++                
++                if( elc != jade::EXITCODE_FINE )
++                    ff::write( jb_out,
++                               "Warning: Event loop exited with code ",
++                               jade::exc2str( elc ),
++                               "\n" );
++            }
++            else
++            {
++                quit_callback_pending = false;
++                quit_mutex.unlock();
++                ff::write( jb_out, "Quit interrupted\n" );
++            }
++            
++            return true;
++        }
++        jade::task_mask getMask()
++        {
++            return jade::TASK_SYSTEM;
++        }
++    };
+     
+     // EVENT HANDLERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     
+@@ -230,76 +383,93 @@ namespace
+     }
+     
+     #endif
+-}
+-
+-/******************************************************************************//******************************************************************************/
+-
+-#if defined PLATFORM_XWS_GNUPOSIX
+-
+-void jb_setQuitFlag()
+-{
+-    jade::scoped_lock< jade::mutex > slock( quit_mutex );
+-    quit_flag = true;
+-}
+-int jb_getQuitFlag()
+-{
+-    jade::scoped_lock< jade::mutex > slock( quit_mutex );
+-    return ( int )quit_flag;
+-}
+-
+-namespace jade
+-{
+-    bool HandleEvents_task::execute( task_mask* caller_mask )
++    
++    // EVENT LOOP FUNCTION /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
++    
++    #if defined PLATFORM_XWS_GNUPOSIX
++    
++    int x_event_queue_size = 0;
++    
++    jade::exit_code eventLoop( void* data )
+     {
+-        if( jb_getQuitFlag() )
++        // return EXIT_FINE;
++        try
+         {
+-            ff::write( jb_out, "Quitting...\n" );
++            // TODO: Rework for DevicePresenceNotify
++            jade::refreshInputDevices();                                                  // Set up input devices right off the bat
+             
+-            #warning Quitting does not check open documents
+-            if( false /* !closeAllDocuments() */ )
+-            {
+-                scoped_lock< mutex > slock( quit_mutex );
+-                quit_flag = false;
+-                
+-                ff::write( jb_out, "Quit interrupted\n" );
+-            }
+-            else
+-            {
+-                closeInputDevices();
+-                closeAllWindows();
+-                
+-                deInitNamedResources();
+-                
+-                submitTask( new StopTaskSystem_task() );
+-            }
+-        }
+-        else
+-        {
+             XEvent x_event;
+             Display* x_display = getXDisplay();
+             
+-            refreshInputDevices();
+-            
+-            XEvent last_x_dmevent;                                              // For storing DeviceMotion events until we can fill out their window field
+-                                                                                // Ideally we'd have a map of device ids -> XEvents in case we have multiple
+-                                                                                // devices' worth of events waiting for windows, but MotionEvents don't include
+-                                                                                // device information, so we just have to trust that X gives us events grouped
+-                                                                                // together (DeviceMotion event will be followed by its MotionEvent before any
+-                                                                                // other DeviceMotion events).
++            XEvent last_x_dmevent;                                                  // For storing DeviceMotion events until we can fill out their window field
++                                                                                    // Ideally we'd have a map of device ids -> XEvents in case we have multiple
++                                                                                    // devices' worth of events waiting for windows, but MotionEvents don't include
++                                                                                    // device information, so we just have to trust that X gives us events grouped
++                                                                                    // together (DeviceMotion event will be followed by its MotionEvent before any
++                                                                                    // other DeviceMotion events).
+             bool dmevent_waiting = false;
+             
+-            for( int queue_size = XEventsQueued( x_display, QueuedAfterFlush ); // AKA XPending( x_display )
+-                 queue_size > 0;
+-                 --queue_size )                                                 // Yay we can guarantee termination
++            int dpne_type;
++            XEventClass dpne_class;
++            DevicePresence( x_display, dpne_type, dpne_class );
++            
++            // DEBUG:
++            ff::write( jb_out, ">>> Hello\n" );
++            
++            while( true )
++            // while( !jade::isQuitting() )
+             {
+-                XNextEvent( x_display, &x_event );
++                XNextEvent( x_display, &x_event );                                  // Blocks
++                
++                jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
+                 
++                // DEBUG:
++                // ff::write( jb_out, ">>> event~!\n" );
+                 
++                // TODO: Rework for DevicePresenceNotify
++                jade::refreshInputDevices();
++                
++                {
++                    jade::scoped_lock< jade::mutex > slock( quit_mutex );
++                    
++                    if( quit_flag )
++                    {
++                        if( cleanup_flag )
++                        {
++                        //     ff::write( jb_out, "Cleaning up...\n" );
++                            
++                        //     if( cleanup_callback )
++                        //         cleanup_callback -> call();
++                            
++                        //     jade::closeAllWindows();
++                            
++                        //     jade::deInitNamedResources();
++                            
++                        //     jade::stopTaskSystem();
++                            
++                        //     // DEBUG:
++                        //     ff::write( jb_out, ">>> exiting event loop\n" );
++                            
++                            return EXIT_FINE;
++                        }
++                        else
++                            if( !quit_callback_pending )
++                            {
++                                ff::write( jb_out, "Quitting...\n" );
++                                
++                                jade::submitTask( new QuitRequestCallback_task() );
++                            }
++                            
++                    }
++                }
++                
++                // if( x_event_queue_size == 0 )
++                //     x_event_queue_size = XEventsQueued( x_display, QueuedAfterFlush );  // AKA XPending( x_display )
+                 
+                 switch( x_event.type )
+                 {
+                 case KeyRelease:
+-                    if( XEventsQueued( x_display, QueuedAfterReading ) )        // Skip key repeats
++                    if( XEventsQueued( x_display, QueuedAfterReading ) )            // Skip key repeats
+                     {
+                         XEvent x_nextevent;
+                         XPeekEvent( x_display, &x_nextevent );
+@@ -308,10 +478,10 @@ namespace jade
+                             && x_nextevent.xkey.time == x_event.xkey.time
+                             && x_nextevent.xkey.keycode == x_event.xkey.keycode )   // Key repeat
+                         {
+-                            XNextEvent( x_display, &x_event );                  // Get the repeated key press
+-                            XNextEvent( x_display, &x_event );                  // Get the event after the repeat
++                            XNextEvent( x_display, &x_event );                      // Get the repeated key press
++                            XNextEvent( x_display, &x_event );                      // Get the event after the repeat
+                         }
+-                    }                                                           // Fall through
++                    }                                                               // Fall through
+                 case KeyPress:
+                     handleKeyEvent( x_event );
+                     break;
+@@ -320,12 +490,18 @@ namespace jade
+                 case ConfigureNotify:
+                 case MapNotify:
+                 case MapRequest:
+-                case ClientMessage:
+                 case VisibilityNotify:
+                 case FocusIn:
+                 case FocusOut:
++                    ff::write( jb_out, ">>> handleWindowEvent()\n" );
+                     handleWindowEvent( x_event );
+                     break;
++                case ClientMessage:
++                    // TODO: Handle/ignore Atom "jade::eventLoopWakeup"
++                    if( x_event.xclient.message_type == wakeup_atom )
++                        ff::write( jb_out,
++                                   ">>> Got ClientMessage with wakeup atom\n" );
++                    break;
+                 case DestroyNotify:
+                 case CreateNotify:
+                 case UnmapNotify:
+@@ -342,7 +518,7 @@ namespace jade
+                 case SelectionNotify:
+                 case ColormapNotify:
+                 case PropertyNotify:
+-                    break;                                                      // Ignore, for now
++                    break;                                                          // Ignore, for now
+                 case MotionNotify:
+                     if( dmevent_waiting )
+                     {
+@@ -350,9 +526,9 @@ namespace jade
+                         
+                         if( x_dmevent.time == x_event.xmotion.time )
+                         {
+-                            x_dmevent.window = x_event.xmotion.window;          // Copy over window
++                            x_dmevent.window = x_event.xmotion.window;              // Copy over window
+                             
+-                            handleStrokeEvent( last_x_dmevent );
++                            jade::handleStrokeEvent( last_x_dmevent );
+                             
+                             dmevent_waiting = false;
+                         }
+@@ -366,31 +542,133 @@ namespace jade
+                         
+                         if( x_dmevent.time == x_event.xbutton.time )
+                         {
+-                            x_dmevent.window = x_event.xmotion.window;          // Copy over window
++                            x_dmevent.window = x_event.xmotion.window;              // Copy over window
+                             
+-                            handleStrokeEvent( last_x_dmevent );
++                            jade::handleStrokeEvent( last_x_dmevent );
+                             
+                             dmevent_waiting = false;
+                         }
+                     }
+                     break;
+                 default:
+-                    last_x_dmevent = x_event;                                   // Save event so we can fill out the window field later
++                    if( x_event.type == dpne_type )
++                        // DEBUG:
++                        ff::write( jb_out, ">>> Got XI_DevicePresenceNotify (holy shit!)\n" );
++                    
++                    last_x_dmevent = x_event;                                       // Save event so we can fill out the window field later
+                     dmevent_waiting = true;
+                     break;
+                 }
++                
++                --x_event_queue_size;
++                
++                // if( x_event_queue_size == 0 )
++                {
++                    for( auto iter = window_manipulates.begin();
++                         iter != window_manipulates.end();
++                         ++iter )
++                    {
++                        submitTask( iter -> second );
++                    }
++                    window_manipulates.clear();
++                }
+             }
+             
+-            for( std::map< Window, jade::window::manipulate* >::iterator iter = window_manipulates.begin();
+-                 iter != window_manipulates.end();
+-                 ++iter )
+-            {
+-                submitTask( iter -> second );
+-            }
+-            window_manipulates.clear();
++            // DEBUG:
++            ff::write( jb_out, "Leaving event loop...\n" );
+         }
++        catch( jade::exception& e )
++        {
++            ff::write( jb_out, "jadebase exception from event loop: ", e.what(), "\n" );
++            
++            return jade::EXITCODE_JBERR;
++        }
++        catch( std::exception& e )
++        {
++            ff::write( jb_out, "Exception from event loop: ", e.what(), "\n" );
++            
++            return jade::EXITCODE_STDERR;
++        }
++        
++        // DEBUG:
++        ff::write( jb_out, "Exiting event loop\n" );
++        
++        return jade::EXITCODE_FINE;
++    }
++    
++    #endif
++}
++
++/******************************************************************************//******************************************************************************/
++
++#if defined PLATFORM_XWS_GNUPOSIX
++
++namespace jade
++{
++    void requestQuit()
++    {
++        jade::scoped_lock< jade::mutex > slock( quit_mutex );
++        quit_flag = true;
++        
++        #if 0
++        // Possible semi-blocking implementation
++        if( !quit_flag )
++        {
++            jade::scoped_lock< jade::mutex > slock( quit_mutex );
++            quit_flag = true;
++        }
++        #endif
++    }
++    void cancelQuit()
++    {
++        jade::scoped_lock< jade::mutex > slock( quit_mutex );
++        if( !cleanup_flag )
++            quit_flag = false;
++    }
++    bool isQuitting()
++    {
++        jade::scoped_lock< jade::mutex > slock( quit_mutex );
++        return quit_flag;
++    }
++    bool isCleaningUp()
++    {
++        jade::scoped_lock< jade::mutex > slock( quit_mutex );
++        return cleanup_flag;
++    }
++    
++    void setQuitRequestCallback( const std::shared_ptr< callback >& c )
++    {
++        jade::scoped_lock< jade::mutex > slock( quit_mutex );
++        quit_callback = c;
++    }
++    void setQuitCleanupCallback( const std::shared_ptr< callback >& c )
++    {
++        jade::scoped_lock< jade::mutex > slock( quit_mutex );
++        cleanup_callback = c;
++    }
++    
++    void startEventSystem()
++    {
++        #if defined PLATFORM_XWS_GNUPOSIX
++        wakeup_atom = XInternAtom( getXDisplay(),
++                                   "jade::eventLoopWakeup",
++                                   0x00 );
++        #endif
++        
++        event_loop.start( eventLoop );
++    }
++    void stopEventSystem()
++    {
++        // closeInputDevices();
++        
++        // // send wakeup
++        
++        // // wait on thread
+         
+-        return false;                                                           // Requeue instead of submitting a new copy
++        // // HELLYES:
++        // jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
++        // event_loop.kill();
++        // ff::write( jb_out, "Event loop killed\n" );
+     }
+ }
+ 
+diff --git a/src/windowsys/jb_events.hpp b/src/windowsys/jb_events.hpp
+index 7f65e62..865eb9b 100644
+--- a/src/windowsys/jb_events.hpp
++++ b/src/windowsys/jb_events.hpp
+@@ -4,9 +4,6 @@
+ /* 
+  * jb_events.hpp
+  * 
+- * System events are handled and window_events are distributed from a single
+- * task, which loops by being requeued (returning false from execute()).
+- * 
+  * jadebase makes reasonable effort to support the various features of disparate
+  * hardware input devices in some kind of unified way in the light of this
+  * software's functionality, and as supported by the platforms it runs on. Any
+@@ -17,26 +14,14 @@
+ 
+ /* INCLUDES *******************************************************************//******************************************************************************/
+ 
+-#include "../tasking/jb_task.hpp"
+-#include "../utility/jb_log.hpp"
++
+ 
+ /******************************************************************************//******************************************************************************/
+ 
+ namespace jade
+ {
+-    class HandleEvents_task : public task
+-    {
+-    public:
+-        bool execute( task_mask* );
+-        task_mask getMask()
+-        {
+-            return TASK_SYSTEM;
+-        }
+-        // task_priority getPriority()
+-        // {
+-        //     return PRIORITY_HIGH;
+-        // }
+-    };
++    void startEventSystem();                                                    // Not thread-safe
++    void stopEventSystem();
+ }
+ 
+ /******************************************************************************//******************************************************************************/
+diff --git a/src/windowsys/jb_window.cpp b/src/windowsys/jb_window.cpp
+index 792506f..16538bb 100644
+--- a/src/windowsys/jb_window.cpp
++++ b/src/windowsys/jb_window.cpp
+@@ -32,6 +32,7 @@
+ #include "../utility/jb_launchargs.hpp"
+ #include "../utility/jb_log.hpp"
+ #include "../utility/jb_settings.hpp"
++#include "../utility/jb_quitting.hpp"
+ 
+ /******************************************************************************//******************************************************************************/
+ 
+@@ -168,7 +169,7 @@ namespace jade
+ ////////// DEVEL: //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+         if( e.type == KEYCOMMAND && e.key.key == KEY_Q && e.key.cmd && e.key.up )
+         {
+-            jb_setQuitFlag();
++            requestQuit();
+             return;
+         }
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@@ -455,6 +456,9 @@ namespace jade
+         
+         if( platform_window.good )
+         {
++            // DEBUG:
++            ff::write( jb_out, "Destroying X window...\n" );
++            
+             Display* x_display = getXDisplay();
+             
+             glXMakeCurrent( x_display, None, NULL );
+@@ -462,6 +466,9 @@ namespace jade
+             XDestroyWindow( x_display, platform_window.x_window );
+             XFree( platform_window.x_visual_info );
+             
++            // DEBUG:
++            ff::write( jb_out, "X window destroyed\n" );
++            
+             platform_window.good = false;
+         }
+         
+@@ -541,15 +548,12 @@ namespace jade
+             
+             deregisterWindow( *target );
+             target -> window_mutex.unlock();
+-            delete target;
++            delete target;                                                      // Delete window AFTER calling requestQuit() so we can send the wakeup event
++                                                                                // FIXME: This is still a potential race condition, as there's no guarantee that
++                                                                                // the event loop receives the wakeup event before delete is called.
+             
+-            if( getSetting_bln( "jb_QuitOnNoWindows" ) && getRegisteredWindowCount() < 1 )
+-            {
+-                if( getDevMode() )
+-                    ff::write( jb_out, "All windows closed, quitting\n" );
+-                
+-                jb_setQuitFlag();
+-            }
++            // DEBUG:
++            ff::write( jb_out, "Deleted window at 0x", ff::to_X( ( unsigned long )target ), "\n" );
+         }
+         else
+         {
+diff --git a/src/windowsys/jb_windowmanagement.cpp b/src/windowsys/jb_windowmanagement.cpp
+index 0b59e03..6fe0b08 100644
+--- a/src/windowsys/jb_windowmanagement.cpp
++++ b/src/windowsys/jb_windowmanagement.cpp
+@@ -18,6 +18,9 @@
+ #include "../utility/jb_exception.hpp"
+ #include "../utility/jb_launchargs.hpp"
+ #include "../utility/jb_log.hpp"
++#include "../utility/jb_settings.hpp"
++#include "../utility/jb_quitting.hpp"
++#include "../windowsys/jb_events.hpp"
+ 
+ /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
+ 
+@@ -43,6 +46,9 @@ namespace jade
+         else
+             id_window_map[ window_id ] = &w;
+         
++        if( id_window_map.size() == 1 )
++            jade::startEventSystem();
++        
+         if( getDevMode() )
+             ff::write( jb_out,
+                        "Registered a window (id 0x",
+@@ -73,6 +79,19 @@ namespace jade
+                         "), currently ",
+                         id_window_map.size(),
+                         " windows registered\n" );
++        
++        if( id_window_map.size() < 1 )
++        {
++            if( getSetting_bln( "jb_QuitOnNoWindows" ) )
++            {
++                if( getDevMode() )
++                    ff::write( jb_out, "All windows closed, quitting\n" );
++                
++                requestQuit();
++            }
++            // else
++            //     stopEventSystem();
++        }
+     }
+     
+     bool isRegisteredWindow( jb_platform_window_t& w )
+@@ -134,7 +153,7 @@ namespace jade
+                 throw exception( "closeAllWindows(): Failed to close a window" );
+         }
+         
+-        id_window_map.clear();                                                  // Just in case, but shouldn't be needed
++        // id_window_map.clear();                                                  // Just in case, but shouldn't be needed
+     }
+     
+     void redrawAllWindows()
+diff --git a/src/windowsys/x_inputdevices.cpp b/src/windowsys/x_inputdevices.cpp
+index 6558c6c..0d4c2a0 100644
+--- a/src/windowsys/x_inputdevices.cpp
++++ b/src/windowsys/x_inputdevices.cpp
+@@ -452,6 +452,7 @@ namespace jade
+         
+         prev_strokes.clear();
+         event_type_map.clear();
++        x_input_devices.clear();
+     }
+     void refreshInputDevices()
+     {

@@ -84,13 +84,15 @@ namespace
             x_event.xclient.message_type = wakeup_atom;
             x_event.xclient.format = 8;
             
-            Window x_window = jade::getAnyWindow().getPlatformWindow().x_window;
+            // Window x_window = jade::getAnyWindow().getPlatformWindow().x_window;
             
             ff::write( jb_out,
                        ">>>\tXSendEvent(\t0x",
                        ff::to_X( ( unsigned long )x_display ),
                        ",\n\t\t\t0x",
-                       ff::to_X( ( unsigned long )x_window ),
+                       // ff::to_X( ( unsigned long )DefaultRootWindow( x_display ) ),
+                       ff::to_X( ( unsigned long )PointerWindow ),
+                       // ff::to_X( ( unsigned long )x_window ),
                        ",\n\t\t\t0x00,\n\t\t\t0x00,\n\t\t\t0x",
                        ff::to_X( ( unsigned long )&x_event ),
                        " );\n" );
@@ -99,41 +101,43 @@ namespace
                        ff::to_X( wakeup_atom ),
                        "\n" );
             
-            Status error = XSendEvent( x_display,
-                                       // DefaultRootWindow( x_display ),
-                                       x_window,
-                                       0x00,
-                                       0x00,
-                                       &x_event );
-            
-            // // if( error )
-            // {
-            //     // jade::exception e;
+            if( !XSendEvent( x_display,
+                             PointerWindow,
+                             // DefaultRootWindow( x_display ),
+                             // x_window,
+                             // 0x00,
+                             0x01,
+                             0x00,
+                             &x_event ) )
+            {
+                // jade::exception e;
                 
-            //     switch( error )
-            //     {
-            //     case BadValue:
-            //         // ff::write( *e,
-            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue" );
-            //         throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue\n" );
-            //         break;
-            //     case BadWindow:
-            //         // ff::write( *e,
-            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow" );
-            //         throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow\n" );
-            //         break;
-            //     default:
-            //         // ff::write( *e,
-            //         //            "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown error" );
-            //         ff::write( jb_out,
-            //                    "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown Status ",
-            //                    ff::to_X( error ),
-            //                    "\n" );
-            //         break;
-            //     }
+                // switch( error )
+                // {
+                // case BadValue:
+                //     // ff::write( *e,
+                //     //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue" );
+                //     throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadValue\n" );
+                //     break;
+                // case BadWindow:
+                //     // ff::write( *e,
+                //     //            "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow" );
+                //     throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Got a BadWindow\n" );
+                //     break;
+                // default:
+                //     // ff::write( *e,
+                //     //            "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown error" );
+                //     ff::write( jb_out,
+                //                "QuitRequestCallback_task::sendWakeupEvent(): Got an unknown Status ",
+                //                ff::to_X( error ),
+                //                "\n" );
+                //     break;
+                // }
                 
-            //     // throw e;
-            // }
+                // throw e;
+                
+                throw jade::exception( "QuitRequestCallback_task::sendWakeupEvent(): Failed to send wakeup event" );
+            }
         }
         
         #endif
@@ -416,15 +420,22 @@ namespace
             // DEBUG:
             ff::write( jb_out, ">>> Hello\n" );
             
-            while( true )
-            // while( !jade::isQuitting() )
+            while( true ) {
+            // // while( !jade::isQuitting() )
+            // while( x_event_queue_size )
+            for( int x_event_queue_size = XEventsQueued( x_display, QueuedAfterFlush );
+                 x_event_queue_size > 0;
+                 ++x_event_queue_size )
             {
+                // DEBUG:
+                ff::write( jb_out, ">>> looking for event\n" );
+                
                 XNextEvent( x_display, &x_event );                                  // Blocks
                 
-                jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
+                // jade::scoped_lock< jade::mutex > klock( event_loop_kill_mutex );
                 
                 // DEBUG:
-                // ff::write( jb_out, ">>> event~!\n" );
+                ff::write( jb_out, ">>> event~!\n" );
                 
                 // TODO: Rework for DevicePresenceNotify
                 jade::refreshInputDevices();
@@ -485,6 +496,14 @@ namespace
                 case KeyPress:
                     handleKeyEvent( x_event );
                     break;
+                case ClientMessage:
+                    // TODO: Handle/ignore Atom "jade::eventLoopWakeup"
+                    if( x_event.xclient.message_type == wakeup_atom )
+                        ff::write( jb_out,
+                                   ">>> Got ClientMessage with wakeup atom\n" );
+                    else
+                        ff::write( jb_out,
+                                   ">>> Got ClientMessage WITHOUT wakeup atom (likely WM event)\n" );
                 case Expose:
                 case ConfigureRequest:
                 case ConfigureNotify:
@@ -495,12 +514,6 @@ namespace
                 case FocusOut:
                     ff::write( jb_out, ">>> handleWindowEvent()\n" );
                     handleWindowEvent( x_event );
-                    break;
-                case ClientMessage:
-                    // TODO: Handle/ignore Atom "jade::eventLoopWakeup"
-                    if( x_event.xclient.message_type == wakeup_atom )
-                        ff::write( jb_out,
-                                   ">>> Got ClientMessage with wakeup atom\n" );
                     break;
                 case DestroyNotify:
                 case CreateNotify:
@@ -554,6 +567,8 @@ namespace
                     if( x_event.type == dpne_type )
                         // DEBUG:
                         ff::write( jb_out, ">>> Got XI_DevicePresenceNotify (holy shit!)\n" );
+                    else
+                        ff::write( jb_out, ">>> Got unrecognized event type\n" );
                     
                     last_x_dmevent = x_event;                                       // Save event so we can fill out the window field later
                     dmevent_waiting = true;
@@ -572,7 +587,7 @@ namespace
                     }
                     window_manipulates.clear();
                 }
-            }
+            } }
             
             // DEBUG:
             ff::write( jb_out, "Leaving event loop...\n" );
@@ -652,7 +667,7 @@ namespace jade
         #if defined PLATFORM_XWS_GNUPOSIX
         wakeup_atom = XInternAtom( getXDisplay(),
                                    "jade::eventLoopWakeup",
-                                   0x00 );
+                                   0 );
         #endif
         
         event_loop.start( eventLoop );
