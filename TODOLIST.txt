@@ -1,5 +1,7 @@
 Remove minimum window dimensions and programmatically derive them from the
-windowview's contained element constraints
+windowview's contained element constraints.
+
+This requires working on jade::tensor and other dynamics utilities.
 
 --------------------------------------------------------------------------------
 
@@ -8,15 +10,6 @@ Ensure only 1 window::manip at a time, so we can:
   - Have window::manip handle manual (code) window adjustments
   - Have event parser handle passive (WM) window adjustments
 ... then we can finish fully implementing window actions cleanly
-
---------------------------------------------------------------------------------
-
-Create event-handler thread ie
-    while( !quitFlag() && waitNextEvent( &event ) )
-    {
-        ...
-    }
-This is easy enough to support using X, and is pretty much necessary for Cocoa
 
 --------------------------------------------------------------------------------
 
