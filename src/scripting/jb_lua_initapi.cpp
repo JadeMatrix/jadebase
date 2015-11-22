@@ -17,7 +17,9 @@ namespace jade
 {
     void lua_state::initAPI()
     {
-        bool use_sub_names = getSetting_bln( "jb_LuaAPISubNames" );
+        bool use_sub_names;
+        if( !getSetting( "jb_LuaAPISubNames", use_sub_names ) )
+            use_sub_names = true;
         
         // "jade" //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         

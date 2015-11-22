@@ -172,7 +172,11 @@ namespace jade
                                           radius,
                                           radius ) )
                 {
-                    if( !getSetting_bln( "jb_DialCircularManip" )
+                    bool dial_circular_manip;
+                    if( !getSetting( "jb_DialCircularManip", dial_circular_manip ) )
+                        dial_circular_manip = true;
+                    
+                    if( !dial_circular_manip
                         || small
                         || pointInsideCircle( e.position[ 0 ],
                                               e.position[ 1 ],

@@ -543,12 +543,23 @@ namespace jade
             target -> window_mutex.unlock();
             delete target;
             
-            if( getSetting_bln( "jb_QuitOnNoWindows" ) && getRegisteredWindowCount() < 1 )
+            if( getRegisteredWindowCount() < 1 )
             {
-                if( getDevMode() )
-                    ff::write( jb_out, "All windows closed, quitting\n" );
+                bool should_quit;
+                if( !getSetting( "jb_QuitOnNoWindows", should_quit ) )
+                    #ifdef PLATFORM_MACOSX
+                    should_quit = false;
+                    #else
+                    should_quit = true;
+                    #endif
                 
-                jb_setQuitFlag();
+                if( should_quit )
+                {
+                    if( getDevMode() )
+                        ff::write( jb_out, "All windows closed, quitting\n" );
+                    
+                    jb_setQuitFlag();
+                }
             }
         }
         else

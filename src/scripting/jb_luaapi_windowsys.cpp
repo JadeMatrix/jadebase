@@ -108,7 +108,11 @@ namespace jade
                 }
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:set_title() on a closed window" );
                 }
                 
@@ -145,7 +149,11 @@ namespace jade
                 }
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:close() on a closed window" );
                 }
                 
@@ -178,7 +186,11 @@ namespace jade
                     ( *slock ) -> requestRedraw();
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:request_redraw() on a closed window" );
                 }
                 
@@ -263,7 +275,11 @@ namespace jade
                 }
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:top_element() on a closed window" );
                 }
                 
@@ -320,7 +336,11 @@ namespace jade
                 }
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:add_element() on a closed window" );
                 }
                 
@@ -365,7 +385,11 @@ namespace jade
                 }
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:set_shown_callback() on a closed window" );
                 }
                 
@@ -410,7 +434,11 @@ namespace jade
                 }
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:set_hidden_callback() on a closed window" );
                 }
                 
@@ -455,7 +483,11 @@ namespace jade
                 }
                 else
                 {
-                    if( getSetting_bln( "jb_LuaClosedWindowSilentFail" ) )
+                    bool silent;
+                    if( !getSetting( "jb_LuaClosedWindowSilentFail", silent ) )
+                        silent = false;
+                    
+                    if( !silent )
                         luaL_error( state, "Call of window:set_closed_callback() on a closed window" );
                 }
                 
