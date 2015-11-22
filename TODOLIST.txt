@@ -31,11 +31,13 @@ methods
 
 --------------------------------------------------------------------------------
 
-Start using the new jade::getSetting() where appropriate
+Consolidate the terms in jade::scrollset
 
 --------------------------------------------------------------------------------
 
-Consolidate the terms in jade::scrollset
+Use DevicePresenceNotify X events for discerning hot[un]plugged devices
+ - Include XIproto.h
+ - Use DevicePresence(display, int id, XEventClass) to get ID of event type
 
 --------------------------------------------------------------------------------
 
