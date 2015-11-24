@@ -23,7 +23,14 @@ namespace jade
     public:
         tensor_engine();
         
-        tensor< T >* newTensor();
+        tensor< T >* newTensor( solver< T > );
+        tensor< T >* newTensor( solver< T >,
+                                T );
+        tensor< T >* newTensor( solver< T >,
+                                tensor_data::storage< T > );
+        tensor< T >* newTensor( solver< T >,
+                                T,
+                                tensor_data::storage< T > );
         
         void solve();
         

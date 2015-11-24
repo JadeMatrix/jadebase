@@ -10,34 +10,64 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-
+#include "../threading/jb_mutex.hpp"
 
 /******************************************************************************//******************************************************************************/
 
 namespace jade
 {
-    template< typename T > class tensor
+    template< typename T > struct tensor_data
+    {
+        union storage
+        {
+            void* p[ 2 ];
+            T d[ 2 * sizeof( void* ) / sizeof( T ) ];
+        } private;                                                              // Private data for this tensor type
+        
+        T cache;
+    }
+    
+    template< typename T > using solver = void ( * )( tensor_data< T >& );
+    
+    template< typename T > class tensor final
     {
         friend class tensor_engine< T >;
         
     public:
-        virtual ~tensor();
-        
-        virtual void solve( tensor_engine< T >& );
-        
         const T operator*() const;
         
     protected:
-        tensor();
+        mutex tensor_mutex;
+        solver< T > solve;
+        tensor_data data;
         
-        T cache;
+        tensor( solver< T > );
         
-        union
+        void solve_wrap()
         {
-            void* p[ 2 ];
-            T d[ 2 * sizeof( void* ) / sizeof( T ) ];
-        };
-    };
+            scoped_lock< mutex > slock( tensor_mutex );
+            
+        }
+    }
+    
+    // template< typename T > void default_tensor_solver( tensor_data< T >& ) {}
+    
+    template< typename T > const T tensor::operator*() const
+    {
+        scoped_lock< mutex > slock( tensor_mutex );
+        return cache;
+    }
+    
+    template< typename T > tensor::tensor( solver< T > s )
+    {
+        solver = s;
+    }
+    
+    template< typename T > void tensor::solve_wrap()
+    {
+        scoped_lock< mutex > slock( tensor_mutex );
+        solver( data );
+    }
 }
 
 /******************************************************************************//******************************************************************************/
