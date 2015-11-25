@@ -83,6 +83,10 @@ FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 
 # Core jadebase header chains ##################################################
 
+JADEBASE_GUI_DYNAMICS_HPP = src/dynamics/jb_gui_dynamics.hpp ${JADEBASE_TENSOR_HPP} ${JADEBASE_TENSOR_ENGINE_HPP} ${JADEBASE_DPI_HPP}
+JADEBASE_TENSOR_HPP = src/dynamics/jb_tensor.hpp ${JADEBASE_MUTEX_HPP}
+JADEBASE_TENSOR_ENGINE_HPP = src/dynamics/jb_tensor_engine.hpp ${JADEBASE_TENSOR_HPP} ${JADEBASE_MUTEX_HPP}
+
 JADEBASE_PNG_HPP = src/filetypes/jb_png.hpp
 
 JADEBASE_BUTTON_HPP = src/gui/jb_button.hpp ${JADEBASE_ELEMENT_HPP} ${JADEBASE_RESOURCE_HPP} ${JADEBASE_CALLBACK_HPP}

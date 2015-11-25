@@ -27,7 +27,8 @@ namespace jade
         T cache;
     }
     
-    template< typename T > using solver = void ( * )( tensor_data< T >& );
+    template< typename T > using solver = void ( * )( tensor_data< T >&,
+                                                      void* );
     
     template< typename T > class tensor final
     {
@@ -43,11 +44,7 @@ namespace jade
         
         tensor( solver< T > );
         
-        void solve_wrap()
-        {
-            scoped_lock< mutex > slock( tensor_mutex );
-            
-        }
+        void solve_wrap( void* );
     }
     
     // template< typename T > void default_tensor_solver( tensor_data< T >& ) {}
@@ -63,10 +60,13 @@ namespace jade
         solver = s;
     }
     
-    template< typename T > void tensor::solve_wrap()
+    template< typename T > void tensor::solve_wrap( void* engine_data )
     {
-        scoped_lock< mutex > slock( tensor_mutex );
-        solver( data );
+        if( solve )
+        {
+            scoped_lock< mutex > slock( tensor_mutex );
+            solve( data, engine_data );
+        }
     }
 }
 
