@@ -23,13 +23,13 @@ namespace jade
     {
         struct storage
         {
-            tensor_id ref[ 2 ];
+            tensor_id< T > ref[ 2 ];
             
             union
             {
                 void* p[ 2 ];
                 T d[ 2 * sizeof( void* ) / sizeof( T ) ];
-            } private;                                                          // Private data for this tensor type
+            } priv;                                                             // Private data for this tensor type
         };
         
         T cache;
@@ -40,7 +40,7 @@ namespace jade
     
     template< typename T > class tensor final
     {
-        friend class tensor_engine< T >;
+        template< typename > friend class tensor_engine;
         
     public:
         const T operator*() const;
@@ -48,27 +48,27 @@ namespace jade
     protected:
         mutex tensor_mutex;
         solver< T > solve;
-        tensor_data data;
+        tensor_data< T > data;
         
         tensor( solver< T > );
         
         void solve_wrap( void* );
-    }
+    };
     
     // template< typename T > void default_tensor_solver( tensor_data< T >& ) {}
     
-    template< typename T > const T tensor::operator*() const
+    template< typename T > const T tensor< T >::operator*() const
     {
         scoped_lock< mutex > slock( tensor_mutex );
-        return cache;
+        return data.cache;
     }
     
-    template< typename T > tensor::tensor( solver< T > s )
+    template< typename T > tensor< T >::tensor( solver< T > s )
     {
-        solver = s;
+        solve = s;
     }
     
-    template< typename T > void tensor::solve_wrap( void* engine_data )
+    template< typename T > void tensor< T >::solve_wrap( void* engine_data )
     {
         if( solve )
         {

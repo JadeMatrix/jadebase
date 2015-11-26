@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "jb_windowevent.hpp"
+#include "../dynamics/jb_tensor_engine.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_container.hpp"

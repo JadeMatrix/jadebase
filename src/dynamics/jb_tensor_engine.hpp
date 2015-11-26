@@ -31,10 +31,10 @@ namespace jade
         tensor_id< T > newTensor( solver< T >,
                                   T );
         tensor_id< T > newTensor( solver< T >,
-                                  tensor_data::storage< T > );
+                                  typename tensor_data< T >::storage );
         tensor_id< T > newTensor( solver< T >,
                                   T,
-                                  tensor_data::storage< T > );
+                                  typename tensor_data< T >::storage );
         
         void releaseTensor( tensor_id< T > );
         
@@ -56,7 +56,8 @@ namespace jade
                                              empty( false ) {}
         };
         
-        typedef std::vector< tensor_store >::size_type tensor_index;
+        typedef typename std::vector< tensor_store >::size_type tensor_index;
+        // using tensor_index = std::vector< tensor_store >::size_type;
         
         bool free_count;
         std::vector< tensor_store > tensors;
@@ -66,20 +67,20 @@ namespace jade
         tensor_index insertBasic( solver< T > );
     };
     
-    template< typename T > tensor_engine::tensor_engine()
+    template< typename T > tensor_engine< T >::tensor_engine()
     {
         latest_id = 0x00;
         free_count = 0;
     }
     
-    template< typename T > tensor_id< T > tensor_engine::newTensor( solver< T > s )
+    template< typename T > tensor_id< T > tensor_engine< T >::newTensor( solver< T > s )
     {
         scoped_lock< mutex > slock( engine_mutex );
         
         return insertBasic( s );
     }
-    template< typename T > tensor_id< T > tensor_engine::newTensor( solver< T > s,
-                                                                    T c )
+    template< typename T > tensor_id< T > tensor_engine< T >::newTensor( solver< T > s,
+                                                                         T c )
     {
         scoped_lock< mutex > slock( engine_mutex );
         
@@ -89,8 +90,8 @@ namespace jade
         
         return i;
     }
-    template< typename T > tensor_id< T > tensor_engine::newTensor( solver< T > s,
-                                                                    tensor_data::storage< T > d )
+    template< typename T > tensor_id< T > tensor_engine< T >::newTensor( solver< T > s,
+                                                                         typename tensor_data< T >::storage d )
     {
         scoped_lock< mutex > slock( engine_mutex );
         
@@ -102,9 +103,9 @@ namespace jade
         
         return i;
     }
-    template< typename T > tensor_id< T > tensor_engine::newTensor( solver< T > s,
-                                                                    T c,
-                                                                    tensor_data::storage< T > d )
+    template< typename T > tensor_id< T > tensor_engine< T >::newTensor( solver< T > s,
+                                                                         T c,
+                                                                         typename tensor_data< T >::storage d )
     {
         scoped_lock< mutex > slock( engine_mutex );
         
@@ -118,7 +119,7 @@ namespace jade
         return i;
     }
     
-    template< typename T > void tensor_engine::releaseTensor( tensor_id< T > i )
+    template< typename T > void tensor_engine< T >::releaseTensor( tensor_id< T > i )
     {
         scoped_lock< mutex > slock( engine_mutex );
         
@@ -134,7 +135,7 @@ namespace jade
             throw exception( "tensor_engine<>:releaseTensor(): No such tensor ID" );
     }
     
-    template< typename T > tensor< T >& tensor_engine::operator[]( tensor_id< T > i )
+    template< typename T > tensor< T >& tensor_engine< T >::operator[]( tensor_id< T > i )
     {
         scoped_lock< mutex > slock( engine_mutex );
         
@@ -146,18 +147,18 @@ namespace jade
             throw exception( "tensor_engine<>::operator[](): No such tensor ID" );
     }
     
-    template< typename T > void tensor_engine::solve()
+    template< typename T > void tensor_engine< T >::solve()
     {
         scoped_lock< mutex > slock( engine_mutex );
         
-        auto tensor_count = tensors.size();
+        tensor_index tensor_count = tensors.size();
         
-        for( i =0; i < tensor_count; ++i )
+        for( tensor_index i =0; i < tensor_count; ++i )
             if( tensors[ i ].active )
                 tensors[ i ].solve( *this, nullptr );
     }
     
-    template< typename T > tensor_engine::tensor_index tensor_engine::insertBasic( solver< T > s )
+    template< typename T > typename tensor_engine< T >::tensor_index tensor_engine< T >::insertBasic( solver< T > s )
     {
         tensor_index tensor_count = tensors.size();
         
