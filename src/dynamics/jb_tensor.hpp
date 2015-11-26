@@ -16,16 +16,24 @@
 
 namespace jade
 {
+    // typedef unsigned long tensor_id;
+    template< typename T > using tensor_id = unsigned long;
+    
     template< typename T > struct tensor_data
     {
-        union storage
+        struct storage
         {
-            void* p[ 2 ];
-            T d[ 2 * sizeof( void* ) / sizeof( T ) ];
-        } private;                                                              // Private data for this tensor type
+            tensor_id ref[ 2 ];
+            
+            union
+            {
+                void* p[ 2 ];
+                T d[ 2 * sizeof( void* ) / sizeof( T ) ];
+            } private;                                                          // Private data for this tensor type
+        };
         
         T cache;
-    }
+    };
     
     template< typename T > using solver = void ( * )( tensor_data< T >&,
                                                       void* );
