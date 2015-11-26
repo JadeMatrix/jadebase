@@ -86,7 +86,7 @@ namespace jade
         
         tensor_index i = insertBasic( s );
         
-        tensors[ i ].cache = c;
+        tensors[ i ].t.cache = c;
         
         return i;
     }
@@ -99,7 +99,7 @@ namespace jade
         
         // TODO: Check for circular references
         
-        tensors[ i ].data = d;
+        tensors[ i ].t.data = d;
         
         return i;
     }
@@ -113,8 +113,8 @@ namespace jade
         
         // TODO: Check for circular references
         
-        tensors[ i ].cache = c;
-        tensors[ i ].data = d;
+        tensors[ i ].t.cache = c;
+        tensors[ i ].t.data = d;
         
         return i;
     }
@@ -142,7 +142,7 @@ namespace jade
         auto finder = id_map.find( i );
         
         if( finder != id_map.end() )
-            return tensors[ finder -> second ];
+            return tensors[ finder -> second ].t;
         else
             throw exception( "tensor_engine<>::operator[](): No such tensor ID" );
     }
@@ -155,7 +155,7 @@ namespace jade
         
         for( tensor_index i =0; i < tensor_count; ++i )
             if( tensors[ i ].active )
-                tensors[ i ].solve( *this, nullptr );
+                tensors[ i ].t.solve_wrap( ( void* )this );
     }
     
     template< typename T > typename tensor_engine< T >::tensor_index tensor_engine< T >::insertBasic( solver< T > s )
@@ -166,7 +166,7 @@ namespace jade
             for( tensor_index i = 0; i < tensor_count; ++i )
                 if( !tensors[ i ].empty )
                 {
-                    tensors[ i ].solve = s;
+                    tensors[ i ].t.solve = s;
                     tensors[ i ].active = true;
                     tensors[ i ].empty = false;
                     

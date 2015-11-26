@@ -136,7 +136,7 @@ JADEBASE_VERSION_HPP = src/utility/jb_version.hpp
 
 JADEBASE_EVENTS_HPP = src/windowsys/jb_events.hpp ${JADEBASE_TASK_HPP} ${JADEBASE_LOG_HPP}
 JADEBASE_KEYCODE_HPP = src/windowsys/jb_keycode.hpp ${JADEBASE_PLATFORM_H}
-JADEBASE_WINDOW_HPP =	src/windowsys/jb_window.hpp ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_TENSOR_ENGINE_HPP} ${JADEBASE_WINDOWVIEW_HPP} ${JADEBASE_TASK_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_CONTAINER_HPP} ${JADEBASE_PLATFORM_H} ${JADEBASE_VERSION_HPP} \
+JADEBASE_WINDOW_HPP =	src/windowsys/jb_window.hpp ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_GUI_DYNAMICS_HPP} ${JADEBASE_WINDOWVIEW_HPP} ${JADEBASE_TASK_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_CONTAINER_HPP} ${JADEBASE_PLATFORM_H} ${JADEBASE_VERSION_HPP} \
 						${X_INPUTDEVICES_HPP}
 						# ^^^ TODO: Make that platform-agnostic or the include platform-specific
 JADEBASE_WINDOWEVENT_HPP = src/windowsys/jb_windowevent.hpp ${JADEBASE_KEYCODE_HPP} ${JADEBASE_DPI_HPP} ${JADEBASE_PLATFORM_H}
@@ -196,6 +196,8 @@ JADEBASE_HPP =	${JADEBASE_PNG_HPP} \
 
 # Core jadebase objects ########################################################
 
+DYNAMICS_OBJECTS = ${OBJDIR}/jb_gui_dynamics.o
+
 FILETYPES_OBJECTS =	${OBJDIR}/jb_png.o
 
 GUI_OBJECTS =	${OBJDIR}/jb_button.o \
@@ -249,7 +251,8 @@ WINDOWSYS_OBJECTS =	${OBJDIR}/jb_events.o \
 					${OBJDIR}/jb_windowevent.o \
 					${OBJDIR}/jb_windowmanagement.o
 
-CORE_OBJECTS =	${FILETYPES_OBJECTS} \
+CORE_OBJECTS =	${DYNAMICS_OBJECTS} \
+				${FILETYPES_OBJECTS} \
 				${GUI_OBJECTS} \
 				${SCRIPTING_OBJECTS} \
 				${TASKING_OBJECTS} \
@@ -260,6 +263,10 @@ CORE_OBJECTS =	${FILETYPES_OBJECTS} \
 
 
 # Core jadebase recipes ########################################################
+
+${OBJDIR}/jb_gui_dynamics.o: ${SOURCEDIR}/dynamics/jb_gui_dynamics.cpp ${JADEBASE_GUI_DYNAMICS_HPP}
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/dynamics/jb_gui_dynamics.cpp -o ${OBJDIR}/jb_gui_dynamics.o
 
 ${OBJDIR}/jb_png.o: ${SOURCEDIR}/filetypes/jb_png.cpp ${JADEBASE_PNG_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LOG_HPP}
 	@mkdir -p ${OBJDIR}

@@ -45,14 +45,14 @@ namespace jade
     public:
         const T operator*() const;
         
+        void solve_wrap( void* );
+        
     protected:
         mutex tensor_mutex;
         solver< T > solve;
         tensor_data< T > data;
         
         tensor( solver< T > );
-        
-        void solve_wrap( void* );
     };
     
     // template< typename T > void default_tensor_solver( tensor_data< T >& ) {}

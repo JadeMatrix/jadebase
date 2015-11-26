@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "jb_windowevent.hpp"
-#include "../dynamics/jb_tensor_engine.hpp"
+#include "../dynamics/jb_gui_dynamics.hpp"
 #include "../tasking/jb_task.hpp"
 #include "../threading/jb_mutex.hpp"
 #include "../utility/jb_container.hpp"
@@ -194,7 +194,6 @@ namespace jade
         
         std::map< jb_platform_idevid_t,
                   idev_assoc > input_assoc;
-        std::shared_ptr< windowview > top_element;
         
         void associateDevice( jb_platform_idevid_t,                             // ID of the device to associate
                               std::list< gui_element* >& );                     // Capturing element chain
@@ -202,6 +201,11 @@ namespace jade
                                                                                 // passing through the element tree, using the given event offsets.
         void deassociateDevice( jb_platform_idevid_t dev_id );                  // Called when an association is no longer necessary; elements must deassociate
                                                                                 // all associated devices before destruction.
+        
+        /* GUI system infrastructure ******************************************//******************************************************************************/
+        
+        std::shared_ptr< windowview > top_element;
+        gui_tensor_engine tensor_engine;
     };
 }
 
