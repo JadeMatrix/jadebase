@@ -83,9 +83,9 @@ FF_OBJECTS =	${FFOBJDIR}/core.api.o \
 
 # Core jadebase header chains ##################################################
 
-JADEBASE_GUI_DYNAMICS_HPP = src/dynamics/jb_gui_dynamics.hpp ${JADEBASE_TENSOR_HPP} ${JADEBASE_TENSOR_ENGINE_HPP} ${JADEBASE_DPI_HPP}
+JADEBASE_BASIC_TENSOR_ENGINE_HPP = src/dynamics/jb_basic_tensor_engine.hpp ${JADEBASE_TENSOR_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_LOG_HPP}
+JADEBASE_GUI_DYNAMICS_HPP = src/dynamics/jb_gui_dynamics.hpp ${JADEBASE_TENSOR_HPP} ${JADEBASE_DPI_HPP}
 JADEBASE_TENSOR_HPP = src/dynamics/jb_tensor.hpp ${JADEBASE_MUTEX_HPP}
-JADEBASE_TENSOR_ENGINE_HPP = src/dynamics/jb_tensor_engine.hpp ${JADEBASE_TENSOR_HPP} ${JADEBASE_MUTEX_HPP}
 
 JADEBASE_PNG_HPP = src/filetypes/jb_png.hpp
 
@@ -143,7 +143,9 @@ JADEBASE_WINDOWEVENT_HPP = src/windowsys/jb_windowevent.hpp ${JADEBASE_KEYCODE_H
 JADEBASE_WINDOWMANAGEMENT_HPP = src/windowsys/jb_windowmanagement.hpp ${JADEBASE_WINDOW_HPP} ${JADEBASE_PLATFORM_H}
 X_INPUTDEVICES_HPP = src/windowsys/x_inputdevices.hpp ${JADEBASE_PLATFORM_H}
 
-JADEBASE_HPP =	${JADEBASE_PNG_HPP} \
+JADEBASE_HPP =	${JADEBASE_TENSOR_HPP} \
+				\
+				${JADEBASE_PNG_HPP} \
 				\
 				${JADEBASE_BUTTON_HPP} \
 				${JADEBASE_DIAL_HPP} \
@@ -264,7 +266,7 @@ CORE_OBJECTS =	${DYNAMICS_OBJECTS} \
 
 # Core jadebase recipes ########################################################
 
-${OBJDIR}/jb_gui_dynamics.o: ${SOURCEDIR}/dynamics/jb_gui_dynamics.cpp ${JADEBASE_GUI_DYNAMICS_HPP}
+${OBJDIR}/jb_gui_dynamics.o: ${SOURCEDIR}/dynamics/jb_gui_dynamics.cpp ${JADEBASE_GUI_DYNAMICS_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LOG_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/dynamics/jb_gui_dynamics.cpp -o ${OBJDIR}/jb_gui_dynamics.o
 
