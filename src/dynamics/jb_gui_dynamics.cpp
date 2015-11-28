@@ -52,7 +52,6 @@ namespace jade
             for( tensor_index i = 0; i < tensor_count; ++i )
                 if( tensors[ i ].empty )
                 {
-                    // tensors[ i ].t = t;
                     new( &tensors[ i ].t ) tensor_store( t );
                     tensors[ i ].empty = false;
                     --free_count;
@@ -80,7 +79,6 @@ namespace jade
         
         if( finder != id_map.end() )
         {
-            // tensors[ finder -> second ].t = t;
             new( &tensors[ finder -> second ].t ) tensor_store( t );
             
             return o;

@@ -16,6 +16,8 @@
 
 namespace jade
 {
+    #define TENSOR_PRIVATE_STORAGE_COUNT 2
+    
     template< typename T, class E > struct tensor;
     template< typename T > class basic_tensor_engine;                           // Forward declaration of basic_tensor_engine - see jb_tensor_engine.hpp
     
@@ -25,14 +27,15 @@ namespace jade
     
     template< typename T, class E = basic_tensor_engine< T > > struct tensor
     {
+        // CONSIDER: Solver type defined by E?
         const solver< T, E > solve;                                             // A tensor's solve may not overwrite its own solve
         
         union
         {
-            void* p[ 2 ];
-            T d[ 2 * sizeof( void* ) / sizeof( T ) ];
+            void* p;
+            T d;
             // CONSIDER: Storage type of a typedef from E
-        } priv;                                                                 // Private data for this tensor type
+        } priv[ TENSOR_PRIVATE_STORAGE_COUNT ];                                 // Private data for this tensor type
         
         typename E::tensor_id ref[ 2 ];                                         // Up to two tensor IDs as references to other tensors; these are dedicated
                                                                                 // fields so tensor engines can detect circular dependencies
@@ -41,7 +44,8 @@ namespace jade
         tensor( solver< T, E > s ) : solve( s ) {}                              // Constructor must take a single solver< T > as solve is const
         tensor( const tensor< T, E >& o ) : solve( o.solve )
         {
-            priv = o.priv;
+            for( int i = 0; i < TENSOR_PRIVATE_STORAGE_COUNT; ++i )
+                priv[ i ] = o.priv[ i ];
             ref[ 0 ] = o.ref[ 0 ];
             ref[ 1 ] = o.ref[ 1 ];
             category = o.category;
