@@ -131,7 +131,7 @@ namespace jade
         bool fullscreen;
         bool in_focus;
         
-        unsigned int pending_redraws;
+        bool pending_redraw;
         
         struct
         {

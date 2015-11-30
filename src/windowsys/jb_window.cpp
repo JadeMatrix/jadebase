@@ -52,7 +52,7 @@ namespace jade
         platform_window.glx_attr[ 3 ] = GLX_DOUBLEBUFFER;
         platform_window.glx_attr[ 4 ] = None;
         
-        pending_redraws = 0;
+        pending_redraw = false;
         
         title = JADEBASE_WINDOW_DEFAULT_NAME;
         
@@ -268,9 +268,10 @@ namespace jade
     {
         scoped_lock< mutex > slock( redraw_mutex );
         
-        if( pending_redraws < 1 )
+        if( !pending_redraw )
         {
             submitTask( new redraw( *this ) );
+            pending_redraw = true;
         }
     }
     
@@ -818,71 +819,59 @@ namespace jade
     
     window::redraw::redraw( window& t ) : target( t )
     {
-        scoped_lock< mutex > slock( target.redraw_mutex );
+        // scoped_lock< mutex > slock( target.redraw_mutex );
         
-        target.pending_redraws++;
+        // target.pending_redraw = true;
     }
     bool window::redraw::execute( task_mask* caller_mask )
     {
-        target.redraw_mutex.lock();
+        {
+            scoped_lock< mutex > rlock( target.redraw_mutex );
+            
+            target.pending_redraw = false;
+        }
+        
+        scoped_lock< mutex > slock( target.window_mutex );
         
         target.makeContextCurrent();
         
-        if( target.pending_redraws <= 1 )                                       // Only redraw if there are no other pending redraws for that window; this is
-                                                                                // safe because the redraw task is high-priority, so the task system will
-                                                                                // eventually drill down to the last one.
-        {
-            if( target.pending_redraws != 1 )                                   // Sanity check
-                throw exception( "window::redraw::execute(): Target pending redraws somehow < 1" );
-            
-            target.pending_redraws--;
-            target.redraw_mutex.unlock();
-            
-            scoped_lock< mutex > slock( target.window_mutex );
-            
-            glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
-            glLoadIdentity();
-            glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
-            
-            glEnable( GL_BLEND );
-            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-            
-            // glEnable( GL_DEPTH_TEST );
-            glClearColor( 0.05f, 0.05f, 0.05f, 1.0f );
-            glClearStencil( 0 );
-            // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-            glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-            
-            glEnable( GL_TEXTURE_2D );
-            
-            // glEnable( GL_POLYGON_SMOOTH );
-            
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-            
-            glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
-            
-            dpi::percent scale = target.getScaleFactor();
-            glScalef( scale, scale, 1.0f );
-            
-            target.top_element -> draw( &target );
-            
-            #if defined PLATFORM_XWS_GNUPOSIX
-            
-            Display* x_display = getXDisplay();
-            glXSwapBuffers( x_display, target.platform_window.x_window );
-            
-            #else
-            
-            #error "Buffer swapping not implemented on non-X platforms"
-            
-            #endif
-        }
-        else
-        {
-            target.pending_redraws--;
-            target.redraw_mutex.unlock();
-        }
+        glViewport( 0, 0, target.dimensions[ 0 ], target.dimensions[ 1 ] );
+        glLoadIdentity();
+        glOrtho( 0.0, target.dimensions[ 0 ], target.dimensions[ 1 ], 0.0, 1.0, -1.0 );
+        
+        glEnable( GL_BLEND );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        
+        // glEnable( GL_DEPTH_TEST );
+        glClearColor( 0.05f, 0.05f, 0.05f, 1.0f );
+        glClearStencil( 0 );
+        // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+        glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+        
+        glEnable( GL_TEXTURE_2D );
+        
+        // glEnable( GL_POLYGON_SMOOTH );
+        
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        
+        glColor4f( 1.0, 1.0f, 1.0f, 1.0f );
+        
+        dpi::percent scale = target.getScaleFactor();
+        glScalef( scale, scale, 1.0f );
+        
+        target.top_element -> draw( &target );
+        
+        #if defined PLATFORM_XWS_GNUPOSIX
+        
+        Display* x_display = getXDisplay();
+        glXSwapBuffers( x_display, target.platform_window.x_window );
+        
+        #else
+        
+        #error "Buffer swapping not implemented on non-X platforms"
+        
+        #endif
         
         return true;
     }
