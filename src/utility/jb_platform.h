@@ -80,13 +80,15 @@ extern "C"
         void* cf_retained_obj;
     } jb_platform_window_t;
     
+    typedef enum
+    {
+        NS_MOUSE,
+        NS_TABLET
+    } _jb_platform_idevid_t_cocoa_dev_type;
+    
     typedef struct
     {
-        enum
-        {
-            NS_MOUSE,
-            NS_TABLET
-        } id_type;
+        _jb_platform_idevid_t_cocoa_dev_type id_type;
         uint64_t ns_tablet_sysid;
         uint64_t ns_pointer_sysid;
     } jb_platform_idevid_t;                                                     /* Cocoa makes things difficult by not giving simple system device IDs for input
@@ -96,6 +98,18 @@ extern "C"
                                                                                  * id_type will be NS_TABLET and ns_tablet_sysid & ns_pointer_sysid will be the
                                                                                  * identifiers for the tablet & pointer this session (which may both be 0).
                                                                                  */
+    int jb_platform_idevid_t_less( jb_platform_idevid_t left,
+                                   jb_platform_idevid_t right )
+    {
+        if( left.id_type == NS_MOUSE
+            && right.id_type == NS_MOUSE )
+            return 0x00;
+        
+        if( left.ns_tablet_sysid == right.ns_tablet_sysid )
+            return left.ns_pointer_sysid < right.ns_pointer_sysid;
+        
+        return left.ns_tablet_sysid == right.ns_tablet_sysid;
+    }
     
     typedef unsigned short jb_platform_keycode_t;
     
