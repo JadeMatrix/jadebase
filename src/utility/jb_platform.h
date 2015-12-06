@@ -30,7 +30,7 @@
  * Microsoft Windows
  * 
  * PLATFORM_MACOSX
- * Apple Mac OS X
+ * Apple Mac OS X (Cocoa)
  * 
  */
 
@@ -41,7 +41,7 @@ extern "C"
 {
 #endif
     
-// Platform Settings ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* Platform Settings **********************************************************//******************************************************************************/
     
 /* X Window System + POSIX w/ GNU extensions **********************************//******************************************************************************/
     
@@ -51,10 +51,10 @@ extern "C"
     
     #if defined PLATFORM_XWS_GNUPOSIX
     
-    #include <string.h>                                                         // For strerror_r()
+    #include <string.h>                                                         /* For strerror_r() */
     
     #define PLATFORM_FRAMEWORK_PTHREADS
-    #define PLATFORM_FRAMEWORK_XLIB                                             // This platform uses GLEW, but Xlib requires a special version (GLXEW)
+    #define PLATFORM_FRAMEWORK_XLIB                                             /* This platform uses GLEW, but Xlib requires a special version (GLXEW) */
     
 /* Microsoft Windows **********************************************************//******************************************************************************/
     
@@ -66,19 +66,42 @@ extern "C"
     
     #elif defined PLATFORM_MACOSX
     
+    /* TODO: consider using Core Text instead of Pango on OS X */
+    
     #define PLATFORM_FRAMEWORK_PTHREADS
     
     #include <OpenGL/glew.h>
     
-    #include <string.h>                                                         // For strerror_r()
+    #include <string.h>                                                         /* For strerror_r() */
+    #include <stdint.h>                                                         /* For fixed-width types */
     
-    // TODO: consider using Core Text instead of Pango on OS X
+    typedef struct
+    {
+        void* cf_retained_obj;
+    } jb_platform_window_t;
     
-    #error "Mac OS X not fully implemented as a platform yet"
+    typedef struct
+    {
+        enum
+        {
+            NS_MOUSE,
+            NS_TABLET
+        } id_type;
+        uint64_t ns_tablet_sysid;
+        uint64_t ns_pointer_sysid;
+    } jb_platform_idevid_t;                                                     /* Cocoa makes things difficult by not giving simple system device IDs for input
+                                                                                 * devices, except for tablets.
+                                                                                 * If an event comes from the main pointer, id_type will be NS_MOUSE and
+                                                                                 * ns_tablet_sysid & ns_pointer_sysid will be unset; if it comes from a tablet,
+                                                                                 * id_type will be NS_TABLET and ns_tablet_sysid & ns_pointer_sysid will be the
+                                                                                 * identifiers for the tablet & pointer this session (which may both be 0).
+                                                                                 */
+    
+    typedef unsigned short jb_platform_keycode_t;
     
     #endif
     
-// Framework Includes, Definitions, & Types ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* Framework Includes, Definitions, & Types ***********************************//******************************************************************************/
     
 /* Pthreads *******************************************************************//******************************************************************************/
     
@@ -116,10 +139,10 @@ extern "C"
     #include <X11/extensions/dmxext.h>
     #endif
     
-    #define X_PROTOCOL_COUNT 1                                                  // We only need one for now to catch window closes from the WM
+    #define X_PROTOCOL_COUNT 1                                                  /* We only need one for now to catch window closes from the WM */
     typedef struct
     {
-        int                      good;                                          // 'bool'
+        int                      good;                                          /* 'bool' */
         Window                 x_window;
         XWindowAttributes      x_window_attr;
         GLXContext           glx_context;
@@ -133,16 +156,16 @@ extern "C"
     
     typedef XID jb_platform_idevid_t;
     
-    typedef unsigned int jb_platform_keycode_t;                                 // XLib's keycode type
+    typedef unsigned int jb_platform_keycode_t;                                 /* XLib's keycode type */
     
     #endif
     
-// General / Other /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* General / Other ************************************************************//******************************************************************************/
     
-    // TODO: Move to a different header?
+    /* TODO: Move to a different header? */
     
     void jb_setQuitFlag();
-    int jb_getQuitFlag();                                                       // 'bool'
+    int jb_getQuitFlag();                                                       /* 'bool' */
 
 #ifdef __cplusplus
 }
