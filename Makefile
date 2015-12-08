@@ -426,7 +426,8 @@ ${OBJDIR}/jb_main.o: ${SOURCEDIR}/main/jb_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE
 X_INPUTDEVICES_HPP = ${SOURCEDIR}/windowsys/x_inputdevices.hpp ${JADEBASE_PLATFORM_H}
 
 LINUX_OBJECTS = ${OBJDIR}/x_main.o \
-				${OBJDIR}/x_inputdevices.o
+				${OBJDIR}/x_inputdevices.o \
+				${OBJDIR}/x_window.o
 
 ${OBJDIR}/x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
 	@mkdir -p ${OBJDIR}
@@ -435,6 +436,10 @@ ${OBJDIR}/x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_L
 ${OBJDIR}/x_inputdevices.o: ${SOURCEDIR}/windowsys/x_inputdevices.cpp ${X_INPUTDEVICES_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_inputdevices.cpp -o ${OBJDIR}/x_inputdevices.o
+
+${OBJDIR}/x_window.o: ${SOURCEDIR}/windowsys/x_window.cpp ${JADEBASE_WINDOW_HPP}
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_window.cpp -o ${OBJDIR}/x_window.o
 
 ${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1: ${CORE_OBJECTS} ${LINUX_OBJECTS} ${FF_OBJECTS}
 	@mkdir -p ${BUILDDIR}
@@ -464,8 +469,9 @@ linux_uninstall:
 
 COCOA_APPDELEGATE_H = ${SOURCEDIR}/main/cocoa_appdelegate.h
 
-OSX_OBJECTS =	${OBJDIR}/main.cocoa_appdelegate.o \
-				${OBJDIR}/main.cocoa_main.o
+OSX_OBJECTS =	${OBJDIR}/cocoa_appdelegate.o \
+				${OBJDIR}/cocoa_main.o \
+				${OBJDIR}/cocoa_window.o
 
 ${OBJDIR}/cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.m ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H}
 	@mkdir -p ${OBJDIR}
@@ -474,6 +480,10 @@ ${OBJDIR}/cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.m ${COCOA_APP
 ${OBJDIR}/cocoa_main.o: ${SOURCEDIR}/main/cocoa_main.m ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H}
 	@mkdir -p ${OBJDIR}
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_main.m -o ${OBJDIR}/cocoa_main.o
+
+${OBJDIR}/cocoa_window.o: ${SOURCEDIR}/main/cocoa_window.mm ${JADEBASE_WINDOW_HPP}
+	@mkdir -p ${OBJDIR}
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_window.m -o ${OBJDIR}/cocoa_window.o
 
 # Bleh...
 # osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}

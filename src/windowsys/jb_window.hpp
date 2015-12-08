@@ -161,6 +161,7 @@ namespace jade
         void init();
         
         void makeContextCurrent();                                              // Not thread-safe
+        void swapBuffers();                                                     // Not thread-safe
         
         ~window();                                                              // Windows can only be destroyed by manipulate tasks
         
