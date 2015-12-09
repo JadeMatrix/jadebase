@@ -77,7 +77,7 @@ extern "C"
     
     typedef struct
     {
-        void* cf_retained_obj;
+        void* cf_retained_nswindow;
     } jb_platform_window_t;
     
     typedef enum

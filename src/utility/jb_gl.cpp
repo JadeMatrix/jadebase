@@ -89,7 +89,7 @@ namespace jade
                        "bytesToTexture(): OpenGL error 0x",
                        ff::to_x( ( unsigned long )gl_error ),
                        " (",
-                       ( const char* )glewGetErrorString( gl_error ),
+                       getGLError( gl_error ),
                        ") loading pixels from 0x",
                        ff::to_x( ( unsigned long )( data ), PTR_HEX_WIDTH, PTR_HEX_WIDTH ),
                        " to texture 0x",
@@ -98,6 +98,11 @@ namespace jade
         }
         
         return original;
+    }
+    
+    std::string getGLError( GLenum gl_error )
+    {
+        return std::string( ( const char* )glewGetErrorString( gl_error ) );
     }
     
     void addDrawMask( dpi::points x,

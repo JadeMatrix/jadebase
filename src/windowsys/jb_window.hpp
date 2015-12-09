@@ -158,6 +158,7 @@ namespace jade
         
         /**********************************************************************//******************************************************************************/
         
+        void platformWindowConstructor();
         void init();
         
         void makeContextCurrent();                                              // Not thread-safe

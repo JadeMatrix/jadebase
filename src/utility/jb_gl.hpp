@@ -10,6 +10,8 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include <string>
+
 #include "jb_dpi.hpp"
 #include "jb_platform.h"                                                        // Includes appropriate OpenGL headers for the platform
 
@@ -25,6 +27,8 @@ namespace jade
                            unsigned int,                                        // Mipmap level
                            GLuint original = 0x00 );                            // Takes w * h bytes in data & converts it to an OpenGL texture, replacing
                                                                                 // original if original != 0x00; either way it returns the texture ID.
+    
+    std::string getGLError( GLenum );                                           // Get the string description of the given OpenGL error code
     
     // TODO: Push & pop masks instead
     void addDrawMask( dpi::points,                                              // Position x on the view to overlay the mask in points

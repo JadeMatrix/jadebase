@@ -33,7 +33,7 @@ namespace jade
         // We create the top_element on construction rather than init() as we
         // might get a call for getTopGroup() before init().
         
-        platform_window.good = false;
+        window::platformWindowConstructor()
         
         platform_window.glx_attr[ 0 ] = GLX_RGBA;
         platform_window.glx_attr[ 1 ] = GLX_DEPTH_SIZE;

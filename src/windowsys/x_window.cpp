@@ -60,6 +60,10 @@ namespace jade
             return platform_window;
     }
     
+    void window::platformWindowConstructor()
+    {
+        platform_window.good = false;
+    }
     void window::init()
     {
         scoped_lock< mutex > slock( window_mutex );
