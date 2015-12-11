@@ -195,12 +195,13 @@ namespace jade
         };
         
         std::map< jb_platform_idevid_t,
-        #ifdef PLATFORM_MACOSX
-                  idev_assoc,
-                  jb_platform_idevid_t_less > input_assoc;
-        #else
+        // FIXME:
+        // #ifdef PLATFORM_MACOSX
+        //           idev_assoc,
+        //           jb_platform_idevid_t_less > input_assoc;
+        // #else
                   idev_assoc > input_assoc;
-        #endif
+        // #endif
         
         void associateDevice( jb_platform_idevid_t,                             // ID of the device to associate
                               std::list< gui_element* >& );                     // Capturing element chain

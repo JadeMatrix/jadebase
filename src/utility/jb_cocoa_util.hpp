@@ -11,6 +11,10 @@
  * a pure-C header file, must define jb_platform_window_t etc., which contain
  * some direct representation of the platform types.
  * 
+ * A word of warning: all STLSoft headers (via FastFormat) must be included
+ * before any OS X headers, as the OS X macro 'check' in AssertMacros.h
+ * conflicts with the struct method 'check' in stlsoft.h.
+ * 
  */
 
 #ifndef __OBJC__

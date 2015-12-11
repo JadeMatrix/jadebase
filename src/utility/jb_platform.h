@@ -70,7 +70,7 @@ extern "C"
     
     #define PLATFORM_FRAMEWORK_PTHREADS
     
-    #include <OpenGL/glew.h>
+    #include <glew.h>
     
     #include <string.h>                                                         /* For strerror_r() */
     #include <stdint.h>                                                         /* For fixed-width types */

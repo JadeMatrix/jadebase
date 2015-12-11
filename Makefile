@@ -17,9 +17,12 @@ $(error FASTFORMAT_ROOT must be defined)
 endif
 
 # Compiler(s)
-CC = clang
-CPPC = ${CC}++ -std=c++11 -stdlib=libstdc++
-OBJCC = ${CC}
+CC = gcc
+# LINUX:
+# CPPC = ${CC}++ -std=c++11 -stdlib=libstdc++
+# OSX:
+CPPC = g++ -std=gnu++11 -stdlib=libc++
+OBJCC = ${CPPC}
 
 # Directories
 SOURCEDIR = src
@@ -31,14 +34,22 @@ BUILDDIR = ${MAKEDIR}/build
 # Fast format build version folder
 # TODO: set using Autotools
 # FFBUILD = gcc40.mac.x64
-FFBUILD = gcc47.unix
+FFBUILD = gcc40.mac
+# LINUX:
+# FFBUILD = gcc47.unix
 FFOBJDIR = ${FASTFORMAT_ROOT}/build/${FFBUILD}
 
 # Headers, links, flags, etc.
-INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.2 libpng gl glew pangocairo`
-LINKS = -lm -lpthread `pkg-config --libs lua5.2 libpng gl glew pangocairo`
-FRAMEWORKS = -framework Foundation -framework AppKit
-DEFINES = -g -DDEBUG -DPLATFORM_XWS_GNUPOSIX
+# LINUX:
+# INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.2 libpng gl glew pangocairo`
+# OSX:
+INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.3 libpng glew pango`
+LINUX_LINKS = -lm -lpthread `pkg-config --libs lua5.2 libpng gl glew pango`
+COCOA_LINKS = -lm -lpthread `pkg-config --libs lua5.3 libpng glew` -framework Foundation -framework AppKit -framework OpenGL
+# LINUX:
+# DEFINES = -g -DDEBUG -DPLATFORM_XWS_GNUPOSIX
+# OSX:
+DEFINES = -g -DDEBUG -DPLATFORM_MACOSX
 WARNS = -Wall -Wno-unused-local-typedef
 
 PROJNAME = jadebase
@@ -443,7 +454,7 @@ ${OBJDIR}/x_window.o: ${SOURCEDIR}/windowsys/x_window.cpp ${JADEBASE_WINDOW_HPP}
 
 ${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1: ${CORE_OBJECTS} ${LINUX_OBJECTS} ${FF_OBJECTS}
 	@mkdir -p ${BUILDDIR}
-	${CPPC} -shared -Wl,-soname,lib${PROJNAME}-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINKS} -lX11 -lXext -lXi $^
+	${CPPC} -shared -Wl,-soname,lib${PROJNAME}-${CC}.so.0 -o "${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1" ${LINUX_LINKS} -lX11 -lXext -lXi $^
 
 linux_install: ${BUILDDIR}/lib${PROJNAME}-${CC}.so.0.1
 	@sudo mkdir -p ${INSTALL_LOC}/lib
@@ -481,14 +492,14 @@ ${OBJDIR}/cocoa_main.o: ${SOURCEDIR}/main/cocoa_main.m ${COCOA_APPDELEGATE_H} ${
 	@mkdir -p ${OBJDIR}
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_main.m -o ${OBJDIR}/cocoa_main.o
 
-${OBJDIR}/cocoa_window.o: ${SOURCEDIR}/main/cocoa_window.mm ${JADEBASE_WINDOW_HPP}
+${OBJDIR}/cocoa_window.o: ${SOURCEDIR}/windowsys/cocoa_window.mm ${JADEBASE_WINDOW_HPP}
 	@mkdir -p ${OBJDIR}
-	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_window.m -o ${OBJDIR}/cocoa_window.o
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/cocoa_window.mm -o ${OBJDIR}/cocoa_window.o
 
 # Bleh...
 # osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}
 # 	mkdir -p ${BUILDDIR}
-# 	${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${FRAMEWORKS} ${LINKS} -lobjc $^
+# 	${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${COCOA_LINKS} -lobjc $^
 
 osx_install:
 	@echo "No working OS X build yet"
@@ -504,11 +515,12 @@ osx_uninstall:
 
 # Test program(s) ##############################################################
 
+# Linux-only
 test:
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
 	@mkdir -p ${BUILDDIR}
-	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINKS}
+	${CPPC} -o "${BUILDDIR}/jb_test" "${OBJDIR}/jb_test.o" -l${PROJNAME}-${CC} ${LINUX_LINKS}
 
 # PHONY ########################################################################
 
