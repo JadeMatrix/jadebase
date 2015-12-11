@@ -1,0 +1,14 @@
+111,112c111,112
+< CC                      =   gcc-4.0
+< CPPC                    =   g++-4.0
+---
+> CC                      =   cc
+> CPPC                    =   c++
+114c114
+< LD                      =   g++
+---
+> LD                      =   c++
+172c172
+< CPPC_F_WARNING_MAX		=	-Wall -pedantic -Wno-long-long -Wno-long-double -Wno-unused-value -Wno-unused-function
+---
+> CPPC_F_WARNING_MAX		=	-Wall -pedantic -Wno-long-long -Wno-unused-value -Wno-unused-function
