@@ -28,18 +28,13 @@ namespace jade
 {
     /* window *****************************************************************//******************************************************************************/
     
-    window::window() : top_element( new windowview( this ) )
+    window::window() : input_assoc( jb_platform_idevid_t_less ),
+                       top_element( new windowview( this ) )
     {
         // We create the top_element on construction rather than init() as we
         // might get a call for getTopGroup() before init().
         
-        window::platformWindowConstructor()
-        
-        platform_window.glx_attr[ 0 ] = GLX_RGBA;
-        platform_window.glx_attr[ 1 ] = GLX_DEPTH_SIZE;
-        platform_window.glx_attr[ 2 ] = 24;
-        platform_window.glx_attr[ 3 ] = GLX_DOUBLEBUFFER;
-        platform_window.glx_attr[ 4 ] = None;
+        window::platformWindowConstructor();
         
         pending_redraw = false;
         

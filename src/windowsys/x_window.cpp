@@ -63,6 +63,12 @@ namespace jade
     void window::platformWindowConstructor()
     {
         platform_window.good = false;
+        
+        platform_window.glx_attr[ 0 ] = GLX_RGBA;
+        platform_window.glx_attr[ 1 ] = GLX_DEPTH_SIZE;
+        platform_window.glx_attr[ 2 ] = 24;
+        platform_window.glx_attr[ 3 ] = GLX_DOUBLEBUFFER;
+        platform_window.glx_attr[ 4 ] = None;
     }
     void window::init()
     {

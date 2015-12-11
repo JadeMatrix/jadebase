@@ -171,6 +171,35 @@ extern "C"
 
 #ifdef __cplusplus
 }
+
+namespace jade
+{
+    bool jb_platform_idevid_t_less( const jb_platform_idevid_t& left,
+                                    const jb_platform_idevid_t& right )
+    {
+        #ifdef PLATFORM_XWS_GNUPOSIX
+        
+        
+        #elif defined PLATFORM_MACOSX
+        
+        if( left.id_type == NS_MOUSE
+            && right.id_type == NS_MOUSE )
+            return false;
+        
+        if( left.ns_tablet_sysid == right.ns_tablet_sysid )
+            return left.ns_pointer_sysid < right.ns_pointer_sysid;
+        
+        return left.ns_tablet_sysid == right.ns_tablet_sysid;
+        
+        #else
+        
+        #error jb_platform_idevid_t_less() not implemented
+        
+        #endif
+    }
+    typedef bool ( * jb_platform_idevid_t_less_t )( const jb_platform_idevid_t& left,
+                                                    const jb_platform_idevid_t& right );
+}
 #endif
 
 /******************************************************************************//******************************************************************************/
