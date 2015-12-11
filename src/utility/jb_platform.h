@@ -98,18 +98,6 @@ extern "C"
                                                                                  * id_type will be NS_TABLET and ns_tablet_sysid & ns_pointer_sysid will be the
                                                                                  * identifiers for the tablet & pointer this session (which may both be 0).
                                                                                  */
-    int jb_platform_idevid_t_less( jb_platform_idevid_t left,
-                                   jb_platform_idevid_t right )
-    {
-        if( left.id_type == NS_MOUSE
-            && right.id_type == NS_MOUSE )
-            return 0x00;
-        
-        if( left.ns_tablet_sysid == right.ns_tablet_sysid )
-            return left.ns_pointer_sysid < right.ns_pointer_sysid;
-        
-        return left.ns_tablet_sysid == right.ns_tablet_sysid;
-    }
     
     typedef unsigned short jb_platform_keycode_t;
     

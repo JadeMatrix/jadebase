@@ -194,14 +194,36 @@ namespace jade
             // This used to hold other metadata and may again in the future
         };
         
+        #ifdef PLATFORM_MACOSX
+        struct jb_platform_idevid_t_less
+        {
+            bool operator()( const jb_platform_idevid_t& left,
+                             const jb_platform_idevid_t& right ) const
+            {
+                if( left.id_type == NS_MOUSE
+                    && right.id_type == NS_MOUSE )
+                    return false;
+                
+                if( left.ns_tablet_sysid == right.ns_tablet_sysid )
+                    return left.ns_pointer_sysid < right.ns_pointer_sysid;
+                
+                return left.ns_tablet_sysid == right.ns_tablet_sysid;
+            }
+        };
+        #else
+        struct jb_platform_idevid_t_less
+        {
+            bool operator()( const jb_platform_idevid_t& left,
+                             const jb_platform_idevid_t& right ) const
+            {
+                return left < right;
+            }
+        };
+        #endif
+        
         std::map< jb_platform_idevid_t,
-        // FIXME:
-        // #ifdef PLATFORM_MACOSX
-        //           idev_assoc,
-        //           jb_platform_idevid_t_less > input_assoc;
-        // #else
-                  idev_assoc > input_assoc;
-        // #endif
+                  idev_assoc,
+                  jb_platform_idevid_t_less > input_assoc;
         
         void associateDevice( jb_platform_idevid_t,                             // ID of the device to associate
                               std::list< gui_element* >& );                     // Capturing element chain
