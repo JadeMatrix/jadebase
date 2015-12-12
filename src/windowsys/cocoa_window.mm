@@ -12,34 +12,36 @@
 /* INCLUDES *******************************************************************//******************************************************************************/
 
 #include "jb_window.hpp"
- 
+
+#include <cmath>
+
 #include "../utility/jb_exception.hpp"
 #include "../utility/jb_gl.hpp"
+#include "../utility/jb_launchargs.hpp"
 #include "../utility/jb_log.hpp"
+#include "../utility/jb_settings.hpp"
 
 #import "../utility/jb_cocoa_util.hpp"
 
 /* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
 
- @interface JBWindowView : NSOpenGLView
-     
- @end
- 
- @implementation JBWindowView
-     
-     // TODO: Event handlers
-     
- @end
- 
- NSOpenGLPixelFormatAttribute nsgl_pf_attrs[] = { NSOpenGLPFAColorSize, 24,
-                                                  NSOpenGLPFAAlphaSize, 8,
-                                                  NSOpenGLPFADoubleBuffer,
-                                                  NSOpenGLPFAAccelerated,
-                                                  0 };
+@interface JBWindowView : NSOpenGLView
+    
+@end
+
+@implementation JBWindowView
+    
+    // TODO: Event handlers
+    
+@end
 
 namespace
 {
-    
+    NSOpenGLPixelFormatAttribute nsgl_pf_attrs[] = { NSOpenGLPFAColorSize, 24,
+                                                     NSOpenGLPFAAlphaSize, 8,
+                                                     NSOpenGLPFADoubleBuffer,
+                                                     NSOpenGLPFAAccelerated,
+                                                     0 };
 }
 
 /******************************************************************************//******************************************************************************/
@@ -50,9 +52,24 @@ namespace jade
     
     dpi::pixels window::getDPI()
     {
+        return getScaleFactor() * STANDARD_DPI;
+    }
+    dpi::percent window::getScaleFactor()
+    {
         scoped_lock< mutex > slock( window_mutex );
         
-        // IMPLEMENT:
+        float scale_override = getGUIScaleOverride();
+        
+        if( isnan( scale_override) )
+        {
+            NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( platform_window.cf_retained_nswindow );
+            
+            NSPoint p = { 1.0f, 1.0f };
+            
+            return [ [ ns_window contentView ] convertPointToBacking: p ].y;
+        }
+        else
+            return scale_override;
     }
     
     jb_platform_window_t& window::getPlatformWindow()

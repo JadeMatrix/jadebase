@@ -9,8 +9,6 @@
 
 #include "jb_window.hpp"
 
-#include <cmath>
-
 #include "jb_windowevent.hpp"
 #include "jb_windowmanagement.hpp"
 #include "../gui/jb_named_resources.hpp"
@@ -100,17 +98,6 @@ namespace jade
         return std::pair< dpi::points,
                           dpi::points >( position[ 0 ],
                                          position[ 1 ] );
-    }
-    dpi::percent window::getScaleFactor()
-    {
-        scoped_lock< mutex > slock( window_mutex );
-        
-        float scale_override = getGUIScaleOverride();
-        
-        if( isnan( scale_override) )
-            return ( dpi::percent )getDPI() / ( dpi::percent )STANDARD_DPI;
-        else
-            return scale_override;
     }
     
     void window::acceptEvent( window_event& e )

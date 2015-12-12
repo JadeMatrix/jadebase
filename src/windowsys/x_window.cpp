@@ -22,6 +22,14 @@
 
 #include "jb_window.hpp"
 
+#include <cmath>
+
+#include "../utility/jb_exception.hpp"
+#include "../utility/jb_gl.hpp"
+#include "../utility/jb_launchargs.hpp"
+#include "../utility/jb_log.hpp"
+#include "../utility/jb_settings.hpp"
+
 /******************************************************************************//******************************************************************************/
 
 namespace jade
@@ -34,19 +42,27 @@ namespace jade
         
         Display* x_display = getXDisplay();
         
-        using dpi::percent;
-        using dpi::pixels;
-        
-        percent x_display_ppmm[ 2 ];
+        dpi::percent x_display_ppmm[ 2 ];
         
         x_display_ppmm[ 0 ] = 25.4f
-                              * ( percent )DisplayWidth(   x_display, 0 )
-                              / ( percent )DisplayWidthMM( x_display, 0 );
+                              * ( dpi::percent )DisplayWidth(   x_display, 0 )
+                              / ( dpi::percent )DisplayWidthMM( x_display, 0 );
         x_display_ppmm[ 1 ] = 25.4f
-                              * ( percent )DisplayHeight(   x_display, 0 )
-                              / ( percent )DisplayHeightMM( x_display, 0 );
+                              * ( dpi::percent )DisplayHeight(   x_display, 0 )
+                              / ( dpi::percent )DisplayHeightMM( x_display, 0 );
         
         return ( x_display_ppmm[ 0 ] + x_display_ppmm[ 1 ] ) / 2.0f;
+    }
+    dpi::percent window::getScaleFactor()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        float scale_override = getGUIScaleOverride();
+        
+        if( isnan( scale_override) )
+            return ( dpi::percent )getDPI() / ( dpi::percent )STANDARD_DPI;
+        else
+            return scale_override;
     }
     
     // TODO: Potentially move back to jb_window.cpp

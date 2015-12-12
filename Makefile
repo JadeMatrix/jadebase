@@ -470,13 +470,8 @@ linux_uninstall:
 	sudo rm -f "${INSTALL_LOC}/lib/lib${PROJNAME}-${CC}.so"
 	sudo rm -rf "${INSTALL_LOC}/include/jadebase"
 
-# linux_profile: linux
-# 	valgrind --tool=callgrind "${MAKEDIR}/${PROJNAME}/Linux/${PROJNAME}" -d
-
 
 # OS X #########################################################################
-
-# TOREDO:
 
 COCOA_APPDELEGATE_H = ${SOURCEDIR}/main/cocoa_appdelegate.h
 
@@ -515,7 +510,7 @@ osx_uninstall:
 
 # Test program(s) ##############################################################
 
-# Linux-only
+# Linux-only for now
 test:
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} ${INCLUDE} "${SOURCEDIR}/jb_test.cpp" -o "${OBJDIR}/jb_test.o"
