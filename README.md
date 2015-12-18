@@ -38,11 +38,12 @@ Integration with each platform's menu bar and right-click menus
 * STLSoft 1.9.124+
 * FastFormat 0.7.1+
 * Clang
-* Lua (5.2 on Linux, 5.3 on OS X)[^LuaOnLinux]
+* Lua (5.2 on Linux, 5.3 on OS X)<sup id="LuaOnLinuxB">[1](#LuaOnLinuxA)</sup>
 * PangoCairo
 * GLEW
 
 ###Shared Library & Headers
 Currently only the Linux (GNU/Posix + X window system) port of jadebase builds.  To install the jadebase shared library, run `make linux_install`.  Being a C++ library, jadebase's [ABI](https://en.wikipedia.org/wiki/Application_binary_interface) can differ across compilers.  For future-proofing against support for multiple compilers, the shared library is named `libjadebase-${CPPC}.so` where CPPC is the C++ compiler named in the Makefile.  The shared library and appropriate symlinks are placed in `/usr/local/lib/`; header files are placed in `/usr/local/include/jadebase/`.
 
-[^LuaOnLinux]: Lua version probably does not matter, but requirements are kind of hard-coded in the Makefile for now
+---
+<b id="LuaOnLinuxA">1</b> Lua version probably does not matter, but requirements are kind of hard-coded in the Makefile for now. [↩](#LuaOnLinuxB)
