@@ -1,8 +1,11 @@
-
 #jadebase
 **jadebase** is a cross-platform framework for developing professional software applications in C++ and Lua.  It provides a task-based threading framework and a GUI system, as well as various utilities.
 
 jadebase is developed by Joseph Durel [<jadematrix.art@gmail.com>] and licensed under the [zlib license](http://www.zlib.net/zlib_license.html), copyright 2014-2015.  It employs & supplies patches for [FastFormat](http://www.fastformat.org/) and [STLSoft](http://www.stlsoft.org/) by Matthew Wilson, which is licensed under a modified BSD license (included in the [LICENSE file](https://github.com/JadeMatrix/jadebase/blob/master/LICENSE) just to be safe).
+
+[![License](https://img.shields.io/badge/license-zlib-brightgreen.svg)](https://github.com/JadeMatrix/jadebase/blob/master/LICENSE)
+[![Stable](https://img.shields.io/badge/stable-n%2Fa-ff6902.svg)]()
+[![Latest](https://img.shields.io/badge/latest-pre--α-ff6902.svg)](https://github.com/JadeMatrix/jadebase/tree/master)
 
 #Current Features
 
