@@ -63,59 +63,39 @@ namespace jade
         window();
         
         std::pair< dpi::points, dpi::points > getDimensions();
-        std::pair< dpi::points, dpi::points > getPosition();
         std::pair< dpi::pixels, dpi::pixels > getPxDimensions();
+        void setDimensions( dpi::points, dpi::points );                         // Width, height
+        
+        std::pair< dpi::points, dpi::points > getPosition();
         std::pair< dpi::pixels, dpi::pixels > getPxPosition();
+        void setPosition( dpi::points, dpi::points );                           // X, Y
+        
+        std::string getTitle();
+        void setTitle( std::string );
+        
         dpi::pixels getDPI();
         dpi::percent getScaleFactor();
+        
+        void setFullscreen( bool );
+        // void setFocus( bool );                                                  // Change any window styles to display in- or out-of-focus
+        void center();
+        void minimize();
+        void maximize();
+        void restore();
+        void close();
+        
+        void requestRedraw();
         
         void acceptEvent( window_event& );
         
         jb_platform_window_t& getPlatformWindow();                              // TODO: make this const-correct
         
-        std::string getTitle();
-        
         std::shared_ptr< windowview > getTopElement();                          // Get top-level GUI windowview element (returns std::shared_ptr for integration
                                                                                 // with GCed scripting languages)
         
-        // TODO: Are these supposed to be public?
+        // TODO: Are these supposed to be public? (Can they be protected?)
         void register_container( container< window >* );
         void deregister_container( container< window >* );
-        
-        void requestRedraw();
-        
-        class manipulate : public task                                          // TODO: Rename to ManipulateWindow_task
-        {
-            // TODO: Consider overriding new/delete for manipulates so we only
-            // have one per window at any given time
-        public:
-            manipulate( window* t = NULL );                                     // If target is NULL, injects a new window into the manager
-            
-            bool execute( task_mask* );
-            task_mask getMask()
-            {
-                return TASK_SYSTEM;
-            }
-            
-            void setDimensions( dpi::points, dpi::points );                     // Width, height
-            void setPosition(   dpi::points, dpi::points );                     // X, Y
-            
-            void setFullscreen( bool );
-            void setTitle( std::string );
-            
-            // void setFocus( bool );                                              // Change any window styles to display in- or out-of-focus
-            
-            void center();
-            void minimize();
-            void maximize();
-            void restore();
-            void close();
-            
-            void redraw();                                                      // Just (ask to) redraw the window (sets changed flag to true)
-            
-        protected:
-            window* target;
-        };
         
     protected:
         mutex window_mutex;
@@ -126,30 +106,68 @@ namespace jade
         jb_platform_window_t platform_window;
         
         std::string title;
-        dpi::pixels dimensions[2];
-        dpi::pixels position[2];
+        dpi::pixels dimensions[ 2 ];
+        dpi::pixels position[ 2 ];
         bool fullscreen;
         bool in_focus;
         
         bool pending_redraw;
         
-        struct
+        class ManipulateWindow_task : public task
         {
-            bool changed    : 1;
+            // TODO: Consider overriding new/delete for manipulates so we only
+            // have one per window at any given time
             
-            bool close      : 1;
+            friend class window;
             
-            bool dimensions : 1;
-            bool position   : 1;
-            bool fullscreen : 1;
-            bool title      : 1;
-            bool center     : 1;
-            bool minimize   : 1;
-            bool maximize   : 1;
-            bool restore    : 1;
+        public:
+            ManipulateWindow_task( window* t = NULL );                          // If target is NULL, injects a new window into the manager
             
-            bool redraw     : 1;
-        } updates;
+            bool execute( task_mask* );
+            task_mask getMask()
+            {
+                return TASK_SYSTEM;
+            }
+            
+        protected:
+            std::string title;
+            dpi::points dimensions[2];
+            dpi::points position[2];
+            bool fullscreen;
+            
+            struct
+            {
+                // bool changed    : 1;
+                
+                bool close      : 1;
+                
+                bool dimensions : 1;
+                bool position   : 1;
+                bool fullscreen : 1;
+                bool title      : 1;
+                bool center     : 1;
+                bool minimize   : 1;
+                bool maximize   : 1;
+                bool restore    : 1;
+                
+                // bool redraw     : 1;
+            } updates;
+            
+        private:
+            window* target;
+            
+            bool windowNeedsInit();                                             // Not thread-safe
+            
+            // None of these are thread-safe:
+            void updateDimensions();
+            void updatePosition();
+            void updateFullscreen();
+            void updateTitle();
+            void updateCenter();
+            void updateMinimize();
+            void updateMaximize();
+            void updateRestore();
+        };
         
         /* Container infrastructure *******************************************//******************************************************************************/
         

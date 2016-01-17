@@ -256,209 +256,63 @@ namespace jade
         }
     }
     
-    /* window::manipulate *****************************************************//******************************************************************************/
+    /* window::ManipulateWindow_task ******************************************//******************************************************************************/
     
-    bool window::manipulate::execute( task_mask* caller_mask )
+    bool window::ManipulateWindow_task::windowNeedsInit()
     {
-        bool redraw_window = false;
-        
-        target -> window_mutex.lock();                                          // We need to explicitly lock/unlock this as the window can be destroyed
-        
-        if( !( target -> platform_window.good ) )
-        {
-            target -> init();
-            redraw_window = true;
-        }
-        
-        if( target -> updates.close )
-        {
-            /* CONTAINER CLEANUP **********************************************//******************************************************************************/
-            
-            target -> can_add_containers = false;
-            
-            for( std::set< container< window >* >::iterator iter = target -> containers.begin();
-                 iter != target -> containers.end();
-                 ++iter )
-            {
-                ( *iter ) -> clear();
-            }
-            
-            /* GUI CLEANUP ****************************************************//******************************************************************************/
-            
-            target -> top_element -> closed();                                  // This is essentially the point where children elements think the window closes
-            // Window will destroy std::shared_ptr when deleted
-            
-            /* WINDOW CLEANUP *************************************************//******************************************************************************/
-            
-            deregisterWindow( *target );
-            target -> window_mutex.unlock();
-            delete target;
-            
-            if( getRegisteredWindowCount() < 1 )
-            {
-                bool should_quit;
-                if( !getSetting( "jb_QuitOnNoWindows", should_quit ) )
-                    #ifdef PLATFORM_MACOSX
-                    should_quit = false;
-                    #else
-                    should_quit = true;
-                    #endif
-                
-                if( should_quit )
-                {
-                    if( getDevMode() )
-                        ff::write( jb_out, "All windows closed, quitting\n" );
-                    
-                    jb_setQuitFlag();
-                }
-            }
-        }
-        else
-        {
-            if( target -> updates.changed )
-            {
-                Display* x_display = getXDisplay();
-                
-                if( target -> updates.dimensions )
-                {
-                    // Actual resizing handled by WM, this is just for bounds checking
-                    bool retry = false;
-                    dpi::pixels new_dimensions[ 2 ];
-                    new_dimensions[ 0 ] = target -> dimensions[ 0 ];
-                    new_dimensions[ 1 ] = target -> dimensions[ 1 ];
-                    
-                    dpi::percent scale = target -> getScaleFactor();
-                    
-                    // TODO: Fluid syncing of window & top_element dimensions:
-                    //         1. Window gets dimension changed
-                    //         2. If good, window sets top_element dimensions
-                    //         3. top_element clips dimensions to calculated
-                    //            mins (if any)
-                    //         4. Window then gets top_element dimensions and
-                    //            sets self dimensions from those
-                    //         No min window dimensions (X will be happier)
-                    
-                    if( target -> dimensions[ 0 ] < JADEBASE_WINDOW_MIN_WIDTH * scale )
-                    {
-                        new_dimensions[ 0 ] = JADEBASE_WINDOW_MIN_WIDTH * scale;
-                        retry = true;
-                    }
-                    if( target -> dimensions[ 1 ] < JADEBASE_WINDOW_MIN_HEIGHT * scale )
-                    {
-                        new_dimensions[ 1 ] = JADEBASE_WINDOW_MIN_HEIGHT * scale;
-                        retry = true;
-                    }
-                    
-                    if( retry )
-                    {
-                        XResizeWindow( x_display,
-                                       target -> platform_window.x_window,
-                                       new_dimensions[ 0 ],
-                                       new_dimensions[ 1 ] );                   // This will generate a new event that leads here agan; this is OK
-                        
-                        redraw_window = false;
-                    }
-                    else                                                        // Window size change OK, so update top_element
-                    {
-                        target -> top_element -> setRealDimensions( target -> dimensions[ 0 ] / scale,
-                                                                    target -> dimensions[ 1 ] / scale );
-                        
-                        redraw_window = true;
-                    }
-                    
-                    target -> updates.dimensions = false;
-                }
-                
-                if( target -> updates.position )
-                {
-                    // Actual moving handled by WM
-                    // XMoveWindow( x_display,
-                    //              target -> platform_window.x_window,
-                    //              target -> position[ 0 ],
-                    //              target -> position[ 1 ] );
-                    
-                    target -> updates.position = false;
-                }
-                
-                if( target -> updates.fullscreen )
-                {
-                    ff::write( jb_out, "window::manipulate::execute(): Fullscreen not implemented yet, ignoring\n" );
-                    // TODO: implement
-                    #warning window::manipulate::execute(): Fullscreen not implemented
-                    
-                    target -> updates.fullscreen = false;
-                    redraw_window = true;
-                }
-                
-                if( target -> updates.title )
-                {
-                    XStoreName( x_display,
-                                target -> platform_window.x_window,
-                                target -> title.c_str() );
-                    
-                    target -> updates.title = false;
-                }
-                
-                if( target -> updates.center )
-                {
-                    ff::write( jb_out, "window::manipulate::execute(): Centering not implemented yet, ignoring\n" );
-                    // TODO: implement
-                    #warning window::manipulate::execute(): Centering not implemented
-                    
-                    target -> updates.center = false;
-                }
-                
-                if( target -> updates.minimize )
-                {
-                    XIconifyWindow( x_display,
-                                    target -> platform_window.x_window,
-                                    DefaultScreen( x_display ) );
-                    
-                    target -> updates.minimize = false;
-                }
-                
-                if( target -> updates.maximize )
-                {
-                    ff::write( jb_out, "window::manipulate::execute(): Maximize not implemented yet, ignoring\n" );
-                    // TODO: implement
-                    #warning window::manipulate::execute(): Maximize not implemented
-                    
-                    
-                    
-                    target -> updates.maximize = false;
-                    redraw_window = true;
-                }
-                
-                if( target -> updates.restore )
-                {
-                    XMapWindow( x_display,
-                                target -> platform_window.x_window );
-                    
-                    
-                    
-                    target -> updates.restore = false;
-                    redraw_window = true;
-                }
-                
-                if( target -> updates.redraw )
-                {
-                    target -> updates.redraw = false;
-                    
-                    redraw_window = true;
-                }
-                
-                target -> updates.changed = false;
-                
-                XFlush( x_display );
-            }
-            
-            target -> window_mutex.unlock();
-            
-            if( redraw_window )
-                submitTask( new window::redraw( *target ) );
-        }
-        
-        return true;
+        return !( target -> platform_window.good );
+    }
+    
+    // CHECK: These may need XFlush( x_display );
+    
+    void window::ManipulateWindow_task::updateDimensions()
+    {
+        XResizeWindow( getXDisplay(),
+                       target -> platform_window.x_window,
+                       dimensions[ 0 ],
+                       dimensions[ 1 ] );
+    }
+    void window::ManipulateWindow_task::updatePosition()
+    {
+        XMoveWindow( getXDisplay(),
+                     target -> platform_window.x_window,
+                     position[ 0 ],
+                     position[ 1 ] );
+    }
+    void window::ManipulateWindow_task::updateFullscreen()
+    {
+        ff::write( jb_out, "window::ManipulateWindow_task::updateFullscreen(): Fullscreen not implemented yet, ignoring\n" );
+        #warning window::ManipulateWindow_task::updateFullscreen(): Fullscreen not implemented
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateTitle()
+    {
+        XStoreName( getXDisplay(),
+                    target -> platform_window.x_window,
+                    target -> title.c_str() );
+    }
+    void window::ManipulateWindow_task::updateCenter()
+    {
+        ff::write( jb_out, "window::ManipulateWindow_task::updateCenter(): Centering not implemented yet, ignoring\n" );
+        #warning window::ManipulateWindow_task::updateCenter(): Centering not implemented
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateMinimize()
+    {
+        XIconifyWindow( getXDisplay(),
+                        target -> platform_window.x_window,
+                        DefaultScreen( x_display ) );
+    }
+    void window::ManipulateWindow_task::updateMaximize()
+    {
+        ff::write( jb_out, "window::ManipulateWindow_task::updateMaximize(): Maximize not implemented yet, ignoring\n" );
+        #warning window::ManipulateWindow_task::updateMaximize(): Maximize not implemented
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateRestore()
+    {
+        XMapWindow( getXDisplay(),
+                    target -> platform_window.x_window );
     }
 }
 

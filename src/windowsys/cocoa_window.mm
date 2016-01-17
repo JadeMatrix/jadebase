@@ -155,9 +155,42 @@ namespace jade
         CFBridgingRelease( platform_window.cf_retained_nswindow );              // Dereference NSWindow
     }
     
-    /* window::manipulate *****************************************************//******************************************************************************/
+    /* window::ManipulateWindow_task ******************************************//******************************************************************************/
     
-    bool window::manipulate::execute( task_mask* caller_mask )
+    bool window::ManipulateWindow_task::windowNeedsInit()
+    {
+        return platform_window.cf_retained_nswindow == nullptr;
+    }
+    
+    void window::ManipulateWindow_task::updateDimensions()
+    {
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updatePosition()
+    {
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateFullscreen()
+    {
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateTitle()
+    {
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateCenter()
+    {
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateMinimize()
+    {
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateMaximize()
+    {
+        // IMPLEMENT:
+    }
+    void window::ManipulateWindow_task::updateRestore()
     {
         // IMPLEMENT:
     }

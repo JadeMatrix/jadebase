@@ -63,7 +63,11 @@ namespace jade
         updates.redraw     = false;
         
         can_add_containers = true;
+        
+        submitTask( new ManipulateWindow_task( this ) );                        // Initializes the platform window
     }
+    
+    // TODO: Combine concurrent ManipulateWindow_tasks
     
     std::pair< dpi::points, dpi::points > window::getDimensions()
     {
@@ -85,6 +89,17 @@ namespace jade
                           dpi::points >( position[ 0 ] / scale,
                                          position[ 1 ] / scale );
     }
+    void window::setDimensions( dpi::points, dpi::points )
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    
     std::pair< dpi::pixels, dpi::pixels > window::getPxDimensions()
     {
         scoped_lock< mutex > slock( window_mutex );
@@ -98,6 +113,105 @@ namespace jade
         return std::pair< dpi::points,
                           dpi::points >( position[ 0 ],
                                          position[ 1 ] );
+    }
+    void window::setPosition( dpi::points, dpi::points )
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    
+    std::string window::getTitle()
+    {
+        scoped_lock< mutex > scoped_lock( window_mutex );
+        
+        return title;
+    }
+    void window::setTitle( std::string )
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    
+    void window::setFullscreen( bool )
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    void window::center()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    void window::minimize()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    void window::maximize()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    void window::restore()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    void window::close()
+    {
+        scoped_lock< mutex > slock( window_mutex );
+        
+        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        
+        // IMPLEMENT:
+        
+        submitTask( m );
+    }
+    
+    void window::requestRedraw()
+    {
+        scoped_lock< mutex > slock( redraw_mutex );
+        
+        if( !pending_redraw )
+        {
+            submitTask( new redraw( *this ) );
+            pending_redraw = true;
+        }
     }
     
     void window::acceptEvent( window_event& e )
@@ -181,27 +295,9 @@ namespace jade
         top_element -> acceptEvent( e );                                        // Send event to top-level element (at 0,0; dimensions match window)
     }
     
-    std::string window::getTitle()
-    {
-        scoped_lock< mutex > scoped_lock( window_mutex );
-        
-        return title;
-    }
-    
     std::shared_ptr< windowview > window::getTopElement()
     {
         return top_element;                                                     // No thread safety required, as it has the same lifetime as the window
-    }
-    
-    void window::requestRedraw()
-    {
-        scoped_lock< mutex > slock( redraw_mutex );
-        
-        if( !pending_redraw )
-        {
-            submitTask( new redraw( *this ) );
-            pending_redraw = true;
-        }
     }
     
     void window::register_container( container< window >* c )
@@ -252,9 +348,9 @@ namespace jade
             ff::write( jb_out, "Warning: Attempt to deassociate a non-associated device\n" );
     }
     
-    /* window::manipulate *****************************************************//******************************************************************************/
+    /* window::ManipulateWindow_task ******************************************//******************************************************************************/
     
-    window::manipulate::manipulate( window* t )
+    window::ManipulateWindow_task::ManipulateWindow_task( window* t )
     {
         if( t == NULL )
             target = new window();                                              // Useful for debugging, or if we just need a window no matter what dammit
@@ -262,109 +358,229 @@ namespace jade
             target = t;
     }
     
-    void window::manipulate::setDimensions( dpi::points w, dpi::points h )
+    bool window::ManipulateWindow_task::execute( task_mask* caller_mask )
     {
-        if( w < 1 || h < 1 )
-            throw exception( "window::manipulate::setDimensions(): Width or height < 1" );
+        bool redraw_window = false;
         
-        scoped_lock< mutex > slock( target -> window_mutex );
+        target -> window_mutex.lock();                                          // We need to explicitly lock/unlock this as the window can be destroyed
         
-        dpi::percent scale = target -> getScaleFactor();
+        if( windowNeedsInit() )
+        {
+            target -> init();
+            redraw_window = true;
+        }
         
-        target -> dimensions[ 0 ] = w * scale;
-        target -> dimensions[ 1 ] = h * scale;
-        target -> updates.dimensions = true;
+        if( updates.close )
+        {
+            /* CONTAINER CLEANUP **********************************************//******************************************************************************/
+            
+            target -> can_add_containers = false;
+            
+            for( std::set< container< window >* >::iterator iter = target -> containers.begin();
+                 iter != target -> containers.end();
+                 ++iter )
+            {
+                ( *iter ) -> clear();
+            }
+            
+            /* GUI CLEANUP ****************************************************//******************************************************************************/
+            
+            target -> top_element -> closed();                                  // This is essentially the point where children elements think the window closes
+            // Window will destroy std::shared_ptr when deleted
+            
+            /* WINDOW CLEANUP *************************************************//******************************************************************************/
+            
+            deregisterWindow( *target );
+            target -> window_mutex.unlock();
+            delete target;
+        }
+        else
+        {
+            if( updates.dimensions )
+            {
+                // Fluid syncing of window & top_element dimensions:
+                //   1. Window dimension change requested
+                //   2. Window then sets top_element dimensions
+                //   3. top_element clips dimensions to calculated mins (if any)
+                //   4. Window then gets top_element dimensions and uses those
+                //      for actual dimensions to update to
+                //   => No min window dimensions (X will be happier)
+                
+                if( dimensions[ 0 ] < 0 )
+                    dimensions[ 0 ] = 0;
+                if( dimensions[ 1 ] < 0 )
+                    dimensions[ 1 ] = 0;
+                
+                top = target -> top_element;
+                
+                top -> setRealDimensions( dimensions[ 0 ] / scale,
+                                          dimensions[ 1 ] / scale );
+                
+                std::pair< dpi::points, dpi::points > limits = top -> getRealDimensions();
+                
+                if( dimensions[ 0 ] < limits.first )
+                    dimensions[ 0 ] = limits.first;
+                if( dimensions[ 1 ] < limits.second )
+                    dimensions[ 1 ] = limits.second;
+                
+                updateDimensions();
+                
+                dpi::percent scale = target -> getScaleFactor();
+                
+                target -> dimensions[ 0 ] = dimensions[ 0 ] * scale;
+                target -> dimensions[ 1 ] = dimensions[ 1 ] * scale;
+            }
+            
+            if( updates.position )
+            {
+                updatePosition();
+                
+                dpi::percent scale = target -> getScaleFactor();
+                
+                target -> position[ 0 ] = position[ 0 ] * scale;
+                target -> position[ 1 ] = position[ 1 ] * scale;
+            }
+            
+            if( updates.fullscreen )
+            {
+                updateFullscreen();
+                
+                target -> fullscreen = fullscreen;
+            }
+            
+            if( updates.title )
+            {
+                updateTitle();
+                
+                target -> title = title;
+            }
+            
+            if( updates.center )
+                updateCenter();
+            
+            if( updates.minimize )
+                updateMinimize();
+            
+            if( updates.maximize )
+                updateMaximize();
+            
+            if( updates.restore )
+                updateRestore();
+            
+            target -> window_mutex.unlock();
+            
+            if( redraw_window )
+                submitTask( new window::redraw( *target ) );
+        }
         
-        target -> updates.changed = true;
-    }
-    void window::manipulate::setPosition( dpi::points x, dpi::points y )
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        dpi::percent scale = target -> getScaleFactor();
-        
-        target -> position[ 0 ] = x * scale;
-        target -> position[ 1 ] = y * scale;
-        target -> updates.position = true;
-        
-        target -> updates.changed = true;
+        return true;
     }
     
-    void window::manipulate::setFullscreen( bool f )
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        target -> fullscreen = true;
-        target -> updates.fullscreen = true;
-        
-        target -> updates.changed = true;
-    }
-    void window::manipulate::setTitle( std::string t )
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        target -> title = t;
-        target -> updates.title = true;
-        
-        target -> updates.changed = true;
-    }
+    // HERE: window::ManipulateWindow_task::execute()
     
-    // void window::manipulate::setFocus( bool f )
+    // void window::ManipulateWindow_task::setDimensions( dpi::points w, dpi::points h )
+    // {
+    //     if( w < 1 || h < 1 )
+    //         throw exception( "window::ManipulateWindow_task::setDimensions(): Width or height < 1" );
+        
+    //     scoped_lock< mutex > slock( target -> window_mutex );
+        
+    //     dpi::percent scale = target -> getScaleFactor();
+        
+    //     target -> dimensions[ 0 ] = w * scale;
+    //     target -> dimensions[ 1 ] = h * scale;
+    //     target -> updates.dimensions = true;
+        
+    //     target -> updates.changed = true;
+    // }
+    // void window::ManipulateWindow_task::setPosition( dpi::points x, dpi::points y )
     // {
     //     scoped_lock< mutex > slock( target -> window_mutex );
         
-    //     target -> in_focus = true;
+    //     dpi::percent scale = target -> getScaleFactor();
+        
+    //     target -> position[ 0 ] = x * scale;
+    //     target -> position[ 1 ] = y * scale;
+    //     target -> updates.position = true;
+        
+    //     target -> updates.changed = true;
     // }
     
-    void window::manipulate::center()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
+    // void window::ManipulateWindow_task::setFullscreen( bool f )
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
         
-        target -> updates.center = true;                                        // Don't calculate here, as that code may be thread-dependent
+    //     target -> fullscreen = true;
+    //     target -> updates.fullscreen = true;
         
-        target -> updates.changed = true;
-    }
-    void window::manipulate::minimize()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
+    //     target -> updates.changed = true;
+    // }
+    // void window::ManipulateWindow_task::setTitle( std::string t )
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
         
-        target -> updates.minimize = true;
+    //     target -> title = t;
+    //     target -> updates.title = true;
         
-        target -> updates.changed = true;
-    }
-    void window::manipulate::maximize()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        target -> updates.maximize = true;
-        
-        target -> updates.changed = true;
-    }
-    void window::manipulate::restore()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        target -> updates.restore = true;
-        
-        target -> updates.changed = true;
-    }
-    void window::manipulate::close()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
-        
-        target -> updates.close = true;
-        
-        target -> updates.changed = true;
-    }
+    //     target -> updates.changed = true;
+    // }
     
-    void window::manipulate::redraw()
-    {
-        scoped_lock< mutex > slock( target -> window_mutex );
+    // // void window::ManipulateWindow_task::setFocus( bool f )
+    // // {
+    // //     scoped_lock< mutex > slock( target -> window_mutex );
         
-        target -> updates.redraw = true;
+    // //     target -> in_focus = true;
+    // // }
+    
+    // void window::ManipulateWindow_task::center()
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
         
-        target -> updates.changed = true;
-    }
+    //     target -> updates.center = true;                                        // Don't calculate here, as that code may be thread-dependent
+        
+    //     target -> updates.changed = true;
+    // }
+    // void window::ManipulateWindow_task::minimize()
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
+        
+    //     target -> updates.minimize = true;
+        
+    //     target -> updates.changed = true;
+    // }
+    // void window::ManipulateWindow_task::maximize()
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
+        
+    //     target -> updates.maximize = true;
+        
+    //     target -> updates.changed = true;
+    // }
+    // void window::ManipulateWindow_task::restore()
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
+        
+    //     target -> updates.restore = true;
+        
+    //     target -> updates.changed = true;
+    // }
+    // void window::ManipulateWindow_task::close()
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
+        
+    //     target -> updates.close = true;
+        
+    //     target -> updates.changed = true;
+    // }
+    
+    // void window::ManipulateWindow_task::redraw()
+    // {
+    //     scoped_lock< mutex > slock( target -> window_mutex );
+        
+    //     target -> updates.redraw = true;
+        
+    //     target -> updates.changed = true;
+    // }
     
     /* window::redraw *********************************************************//******************************************************************************/
     

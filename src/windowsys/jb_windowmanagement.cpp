@@ -73,6 +73,25 @@ namespace jade
                         "), currently ",
                         id_window_map.size(),
                         " windows registered\n" );
+        
+        if( id_window_map.size() < 1 )
+        {
+            bool should_quit;
+            if( !getSetting( "jb_QuitOnNoWindows", should_quit ) )
+                #ifdef PLATFORM_MACOSX
+                should_quit = false;
+                #else
+                should_quit = true;
+                #endif
+            
+            if( should_quit )
+            {
+                if( getDevMode() )
+                    ff::write( jb_out, "All windows closed, quitting\n" );
+                
+                jb_setQuitFlag();
+            }
+        }
     }
     
     bool isRegisteredWindow( jb_platform_window_t& w )
