@@ -22,6 +22,21 @@
 
 /******************************************************************************//******************************************************************************/
 
+// Utility macros for manipulator functions until there's a better solution
+#define GET_MANIPULATE_m    scoped_lock< mutex > slock( window_mutex );\
+                            \
+                            window::ManipulateWindow_task m;\
+                            \
+                            if( pending_manip == nullptr )\
+                                m = new window::ManipulateWindow_task( this );\
+                            else\
+                                m = pending_manip;
+#define SUBMIT_MANIPULATE_m if( pending_manip == nullptr )\
+                            {\
+                                submitTask( m );\
+                                pending_manip = m;\
+                            }
+
 namespace jade
 {
     /* window *****************************************************************//******************************************************************************/
@@ -35,6 +50,8 @@ namespace jade
         window::platformWindowConstructor();
         
         pending_redraw = false;
+        
+        pending_manip = nullptr;
         
         title = JADEBASE_WINDOW_DEFAULT_NAME;
         
@@ -67,8 +84,6 @@ namespace jade
         submitTask( new ManipulateWindow_task( this ) );                        // Initializes the platform window
     }
     
-    // TODO: Combine concurrent ManipulateWindow_tasks
-    
     std::pair< dpi::points, dpi::points > window::getDimensions()
     {
         scoped_lock< mutex > slock( window_mutex );
@@ -89,15 +104,15 @@ namespace jade
                           dpi::points >( position[ 0 ] / scale,
                                          position[ 1 ] / scale );
     }
-    void window::setDimensions( dpi::points, dpi::points )
+    void window::setDimensions( dpi::points w, dpi::points h )
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.dimensions = true;
+        m -> dimensions[ 0 ] = w;
+        m -> dimensions[ 1 ] = h;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     
     std::pair< dpi::pixels, dpi::pixels > window::getPxDimensions()
@@ -114,15 +129,15 @@ namespace jade
                           dpi::points >( position[ 0 ],
                                          position[ 1 ] );
     }
-    void window::setPosition( dpi::points, dpi::points )
+    void window::setPosition( dpi::points x, dpi::points y )
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.position = true;
+        m -> position[ 0 ] = x;
+        m -> position[ 1 ] = y;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     
     std::string window::getTitle()
@@ -131,76 +146,64 @@ namespace jade
         
         return title;
     }
-    void window::setTitle( std::string )
+    void window::setTitle( std::string t )
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.title = true;
+        m -> title = t;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     
-    void window::setFullscreen( bool )
+    void window::setFullscreen( bool f )
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.fullscreen = true;
+        m -> fullscreen = f;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     void window::center()
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.center = true;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     void window::minimize()
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.minimize = true;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     void window::maximize()
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.maximize = true;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     void window::restore()
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.restore = true;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     void window::close()
     {
-        scoped_lock< mutex > slock( window_mutex );
+        GET_MANIPULATE_m;
         
-        window::ManipulateWindow_task m = new window::ManipulateWindow_task( this );
+        m -> update.close = true;
         
-        // IMPLEMENT:
-        
-        submitTask( m );
+        SUBMIT_MANIPULATE_m;
     }
     
     void window::requestRedraw()
@@ -429,6 +432,8 @@ namespace jade
                 
                 target -> dimensions[ 0 ] = dimensions[ 0 ] * scale;
                 target -> dimensions[ 1 ] = dimensions[ 1 ] * scale;
+                
+                redraw_window = true;
             }
             
             if( updates.position )
@@ -439,13 +444,18 @@ namespace jade
                 
                 target -> position[ 0 ] = position[ 0 ] * scale;
                 target -> position[ 1 ] = position[ 1 ] * scale;
+                
+                redraw_window = true;
             }
             
-            if( updates.fullscreen )
+            if( updates.fullscreen
+                && target -> fullscreen != fullscreen )
             {
                 updateFullscreen();
                 
                 target -> fullscreen = fullscreen;
+                
+                redraw_window = true;
             }
             
             if( updates.title )
@@ -453,19 +463,40 @@ namespace jade
                 updateTitle();
                 
                 target -> title = title;
+                
+                redraw_window = true;
             }
             
-            if( updates.center )
+            if( updates.center
+                && !( target -> fullscreen ) )
+            {
                 updateCenter();
+                redraw_window = true;
+            }
             
-            if( updates.minimize )
+            // TODO: A minimized/restored flag so we only call these when
+            // they're changed
+            
+            if( updates.minimize
+                && !( target -> fullscreen ) )
+            {
                 updateMinimize();
+                redraw_window = true;
+            }
             
-            if( updates.maximize )
+            if( updates.maximize
+                && !( target -> fullscreen ) )
+            {
                 updateMaximize();
+                redraw_window = true;
+            }
             
-            if( updates.restore )
+            if( updates.restore
+                /* && !( target -> fullscreen ) */ )
+            {
                 updateRestore();
+                redraw_window = true;
+            }
             
             target -> window_mutex.unlock();
             
@@ -475,112 +506,6 @@ namespace jade
         
         return true;
     }
-    
-    // HERE: window::ManipulateWindow_task::execute()
-    
-    // void window::ManipulateWindow_task::setDimensions( dpi::points w, dpi::points h )
-    // {
-    //     if( w < 1 || h < 1 )
-    //         throw exception( "window::ManipulateWindow_task::setDimensions(): Width or height < 1" );
-        
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     dpi::percent scale = target -> getScaleFactor();
-        
-    //     target -> dimensions[ 0 ] = w * scale;
-    //     target -> dimensions[ 1 ] = h * scale;
-    //     target -> updates.dimensions = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    // void window::ManipulateWindow_task::setPosition( dpi::points x, dpi::points y )
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     dpi::percent scale = target -> getScaleFactor();
-        
-    //     target -> position[ 0 ] = x * scale;
-    //     target -> position[ 1 ] = y * scale;
-    //     target -> updates.position = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    
-    // void window::ManipulateWindow_task::setFullscreen( bool f )
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> fullscreen = true;
-    //     target -> updates.fullscreen = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    // void window::ManipulateWindow_task::setTitle( std::string t )
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> title = t;
-    //     target -> updates.title = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    
-    // // void window::ManipulateWindow_task::setFocus( bool f )
-    // // {
-    // //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    // //     target -> in_focus = true;
-    // // }
-    
-    // void window::ManipulateWindow_task::center()
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> updates.center = true;                                        // Don't calculate here, as that code may be thread-dependent
-        
-    //     target -> updates.changed = true;
-    // }
-    // void window::ManipulateWindow_task::minimize()
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> updates.minimize = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    // void window::ManipulateWindow_task::maximize()
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> updates.maximize = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    // void window::ManipulateWindow_task::restore()
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> updates.restore = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    // void window::ManipulateWindow_task::close()
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> updates.close = true;
-        
-    //     target -> updates.changed = true;
-    // }
-    
-    // void window::ManipulateWindow_task::redraw()
-    // {
-    //     scoped_lock< mutex > slock( target -> window_mutex );
-        
-    //     target -> updates.redraw = true;
-        
-    //     target -> updates.changed = true;
-    // }
     
     /* window::redraw *********************************************************//******************************************************************************/
     

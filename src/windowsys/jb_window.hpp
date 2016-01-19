@@ -169,6 +169,8 @@ namespace jade
             void updateRestore();
         };
         
+        ManipulateWindow_task* pending_manip;
+        
         /* Container infrastructure *******************************************//******************************************************************************/
         
         bool can_add_containers;
