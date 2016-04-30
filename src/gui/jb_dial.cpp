@@ -135,7 +135,8 @@ namespace jade
         {
             if( capturing != NONE )
             {
-                if( e.stroke.dev_id != captured_dev )                           // Ignore but accept other devices wile capturing another
+                if( !jb_platform_idevid_t_compare( e.stroke.dev_id,
+                                                   captured_dev ) )             // Ignore but accept other devices wile capturing another
                     return true;
                 
                 if( !( e.stroke.click & CLICK_PRIMARY ) )                       // Capture cancelled

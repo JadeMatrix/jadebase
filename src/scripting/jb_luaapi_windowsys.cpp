@@ -31,9 +31,11 @@ namespace jade
                 // container from a new window
                 container< window >* cont_p = new( lua_newuserdata( state, sizeof( container< window > ) ) ) container< window >( new window() );
                 
-                window* window_p = cont_p -> acquire();
-                if( window_p )                                                  // The window COULD possibly be NULL, but unlikely
-                    submitTask( new window::manipulate( window_p ) );           // Submit a manipulate
+                                                                                // Not sure why these three lines were here, they shouldn't be
+                                                                                // required so I've commented them out for now.
+                // window* window_p = cont_p -> acquire();
+                // if( window_p )                                                  // The window COULD possibly be NULL, but unlikely
+                //     submitTask( new window::ManipulateWindow_task( window_p ) );// Submit a manipulate
                 cont_p -> release();
                 
                 lua_newtable( state );                                          // Create metatable
@@ -102,9 +104,10 @@ namespace jade
                 
                 if( *slock )
                 {
-                    window::manipulate* wm = new window::manipulate( *slock );
-                    wm -> setTitle( luaL_tolstring( state, 2, NULL ) );
-                    submitTask( wm );
+                    // window::ManipulateWindow_task* wm = new window::ManipulateWindow_task( *slock );
+                    // wm -> setTitle( luaL_tolstring( state, 2, NULL ) );
+                    // submitTask( wm );
+                    ( *slock ) -> setTitle( luaL_tolstring( state, 2, NULL ) );
                 }
                 else
                 {
@@ -143,9 +146,10 @@ namespace jade
                 
                 if( *slock )
                 {
-                    window::manipulate* wm = new window::manipulate( *slock );
-                    wm -> close();
-                    submitTask( wm );
+                    // window::ManipulateWindow_task* wm = new window::ManipulateWindow_task( *slock );
+                    // wm -> close();
+                    // submitTask( wm );
+                    ( *slock ) -> close();
                 }
                 else
                 {

@@ -488,7 +488,8 @@ namespace jade
         {
             if( capturing )
             {
-                if( e.stroke.dev_id == captured_dev )
+                if( !jb_platform_idevid_t_compare( e.stroke.dev_id,
+                                                   captured_dev ) )
                 {
                     switch( capturing )
                     {

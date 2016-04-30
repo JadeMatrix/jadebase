@@ -223,7 +223,8 @@ namespace jade
             
             if( ( state == OFF_DOWN
                   || state == ON_DOWN )
-                && e.stroke.dev_id != captured_dev )                            // Ignore but accept other devices wile capturing another
+                && !jb_platform_idevid_t_compare( e.stroke.dev_id,
+                                                  captured_dev ) )              // Ignore but accept other devices wile capturing another
             {
                 return true;
             }

@@ -54,10 +54,9 @@ namespace jade
     {
         char buff[ 32 ];
         
-        #if ( _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 ) && ! _GNU_SOURCE
+        #if defined PLATFORM_MACOSX || ( ( _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 ) && ! _GNU_SOURCE )
         
         strerror_r( err, buff, 32 );
-        
         return std::string( buff );
         
         #else

@@ -9,6 +9,7 @@
 
 #include "jb_settings.hpp"
 
+#include <cmath>
 #include <fstream>
 #include <map>
 #include <set>

@@ -350,8 +350,11 @@ namespace jade
                 {
                     if( capturing )
                     {
-                        if( e.stroke.dev_id != captured_dev )                   // Ignore other devices wile capturing another
+                        if( !jb_platform_idevid_t_compare( e.stroke.dev_id,
+                                                           captured_dev ) )     // Ignore other devices wile capturing another
+                        {
                             break;
+                        }
                         
                         if( e.stroke.click & CLICK_PRIMARY )
                         {

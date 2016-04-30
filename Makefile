@@ -1,9 +1,6 @@
 ################################################################################
 # 
-# Variables to configure:
-# 
-# CC 		C compiler with std flags (CC++ is C++ compiler)
-# FFBUILD	Platform-specific, for example gcc40.mac.x64 for OS X
+# Makefile designed against GNU Make 3.81
 # 
 ################################################################################
 
@@ -16,14 +13,37 @@ ifndef FASTFORMAT_ROOT
 $(error FASTFORMAT_ROOT must be defined)
 endif
 
-# Compiler(s)
-CC = gcc
-# LINUX:
-# CPPC = ${CC}++ -std=c++11 -stdlib=libstdc++
-# OSX:
-CPPC = g++ -std=gnu++11 -stdlib=libc++
-# OBJCC = ${CPPC}
-OBJCC = clang++ -Wno-c++11-extensions
+# TODO: Configurable
+PLATFORM = MACOSX
+
+ifeq (${PLATFORM},XWS_GNUPOSIX)
+	# Compilers
+	CC = gcc
+	CPPC = ${CC}++ -std=c++11 -stdlib=libstdc++
+	
+	# Headers, links, flags, etc.
+	INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.2 libpng gl glew pangocairo`
+	LINUX_LINKS = -lm -lpthread `pkg-config --libs lua5.2 libpng gl glew pango`
+	
+	# FastFormat version
+	FFBUILD = gcc47.unix
+else
+	ifeq (${PLATFORM},MACOSX)
+		# Compilers
+		CC = clang
+		CPPC = ${CC}++ -std=gnu++11 -stdlib=libc++
+		OBJCC = ${CC}++ -Wno-c++11-extensions
+		
+		# Headers, links, flags, etc.
+		INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.3 libpng glew pangocairo`
+		COCOA_LINKS = -lm -lpthread `pkg-config --libs lua5.3 libpng glew` -framework Foundation -framework AppKit -framework OpenGL
+		
+		# FastFormat version
+		FFBUILD = gcc40.mac
+	else
+		$(error Platform ${PLATFORM} not currently supported)
+	endif
+endif
 
 # Directories
 SOURCEDIR = src
@@ -32,25 +52,10 @@ MAKEDIR = make
 OBJDIR = ${MAKEDIR}/object
 BUILDDIR = ${MAKEDIR}/build
 
-# Fast format build version folder
-# TODO: set using Autotools
-# FFBUILD = gcc40.mac.x64
-FFBUILD = gcc40.mac
-# LINUX:
-# FFBUILD = gcc47.unix
+# FastFormat build version folder
 FFOBJDIR = ${FASTFORMAT_ROOT}/build/${FFBUILD}
 
-# Headers, links, flags, etc.
-# LINUX:
-# INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.2 libpng gl glew pangocairo`
-# OSX:
-INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.3 libpng glew pango`
-LINUX_LINKS = -lm -lpthread `pkg-config --libs lua5.2 libpng gl glew pango`
-COCOA_LINKS = -lm -lpthread `pkg-config --libs lua5.3 libpng glew` -framework Foundation -framework AppKit -framework OpenGL
-# LINUX:
-# DEFINES = -g -DDEBUG -DPLATFORM_XWS_GNUPOSIX
-# OSX:
-DEFINES = -g -DDEBUG -DPLATFORM_MACOSX
+DEFINES = -g -DDEBUG -DPLATFORM_${PLATFORM}
 WARNS = -Wall -Wno-unused-local-typedef
 
 PROJNAME = jadebase
@@ -63,10 +68,9 @@ INSTALL_LOC = /usr/local
 clean:
 	@rm -rf ${MAKEDIR}
 
-# TODO: Consider using a perl script for nicer output
-#| awk -F: '{ print $$1":"$$2":\n    "; for(i=3;i<NF;i++){printf " %s", $$i} printf "\n" }'
+# Using '[ ]' so the grep line is ignored by grep
 todo:
-	@grep -nr --include \* --exclude-dir=make "\(TODO\|WARNING\|FIXME\):[ ]\+" .  # Using '[ ]' so the grep line is ignored by grep
+	@grep -nr --include \* --exclude-dir=make "\(TODO\|WARNING\|FIXME\):[ ]\+" .
 
 linecount:
 	@wc -l `find ./src -type f`
@@ -493,9 +497,9 @@ ${OBJDIR}/cocoa_window.o: ${SOURCEDIR}/windowsys/cocoa_window.mm ${JADEBASE_WIND
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/cocoa_window.mm -o ${OBJDIR}/cocoa_window.o
 
 # Bleh...
-# osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}
-# 	mkdir -p ${BUILDDIR}
-# 	${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${COCOA_LINKS} -lobjc $^
+osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}
+	mkdir -p ${BUILDDIR}
+	${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${COCOA_LINKS} -lobjc $^
 
 osx_install:
 	@echo "No working OS X build yet"
