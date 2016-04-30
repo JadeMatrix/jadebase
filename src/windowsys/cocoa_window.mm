@@ -97,6 +97,7 @@ namespace jade
         NSOpenGLPixelFormat* format = [ [ NSOpenGLPixelFormat alloc ] initWithAttributes: nsgl_pf_attrs ];
         
         [ view setPixelFormat: format ];
+        [ view setWantsBestResolutionOpenGLSurface: YES ];
         
         GLint swapInt = 1;
         [ [ view openGLContext ] setValues: &swapInt
@@ -119,6 +120,8 @@ namespace jade
         
         [ ns_window makeKeyAndOrderFront: NSApp ];
         [ ns_window setContentView: view ];
+        
+        maximized = ( bool )[ ns_window isZoomed ];
         
         // Store window in platform window /////////////////////////////////////
         
@@ -152,6 +155,9 @@ namespace jade
     {
         scoped_lock< mutex > slock( window_mutex );
         
+        // CHECK:
+        // May need [ ns_window close ] or [ ns_window performClose: sender ]
+        
         CFBridgingRelease( platform_window.cf_retained_nswindow );              // Dereference NSWindow
     }
     
@@ -159,40 +165,86 @@ namespace jade
     
     bool window::ManipulateWindow_task::windowNeedsInit()
     {
-        return platform_window.cf_retained_nswindow == nullptr;
+        return target -> platform_window.cf_retained_nswindow == nullptr;
     }
     
-    void window::ManipulateWindow_task::updateDimensions()
+    // CONSIDER: Maybe just update()?
+    
+    void window::ManipulateWindow_task::updateGeometry()
     {
-        // IMPLEMENT:
-    }
-    void window::ManipulateWindow_task::updatePosition()
-    {
-        // IMPLEMENT:
+        if( !updates.dimensions )
+        {
+            dimensions[ 0 ] = target -> dimensions[ 0 ];
+            dimensions[ 1 ] = target -> dimensions[ 1 ];
+        }
+        if( !updates.position )
+        {
+            position[ 0 ] = target -> position[ 0 ];
+            position[ 1 ] = target -> position[ 1 ];
+        }
+        
+        NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( target -> platform_window.cf_retained_nswindow );
+        
+        NSRect frame = NSMakeRect( position[ 0 ],
+                                   position[ 1 ],
+                                   dimensions[ 0 ],
+                                   dimensions[ 1 ] );
+        
+        [ ns_window setFrame: frame display: YES ];
     }
     void window::ManipulateWindow_task::updateFullscreen()
     {
-        // IMPLEMENT:
+        NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( target -> platform_window.cf_retained_nswindow );
+        
+        if( !fullscreen != !( [ ns_window styleMask ] | NSFullScreenWindowMask ) )
+            [ ns_window toggleFullScreen: [ ns_window contentView ] ];
+        
+        target -> fullscreen = fullscreen;
+        
+        NSRect new_frame = [ ns_window contentRectForFrameRect: [ [ ns_window contentView ] frame ] ];
+        target -> position[ 0 ] = new_frame.origin.x;
+        target -> position[ 1 ] = new_frame.origin.y;
+        target -> dimensions[ 0 ] = new_frame.size.width;
+        target -> dimensions[ 1 ] = new_frame.size.height;
     }
     void window::ManipulateWindow_task::updateTitle()
     {
-        // IMPLEMENT:
+        NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( target -> platform_window.cf_retained_nswindow );
+        
+        [ ns_window setTitle: [ NSString stringWithUTF8String: title.c_str() ] ];
     }
     void window::ManipulateWindow_task::updateCenter()
     {
-        // IMPLEMENT:
+        NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( target -> platform_window.cf_retained_nswindow );
+        
+        [ ns_window center ];
     }
     void window::ManipulateWindow_task::updateMinimize()
     {
-        // IMPLEMENT:
+        NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( target -> platform_window.cf_retained_nswindow );
+        
+        [ ns_window miniaturize: [ ns_window contentView ] ];
     }
-    void window::ManipulateWindow_task::updateMaximize()
+    void window::ManipulateWindow_task::updateMaximized()
     {
-        // IMPLEMENT:
+        NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( target -> platform_window.cf_retained_nswindow );
+        
+        if( !maximized != !( bool )[ ns_window isZoomed ] )
+            [ ns_window zoom: [ ns_window contentView ] ];
+        
+        target -> maximized = maximized;
+        
+        NSRect new_frame = [ ns_window contentRectForFrameRect: [ [ ns_window contentView ] frame ] ];
+        target -> position[ 0 ] = new_frame.origin.x;
+        target -> position[ 1 ] = new_frame.origin.y;
+        target -> dimensions[ 0 ] = new_frame.size.width;
+        target -> dimensions[ 1 ] = new_frame.size.height;
     }
     void window::ManipulateWindow_task::updateRestore()
     {
-        // IMPLEMENT:
+        NSWindow* ns_window = cocoa::bridging_upcast< NSWindow >( target -> platform_window.cf_retained_nswindow );
+        
+        [ ns_window deminiaturize: [ ns_window contentView ] ];
     }
 }
 

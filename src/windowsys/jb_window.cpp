@@ -65,6 +65,7 @@ namespace jade
         position[ 1 ] = 0;
         
         fullscreen = false;
+        maximized = false;
         in_focus = true;
         
         updates.changed    = false;

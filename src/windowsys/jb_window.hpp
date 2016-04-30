@@ -109,6 +109,7 @@ namespace jade
         dpi::pixels dimensions[ 2 ];
         dpi::pixels position[ 2 ];
         bool fullscreen;
+        bool maximized;
         bool in_focus;
         
         bool pending_redraw;
@@ -134,6 +135,7 @@ namespace jade
             dpi::points dimensions[2];
             dpi::points position[2];
             bool fullscreen;
+            bool maximized;
             
             struct
             {
@@ -159,13 +161,12 @@ namespace jade
             bool windowNeedsInit();                                             // Not thread-safe
             
             // None of these are thread-safe:
-            void updateDimensions();
-            void updatePosition();
+            void updateGeometry();
             void updateFullscreen();
             void updateTitle();
             void updateCenter();
             void updateMinimize();
-            void updateMaximize();
+            void updateMaximized();
             void updateRestore();
         };
         

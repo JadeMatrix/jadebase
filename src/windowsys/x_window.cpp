@@ -265,19 +265,19 @@ namespace jade
     
     // CHECK: These may need XFlush( x_display );
     
-    void window::ManipulateWindow_task::updateDimensions()
+    void window::ManipulateWindow_task::updateGeometry()
     {
-        XResizeWindow( getXDisplay(),
-                       target -> platform_window.x_window,
-                       dimensions[ 0 ],
-                       dimensions[ 1 ] );
-    }
-    void window::ManipulateWindow_task::updatePosition()
-    {
-        XMoveWindow( getXDisplay(),
-                     target -> platform_window.x_window,
-                     position[ 0 ],
-                     position[ 1 ] );
+        if( updates.dimensions )
+            XResizeWindow( getXDisplay(),
+                           target -> platform_window.x_window,
+                           dimensions[ 0 ],
+                           dimensions[ 1 ] );
+        
+        if( updates.position )
+            XMoveWindow( getXDisplay(),
+                         target -> platform_window.x_window,
+                         position[ 0 ],
+                         position[ 1 ] );
     }
     void window::ManipulateWindow_task::updateFullscreen()
     {
@@ -303,7 +303,7 @@ namespace jade
                         target -> platform_window.x_window,
                         DefaultScreen( x_display ) );
     }
-    void window::ManipulateWindow_task::updateMaximize()
+    void window::ManipulateWindow_task::updateMaximized()
     {
         ff::write( jb_out, "window::ManipulateWindow_task::updateMaximize(): Maximize not implemented yet, ignoring\n" );
         #warning window::ManipulateWindow_task::updateMaximize(): Maximize not implemented

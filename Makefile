@@ -22,7 +22,8 @@ CC = gcc
 # CPPC = ${CC}++ -std=c++11 -stdlib=libstdc++
 # OSX:
 CPPC = g++ -std=gnu++11 -stdlib=libc++
-OBJCC = ${CPPC}
+# OBJCC = ${CPPC}
+OBJCC = clang++ -Wno-c++11-extensions
 
 # Directories
 SOURCEDIR = src
