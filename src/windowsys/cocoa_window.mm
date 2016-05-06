@@ -121,6 +121,8 @@ namespace jade
         [ ns_window makeKeyAndOrderFront: NSApp ];
         [ ns_window setContentView: view ];
         
+        [ window setAcceptsMouseMovedEvents: YES ];                             // Enable mouse-moved events on the window (in addition to drag)
+        
         maximized = ( bool )[ ns_window isZoomed ];
         
         // Store window in platform window /////////////////////////////////////

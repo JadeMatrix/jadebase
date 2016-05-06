@@ -1,5 +1,5 @@
 /* 
- * cocoa_appdelegate.h
+ * cocoa_events.h
  * 
  * About
  * 
@@ -11,15 +11,10 @@
 
 /******************************************************************************//******************************************************************************/
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+namespace jade
 {
+    NSEvent* handleCocoaEvent( NSEvent* );
 }
-
-- ( void )applicationDidFinishLaunching:( NSNotification* )aNotification;
-
-- ( BOOL )applicationShouldTerminateAfterLastWindowClosed:( NSApplication* )theApplication;
-
-@end
 
 /******************************************************************************//******************************************************************************/
 
