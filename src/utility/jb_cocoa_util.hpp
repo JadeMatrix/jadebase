@@ -2,7 +2,7 @@
 #define JADEBASE_COCOA_UTIL_H
 
 /* 
- * jb_cocoa_util.h
+ * jb_cocoa_util.hpp
  * 
  * Utilities for interacting with Cocoa
  * 
@@ -18,7 +18,7 @@
  */
 
 #ifndef __OBJC__
-#error jb_cocoa_util.h is an Objective-C++ header file
+#error jb_cocoa_util.hpp is an Objective-C++ header file
 #endif
 
 /* INCLUDES *******************************************************************//******************************************************************************/

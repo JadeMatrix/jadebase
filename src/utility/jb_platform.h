@@ -104,18 +104,6 @@ extern "C"
                                                                                  * id_type will be NS_TABLET and ns_tablet_sysid & ns_pointer_sysid will be the
                                                                                  * identifiers for the tablet & pointer this session (which may both be 0).
                                                                                  */
-    int jb_platform_idevid_t_compare( const jb_platform_idevid_t left,
-                                      const jb_platform_idevid_t right )
-    {
-        if(    left.id_type  == NS_MOUSE
-            && right.id_type == NS_MOUSE )
-            return 0;
-        
-        if( left.ns_tablet_sysid == right.ns_tablet_sysid )
-            return left.ns_pointer_sysid - right.ns_pointer_sysid;
-        
-        return left.ns_tablet_sysid - right.ns_tablet_sysid;
-    }
     
     typedef unsigned short jb_platform_keycode_t;
     
@@ -176,52 +164,38 @@ extern "C"
     
     typedef XID jb_platform_idevid_t;
     
-    int jb_platform_idevid_t_compare( const jb_platform_idevid_t left,
-                                      const jb_platform_idevid_t right )
-    {
-        return ( int )( left - right );
-    }
-    
     typedef unsigned int jb_platform_keycode_t;                                 /* XLib's keycode type */
     
     #endif
     
 /* General / Other ************************************************************//******************************************************************************/
     
-    /* TODO: Move to a different header? */
-    
+    /* TODO: Move these two to a different header? */
     void jb_setQuitFlag();
     int jb_getQuitFlag();                                                       /* 'bool' */
+    
+    int jb_platform_window_t_compare( const jb_platform_window_t,
+                                      const jb_platform_window_t );
+    int jb_platform_idevid_t_compare( const jb_platform_idevid_t,
+                                      const jb_platform_idevid_t );
 
 #ifdef __cplusplus
 }
 
 namespace jade
 {
+    bool jb_platform_window_t_less( const jb_platform_window_t& left,
+                                    const jb_platform_window_t& right )
+    {
+        return jb_platform_window_t_compare( left, right ) < 0;
+    }
+    typedef bool ( * jb_platform_window_t_less_t )( const jb_platform_window_t& left,
+                                                    const jb_platform_window_t& right );
+    
     bool jb_platform_idevid_t_less( const jb_platform_idevid_t& left,
                                     const jb_platform_idevid_t& right )
     {
         return jb_platform_idevid_t_compare( left, right ) < 0;
-        
-        // #ifdef PLATFORM_XWS_GNUPOSIX
-        
-        
-        // #elif defined PLATFORM_MACOSX
-        
-        // if( left.id_type == NS_MOUSE
-        //     && right.id_type == NS_MOUSE )
-        //     return false;
-        
-        // if( left.ns_tablet_sysid == right.ns_tablet_sysid )
-        //     return left.ns_pointer_sysid < right.ns_pointer_sysid;
-        
-        // return left.ns_tablet_sysid == right.ns_tablet_sysid;
-        
-        // #else
-        
-        // #error jb_platform_idevid_t_less() not implemented
-        
-        // #endif
     }
     typedef bool ( * jb_platform_idevid_t_less_t )( const jb_platform_idevid_t& left,
                                                     const jb_platform_idevid_t& right );

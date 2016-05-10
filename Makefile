@@ -24,6 +24,7 @@ ifeq (${PLATFORM},XWS_GNUPOSIX)
 	# Headers, links, flags, etc.
 	INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.2 libpng gl glew pangocairo`
 	LINUX_LINKS = -lm -lpthread `pkg-config --libs lua5.2 libpng gl glew pango`
+	WARNS = -Wall -Wno-unused-local-typedef
 	
 	# FastFormat version
 	FFBUILD = gcc47.unix
@@ -37,6 +38,7 @@ else
 		# Headers, links, flags, etc.
 		INCLUDE = -I${FASTFORMAT_ROOT}/include -I${STLSOFT}/include `pkg-config --cflags lua5.3 libpng glew pangocairo`
 		COCOA_LINKS = -lm -lpthread `pkg-config --libs lua5.3 libpng glew` -framework Foundation -framework AppKit -framework OpenGL
+		WARNS = -Wall
 		
 		# FastFormat version
 		FFBUILD = gcc40.mac
@@ -56,7 +58,6 @@ BUILDDIR = ${MAKEDIR}/build
 FFOBJDIR = ${FASTFORMAT_ROOT}/build/${FFBUILD}
 
 DEFINES = -g -DDEBUG -DPLATFORM_${PLATFORM}
-WARNS = -Wall -Wno-unused-local-typedef
 
 PROJNAME = jadebase
 
@@ -443,6 +444,7 @@ X_INPUTDEVICES_HPP = ${SOURCEDIR}/windowsys/x_inputdevices.hpp ${JADEBASE_PLATFO
 
 LINUX_OBJECTS = ${OBJDIR}/x_main.o \
 				${OBJDIR}/x_inputdevices.o \
+				${OBJDIR}/x_platform.o \
 				${OBJDIR}/x_window.o
 
 ${OBJDIR}/x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
@@ -452,6 +454,10 @@ ${OBJDIR}/x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_L
 ${OBJDIR}/x_inputdevices.o: ${SOURCEDIR}/windowsys/x_inputdevices.cpp ${X_INPUTDEVICES_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_inputdevices.cpp -o ${OBJDIR}/x_inputdevices.o
+
+${OBJDIR}/x_platform.o: ${SOURCEDIR}/utility/x_platform.c ${JADEBASE_PLATFORM_H}
+	@mkdir -p ${OBJDIR}
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/x_platform.c -o ${OBJDIR}/x_platform.o
 
 ${OBJDIR}/x_window.o: ${SOURCEDIR}/windowsys/x_window.cpp ${JADEBASE_WINDOW_HPP}
 	@mkdir -p ${OBJDIR}
@@ -483,6 +489,7 @@ COCOA_EVENTS_H = ${SOURCEDIR}/windowsys/cocoa_events.h
 
 OSX_OBJECTS =	${OBJDIR}/cocoa_appdelegate.o \
 				${OBJDIR}/cocoa_main.o \
+				${OBJDIR}/cocoa_platform.o \
 				${OBJDIR}/cocoa_window.o
 
 ${OBJDIR}/cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.mm ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H} ${JADEBASE_SETTINGS_HPP} ${COCOA_EVENTS_H}
@@ -492,6 +499,10 @@ ${OBJDIR}/cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.mm ${COCOA_AP
 ${OBJDIR}/cocoa_main.o: ${SOURCEDIR}/main/cocoa_main.m ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H}
 	@mkdir -p ${OBJDIR}
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_main.m -o ${OBJDIR}/cocoa_main.o
+
+${OBJDIR}/cocoa_platform.o: ${SOURCEDIR}/utility/cocoa_platform.mm ${JADEBASE_PLATFORM_H}
+	@mkdir -p ${OBJDIR}
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/cocoa_platform.mm -o ${OBJDIR}/cocoa_platform.o
 
 ${OBJDIR}/cocoa_window.o: ${SOURCEDIR}/windowsys/cocoa_window.mm ${JADEBASE_WINDOW_HPP}
 	@mkdir -p ${OBJDIR}
