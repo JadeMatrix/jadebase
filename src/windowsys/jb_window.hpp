@@ -54,6 +54,8 @@ namespace jade
     {
         friend class container< window >;
         friend class windowview;
+        // TODO: Test if still needed:
+        friend void closeAllWindows();
         
         #ifdef PLATFORM_XWS_GNUPOSIX
         friend void handleStrokeEvent( XEvent& );                               // Needs access to change protected data (position, dimensions, etc.)
@@ -120,6 +122,8 @@ namespace jade
             // have one per window at any given time
             
             friend class window;
+            // TODO: Test if still needed:
+            friend void closeAllWindows();
             
         public:
             ManipulateWindow_task( window* t = NULL );                          // If target is NULL, injects a new window into the manager
