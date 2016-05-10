@@ -447,13 +447,13 @@ LINUX_OBJECTS = ${OBJDIR}/x_main.o \
 				${OBJDIR}/x_platform.o \
 				${OBJDIR}/x_window.o
 
-${OBJDIR}/x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
-	@mkdir -p ${OBJDIR}
-	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/x_main.cpp -o ${OBJDIR}/x_main.o
-
 ${OBJDIR}/x_inputdevices.o: ${SOURCEDIR}/windowsys/x_inputdevices.cpp ${X_INPUTDEVICES_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_inputdevices.cpp -o ${OBJDIR}/x_inputdevices.o
+
+${OBJDIR}/x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/x_main.cpp -o ${OBJDIR}/x_main.o
 
 ${OBJDIR}/x_platform.o: ${SOURCEDIR}/utility/x_platform.c ${JADEBASE_PLATFORM_H}
 	@mkdir -p ${OBJDIR}
@@ -496,6 +496,11 @@ ${OBJDIR}/cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.mm ${COCOA_AP
 	@mkdir -p ${OBJDIR}
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_appdelegate.mm -o ${OBJDIR}/cocoa_appdelegate.o
 
+${OBJDIR}/cocoa_events.o: ${SOURCEDIR}/windowsys/cocoa_events.mm ${COCOA_EVENTS_H}
+	@mkdir -p ${OBJDIR}
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/cocoa_events.mm -o ${OBJDIR}/cocoa_events.o
+
+# Objective-C
 ${OBJDIR}/cocoa_main.o: ${SOURCEDIR}/main/cocoa_main.m ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H}
 	@mkdir -p ${OBJDIR}
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_main.m -o ${OBJDIR}/cocoa_main.o

@@ -19,11 +19,13 @@
  
 - ( void )applicationDidFinishLaunching:( NSNotification* )aNotification
 {
+    NSEvent* ( ^handler_block )( NSEvent* ) = ^( NSEvent* event )
+    {
+        return jade::handleCocoaEvent( event );
+    };
     [ NSEvent addLocalMonitorForEventsMatchingMask: NSAnyEventMask
-                                           handler: ^NSEvent* ( NSEvent* event )
-                                            {
-                                                return jade::handleCocoaEvent( event );
-                                            } ];
+                                           handler: handler_block ];
+    
     jb_main();
 }
 
