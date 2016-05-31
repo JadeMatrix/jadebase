@@ -2,7 +2,7 @@
 #define JADEBASE_EVENTS_HPP
 
 /* 
- * jb_events.hpp
+ * x_events.hpp
  * 
  * System events are handled and window_events are distributed from a single
  * task, which loops by being requeued (returning false from execute()).

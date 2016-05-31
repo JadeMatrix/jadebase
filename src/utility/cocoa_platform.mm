@@ -7,6 +7,8 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
+#include "jb_log.hpp"                                                           // Included first due to the 'check' macro
+
 #include "jb_platform.h"
 
 #import "jb_cocoa_util.hpp"
@@ -33,6 +35,25 @@ int jb_platform_idevid_t_compare( const jb_platform_idevid_t left,
         return left.ns_pointer_sysid - right.ns_pointer_sysid;
     
     return left.ns_tablet_sysid - right.ns_tablet_sysid;
+}
+
+namespace jade
+{
+    std::string jb_platform_idevid_t_2str( const jb_platform_idevid_t& dev_id )
+    {
+        if( dev_id.id_type == NS_MOUSE )
+            return "NS_MOUSE";
+        if( dev_id.id_type == NS_TABLET )
+        {
+            std::string str;
+            ff::write( str,
+                       "0x",
+                       ff::to_x( dev_id.ns_tablet_sysid, 2, 2 ),
+                       ff::to_x( dev_id.ns_pointer_sysid, 2, 2 ) );
+            return str;
+        }
+        return "0x????";
+    }
 }
 
 

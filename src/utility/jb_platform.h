@@ -182,23 +182,27 @@ extern "C"
 #ifdef __cplusplus
 }
 
+#include <string>
+
 namespace jade
 {
-    bool jb_platform_window_t_less( const jb_platform_window_t& left,
-                                    const jb_platform_window_t& right )
+    inline bool jb_platform_window_t_less( const jb_platform_window_t& left,
+                                           const jb_platform_window_t& right )
     {
         return jb_platform_window_t_compare( left, right ) < 0;
     }
     typedef bool ( * jb_platform_window_t_less_t )( const jb_platform_window_t& left,
                                                     const jb_platform_window_t& right );
     
-    bool jb_platform_idevid_t_less( const jb_platform_idevid_t& left,
-                                    const jb_platform_idevid_t& right )
+    inline bool jb_platform_idevid_t_less( const jb_platform_idevid_t& left,
+                                           const jb_platform_idevid_t& right )
     {
         return jb_platform_idevid_t_compare( left, right ) < 0;
     }
     typedef bool ( * jb_platform_idevid_t_less_t )( const jb_platform_idevid_t& left,
                                                     const jb_platform_idevid_t& right );
+    
+    std::string jb_platform_idevid_t_2str( const jb_platform_idevid_t& );
 }
 #endif
 

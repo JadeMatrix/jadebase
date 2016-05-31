@@ -151,7 +151,6 @@ JADEBASE_TIMESTAMP_HPP = src/utility/jb_timestamp.hpp
 JADEBASE_TRACKABLE_HPP = src/utility/jb_trackable.hpp ${JADEBASE_TIMESTAMP_HPP}
 JADEBASE_VERSION_HPP = src/utility/jb_version.hpp
 
-JADEBASE_EVENTS_HPP = src/windowsys/jb_events.hpp ${JADEBASE_TASK_HPP} ${JADEBASE_LOG_HPP}
 JADEBASE_KEYCODE_HPP = src/windowsys/jb_keycode.hpp ${JADEBASE_PLATFORM_H}
 JADEBASE_WINDOW_HPP =	src/windowsys/jb_window.hpp ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_GUI_DYNAMICS_HPP} ${JADEBASE_WINDOWVIEW_HPP} ${JADEBASE_TASK_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_CONTAINER_HPP} ${JADEBASE_PLATFORM_H} ${JADEBASE_VERSION_HPP} \
 						${X_INPUTDEVICES_HPP}
@@ -206,7 +205,6 @@ JADEBASE_HPP =	${JADEBASE_TENSOR_HPP} \
 				${JADEBASE_EXCEPTION_HPP} \
 				${JADEBASE_VERSION_HPP} \
 				\
-				${JADEBASE_EVENTS_HPP} \
 				${JADEBASE_KEYCODE_HPP} \
 				${JADEBASE_WINDOW_HPP} \
 				${JADEBASE_WINDOWEVENT_HPP} \
@@ -258,14 +256,12 @@ THREADING_OBJECTS =	${OBJDIR}/jb_condition.o \
 UTILITY_OBJECTS =	${OBJDIR}/jb_exception.o \
 					${OBJDIR}/jb_gl.o \
 					${OBJDIR}/jb_launchargs.o \
-					${OBJDIR}/jb_platform.o \
 					${OBJDIR}/jb_settings.o \
 					${OBJDIR}/jb_timestamp.o \
 					${OBJDIR}/jb_trackable.o \
 					${OBJDIR}/jb_version.o
 
-WINDOWSYS_OBJECTS =	${OBJDIR}/jb_events.o \
-					${OBJDIR}/jb_keycode.o \
+WINDOWSYS_OBJECTS =	${OBJDIR}/jb_keycode.o \
 					${OBJDIR}/jb_window.o \
 					${OBJDIR}/jb_windowevent.o \
 					${OBJDIR}/jb_windowmanagement.o
@@ -400,10 +396,10 @@ ${OBJDIR}/jb_gl.o: ${SOURCEDIR}/utility/jb_gl.cpp ${JADEBASE_GL_HPP} ${JADEBASE_
 ${OBJDIR}/jb_launchargs.o: ${SOURCEDIR}/utility/jb_launchargs.cpp ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP} ${JADEBASE_VERSION_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_launchargs.cpp -o ${OBJDIR}/jb_launchargs.o
-# This is an odd one out, as it's C:
-${OBJDIR}/jb_platform.o: ${SOURCEDIR}/utility/jb_platform.c ${JADEBASE_PLATFORM_H}
-	@mkdir -p ${OBJDIR}
-	${CC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_platform.c -o ${OBJDIR}/jb_platform.o
+# # This is an odd one out, as it's C:
+# ${OBJDIR}/jb_platform.o: ${SOURCEDIR}/utility/jb_platform.c ${JADEBASE_PLATFORM_H}
+# 	@mkdir -p ${OBJDIR}
+# 	${CC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_platform.c -o ${OBJDIR}/jb_platform.o
 ${OBJDIR}/jb_settings.o: ${SOURCEDIR}/utility/jb_settings.cpp ${JADEBASE_SETTINGS_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_MUTEX_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_settings.cpp -o ${OBJDIR}/jb_settings.o
@@ -417,9 +413,6 @@ ${OBJDIR}/jb_version.o: ${SOURCEDIR}/utility/jb_version.cpp ${JADEBASE_VERSION_H
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/jb_version.cpp -o ${OBJDIR}/jb_version.o
 
-${OBJDIR}/jb_events.o: ${SOURCEDIR}/windowsys/jb_events.cpp ${JADEBASE_EVENTS_HPP} ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOW_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_NAMED_RESOURCES} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
-	@mkdir -p ${OBJDIR}
-	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_events.cpp -o ${OBJDIR}/jb_events.o
 ${OBJDIR}/jb_keycode.o: ${SOURCEDIR}/windowsys/jb_keycode.cpp ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_EXCEPTION_HPP}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/jb_keycode.cpp -o ${OBJDIR}/jb_keycode.o
@@ -441,23 +434,34 @@ ${OBJDIR}/jb_main.o: ${SOURCEDIR}/main/jb_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE
 # Linux ########################################################################
 
 X_INPUTDEVICES_HPP = ${SOURCEDIR}/windowsys/x_inputdevices.hpp ${JADEBASE_PLATFORM_H}
+X_EVENTS_HPP = src/windowsys/jb_events.hpp ${JADEBASE_TASK_HPP} ${JADEBASE_LOG_HPP}
 
 LINUX_OBJECTS = ${OBJDIR}/x_main.o \
 				${OBJDIR}/x_inputdevices.o \
+				${OBJDIR}/x_keycode.o \
+				${OBJDIR}/x_events.o \
 				${OBJDIR}/x_platform.o \
 				${OBJDIR}/x_window.o
-
-${OBJDIR}/x_inputdevices.o: ${SOURCEDIR}/windowsys/x_inputdevices.cpp ${X_INPUTDEVICES_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP}
-	@mkdir -p ${OBJDIR}
-	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_inputdevices.cpp -o ${OBJDIR}/x_inputdevices.o
 
 ${OBJDIR}/x_main.o: ${SOURCEDIR}/main/x_main.cpp ${JADEBASE_MAIN_H} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
 	@mkdir -p ${OBJDIR}
 	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/x_main.cpp -o ${OBJDIR}/x_main.o
 
-${OBJDIR}/x_platform.o: ${SOURCEDIR}/utility/x_platform.c ${JADEBASE_PLATFORM_H}
+${OBJDIR}/x_inputdevices.o: ${SOURCEDIR}/windowsys/x_inputdevices.cpp ${X_INPUTDEVICES_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_SETTINGS_HPP}
 	@mkdir -p ${OBJDIR}
-	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/x_platform.c -o ${OBJDIR}/x_platform.o
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_inputdevices.cpp -o ${OBJDIR}/x_inputdevices.o
+
+${OBJDIR}/x_keycode.o: ${SOURCEDIR}/windowsys/x_keycode.cpp ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOWEVENT_HPP}
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_keycode.cpp -o ${OBJDIR}/x_keycode.o
+
+${OBJDIR}/x_events.o: ${SOURCEDIR}/windowsys/x_events.cpp ${X_EVENTS_HPP} ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOW_HPP} ${JADEBASE_WINDOWEVENT_HPP} ${JADEBASE_WINDOWMANAGEMENT_HPP} ${JADEBASE_NAMED_RESOURCES} ${JADEBASE_TASKEXEC_HPP} ${JADEBASE_MUTEX_HPP} ${JADEBASE_EXCEPTION_HPP} ${JADEBASE_LAUNCHARGS_HPP} ${JADEBASE_LOG_HPP} ${JADEBASE_PLATFORM_H}
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/x_events.cpp -o ${OBJDIR}/x_events.o
+
+${OBJDIR}/x_platform.o: ${SOURCEDIR}/utility/x_platform.cpp ${JADEBASE_PLATFORM_H}
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/utility/x_platform.cpp -o ${OBJDIR}/x_platform.o
 
 ${OBJDIR}/x_window.o: ${SOURCEDIR}/windowsys/x_window.cpp ${JADEBASE_WINDOW_HPP}
 	@mkdir -p ${OBJDIR}
@@ -488,6 +492,8 @@ COCOA_APPDELEGATE_H = ${SOURCEDIR}/main/cocoa_appdelegate.h
 COCOA_EVENTS_H = ${SOURCEDIR}/windowsys/cocoa_events.h
 
 OSX_OBJECTS =	${OBJDIR}/cocoa_appdelegate.o \
+				${OBJDIR}/cocoa_events.o \
+				${OBJDIR}/cocoa_keycode.o \
 				${OBJDIR}/cocoa_main.o \
 				${OBJDIR}/cocoa_platform.o \
 				${OBJDIR}/cocoa_window.o
@@ -499,6 +505,10 @@ ${OBJDIR}/cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.mm ${COCOA_AP
 ${OBJDIR}/cocoa_events.o: ${SOURCEDIR}/windowsys/cocoa_events.mm ${COCOA_EVENTS_H}
 	@mkdir -p ${OBJDIR}
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/cocoa_events.mm -o ${OBJDIR}/cocoa_events.o
+
+${OBJDIR}/cocoa_keycode.o: ${SOURCEDIR}/windowsys/cocoa_keycode.cpp ${JADEBASE_KEYCODE_HPP} ${JADEBASE_WINDOWEVENT_HPP}
+	@mkdir -p ${OBJDIR}
+	${CPPC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/cocoa_keycode.cpp -o ${OBJDIR}/cocoa_keycode.o
 
 # Objective-C
 ${OBJDIR}/cocoa_main.o: ${SOURCEDIR}/main/cocoa_main.m ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H}
@@ -513,16 +523,19 @@ ${OBJDIR}/cocoa_window.o: ${SOURCEDIR}/windowsys/cocoa_window.mm ${JADEBASE_WIND
 	@mkdir -p ${OBJDIR}
 	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/windowsys/cocoa_window.mm -o ${OBJDIR}/cocoa_window.o
 
-# Bleh...
-osx_build: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}
+${BUILDDIR}/lib${PROJNAME}-${CC}.dylib: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}
+	@mkdir -p ${BUILDDIR}
+	${CPPC} -v -Wl,-dylib,-undefined,dynamic_lookup -o "${BUILDDIR}/lib${PROJNAME}-${CC}.dylib" ${COCOA_LINKS} $^
+
+osx_build_test: ${CORE_OBJECTS} ${OSX_OBJECTS} ${FF_OBJECTS}
 	mkdir -p ${BUILDDIR}
-	${CPPC} -o "${BUILDDIR}/${PROJNAME}" ${COCOA_LINKS} -lobjc $^
+	${CPPC} -v -o "${BUILDDIR}/${PROJNAME}" ${COCOA_LINKS} -lobjc $^
 
-osx_install:
-	@echo "No working OS X build yet"
+# osx_install:
+# 	@echo "No working OS X build yet"
 
-osx_uninstall:
-	@echo "No working OS X build yet"
+# osx_uninstall:
+# 	@echo "No working OS X build yet"
 
 
 # Windows ######################################################################

@@ -1,7 +1,7 @@
 /* 
  * jb_keycode.cpp
  * 
- * Implements conversion utilities from jb_keycode.hpp
+ * Implements platform-generic utilities from jb_keycode.hpp
  * 
  * Also implements getKeyCommandString() from jb_windowevent.hpp
  * 
@@ -14,158 +14,10 @@
 #include "jb_windowevent.hpp"
 #include "../utility/jb_exception.hpp"
 
-/* INTERNAL GLOBALS ***********************************************************//******************************************************************************/
-
-namespace
-{
-    
-}
-
 /******************************************************************************//******************************************************************************/
 
 namespace jade
 {
-    keycode convertPlatformKeycode( jb_platform_keycode_t k )
-    {
-        #if defined PLATFORM_XWS_GNUPOSIX
-        
-        // We ignore macro keys (Shift, CTRL, etc.) as they should be in each
-        // X event's state field
-        
-        // We don't use a switch here as that would result in a huge jump table;
-        // as many of the keys are in series we can optimize those conversions.
-        
-        // Ranges first, letter keys are more common
-        
-        if( k >= XK_a && k <= XK_z )
-            return ( keycode )( KEY_A + ( k - XK_a ) );
-        if( k >= XK_A && k <= XK_Z )
-            return ( keycode )( KEY_A + ( k - XK_A ) );
-        
-        if( k >= XK_F1 && k <= XK_F35 )
-            return ( keycode )( KEY_F1 + ( k - XK_F1 ) );
-        if( k >= XK_KP_F1 && k <= XK_KP_F4 )
-            return ( keycode )( KEY_F1 + ( k - XK_KP_F1 ) );
-        
-        if( k >= XK_0 && k <= XK_9 )
-            return ( keycode )( KEY_0 + ( k - XK_0 ) );
-        if( k >= XK_KP_0 && k <= XK_KP_9 )
-            return ( keycode )( KEY_0 + ( k - XK_KP_0 ) );
-        
-        // Now stuff that's harder to optimize
-        
-        // TODO: Perhaps a tree (such as std::map) would be better at this point?
-        
-        if( k == XK_Delete || k == XK_KP_Delete || k == XK_BackSpace )
-            return KEY_Delete;
-        if( k == XK_Tab || k == XK_KP_Tab /* || k == XK_ISO_Left_Tab */ )
-            return KEY_Tab;
-        if( k == XK_Return || k == XK_KP_Enter /* || k == XK_ISO_Enter */ )
-            return KEY_Enter;
-        if( k == XK_Escape )
-            return KEY_Escape;
-        
-        if( k == XK_Left || k == XK_KP_Left )
-            return KEY_Left;
-        if( k == XK_Right || k == XK_KP_Right )
-            return KEY_Right;
-        if( k == XK_Up || k == XK_KP_Up )
-            return KEY_Up;
-        if( k == XK_Down || k == XK_KP_Down )
-            return KEY_Down;
-        if( k == XK_Home || k == XK_KP_Home )
-            return KEY_Home;
-        if( k == XK_End || k == XK_KP_End )
-            return KEY_End;
-        if( k == XK_Page_Up || k == XK_KP_Page_Up )
-            return KEY_PageUp;
-        if( k == XK_Page_Down || k == XK_KP_Page_Down )
-            return KEY_PageDown;
-        if( k == XK_Next || k == XK_KP_Next )
-            return KEY_Next;
-        if( k == XK_Prior || k == XK_KP_Prior )
-            return KEY_Previous;
-        
-        if( k == XK_bracketleft )
-            return KEY_BracketLeft;
-        if( k == XK_bracketright )
-            return KEY_BracketRight;
-        if( k == XK_backslash )
-            return KEY_Backslash;
-        if( k == XK_semicolon )
-            return KEY_Semicolon;
-        if( k == XK_apostrophe )
-            return KEY_Apostrophe;
-        if( k == XK_comma )
-            return KEY_Comma;
-        if( k == XK_period || k == XK_KP_Decimal )
-            return KEY_Period;
-        if( k == XK_slash || k == XK_KP_Divide )
-            return KEY_Slash;
-        if( k == XK_grave || k == XK_dead_grave )
-            return KEY_Grave;
-        
-        if( k == XK_minus || k == XK_KP_Subtract )
-            return KEY_Minus;
-        if( k == XK_equal || k == XK_KP_Equal )
-            return KEY_Equal;
-        
-        if( k == XK_asciitilde || k == XK_dead_tilde )
-            return KEY_Tilde;
-        if( k == XK_exclam )
-            return KEY_ExclamationPoint;
-        if( k == XK_at )
-            return KEY_At;
-        if( k == XK_numbersign )
-            return KEY_Hash;
-        if( k == XK_dollar )
-            return KEY_Dollar;
-        if( k == XK_percent )
-            return KEY_Percent;
-        if( k == XK_asciicircum /* || k == XK_caret || k == XK_upcaret */ )
-            return KEY_Caret;
-        if( k == XK_ampersand )
-            return KEY_Ampersand;
-        if( k == XK_asterisk )
-            return KEY_Asterisk;
-        if( k == XK_parenleft )
-            return KEY_ParenLeft;
-        if( k == XK_parenright )
-            return KEY_ParenRight;
-        if( k == XK_underscore )
-            return KEY_Underscore;
-        if( k == XK_plus || k == XK_KP_Add )
-            return KEY_Plus;
-        
-        if( k == XK_braceleft )
-            return KEY_BraceLeft;
-        if( k == XK_braceright )
-            return KEY_BraceRight;
-        if( k == XK_bar )
-            return KEY_Bar;
-        if( k == XK_colon )
-            return KEY_Colon;
-        if( k == XK_quotedbl )
-            return KEY_Quote;
-        if( k == XK_less /* || k == XK_KP_leftcaret */ )
-            return KEY_LessThan;
-        if( k == XK_greater /* || k == XK_KP_rightcaret */ )
-            return KEY_GreaterThan;
-        if( k == XK_question )
-            return KEY_QuestionMark;
-        
-        if( k == XK_KP_Space || k == XK_space )
-            return KEY_Space;
-        
-        return KEY_INVALID;
-        
-        #else
-        
-        #error Keycode conversion not implemented on non-X platforms
-        
-        #endif
-    }
-    
     const char* getKeycodeString( keycode k )
     {
         switch( k )

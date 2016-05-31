@@ -25,7 +25,7 @@
 // Utility macros for manipulator functions until there's a better solution
 #define GET_MANIPULATE_m    scoped_lock< mutex > slock( window_mutex );\
                             \
-                            window::ManipulateWindow_task m;\
+                            window::ManipulateWindow_task* m;\
                             \
                             if( pending_manip == nullptr )\
                                 m = new window::ManipulateWindow_task( this );\
@@ -68,18 +68,6 @@ namespace jade
         maximized = false;
         in_focus = true;
         
-        updates.changed    = false;
-        updates.close      = false;
-        updates.dimensions = false;
-        updates.position   = false;
-        updates.fullscreen = false;
-        updates.title      = false;
-        updates.center     = false;
-        updates.minimize   = false;
-        updates.maximize   = false;
-        updates.restore    = false;
-        updates.redraw     = false;
-        
         can_add_containers = true;
         
         submitTask( new ManipulateWindow_task( this ) );                        // Initializes the platform window
@@ -109,7 +97,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.dimensions = true;
+        m -> updates.dimensions = true;
         m -> dimensions[ 0 ] = w;
         m -> dimensions[ 1 ] = h;
         
@@ -134,7 +122,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.position = true;
+        m -> updates.position = true;
         m -> position[ 0 ] = x;
         m -> position[ 1 ] = y;
         
@@ -151,7 +139,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.title = true;
+        m -> updates.title = true;
         m -> title = t;
         
         SUBMIT_MANIPULATE_m;
@@ -161,7 +149,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.fullscreen = true;
+        m -> updates.fullscreen = true;
         m -> fullscreen = f;
         
         SUBMIT_MANIPULATE_m;
@@ -170,7 +158,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.center = true;
+        m -> updates.center = true;
         
         SUBMIT_MANIPULATE_m;
     }
@@ -178,7 +166,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.minimize = true;
+        m -> updates.minimize = true;
         
         SUBMIT_MANIPULATE_m;
     }
@@ -186,7 +174,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.maximize = true;
+        m -> updates.maximize = true;
         
         SUBMIT_MANIPULATE_m;
     }
@@ -194,7 +182,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.restore = true;
+        m -> updates.restore = true;
         
         SUBMIT_MANIPULATE_m;
     }
@@ -202,7 +190,7 @@ namespace jade
     {
         GET_MANIPULATE_m;
         
-        m -> update.close = true;
+        m -> updates.close = true;
         
         SUBMIT_MANIPULATE_m;
     }
@@ -415,7 +403,10 @@ namespace jade
                 if( dimensions[ 1 ] < 0 )
                     dimensions[ 1 ] = 0;
                 
-                top = target -> top_element;
+                // ASCERTAIN: This is required for X; it may not be for Cocoa
+                dpi::percent scale = target -> getScaleFactor();
+                
+                std::shared_ptr< windowview > top = target -> top_element;
                 
                 top -> setRealDimensions( dimensions[ 0 ] / scale,
                                           dimensions[ 1 ] / scale );
@@ -427,10 +418,6 @@ namespace jade
                 if( dimensions[ 1 ] < limits.second )
                     dimensions[ 1 ] = limits.second;
                 
-                updateDimensions();
-                
-                dpi::percent scale = target -> getScaleFactor();
-                
                 target -> dimensions[ 0 ] = dimensions[ 0 ] * scale;
                 target -> dimensions[ 1 ] = dimensions[ 1 ] * scale;
                 
@@ -439,8 +426,6 @@ namespace jade
             
             if( updates.position )
             {
-                updatePosition();
-                
                 dpi::percent scale = target -> getScaleFactor();
                 
                 target -> position[ 0 ] = position[ 0 ] * scale;
@@ -448,6 +433,10 @@ namespace jade
                 
                 redraw_window = true;
             }
+            
+            // Now update the platform window's geometry
+            if( updates.dimensions || updates.position )
+                updateGeometry();
             
             if( updates.fullscreen
                 && target -> fullscreen != fullscreen )
@@ -488,7 +477,7 @@ namespace jade
             if( updates.maximize
                 && !( target -> fullscreen ) )
             {
-                updateMaximize();
+                updateMaximized();
                 redraw_window = true;
             }
             

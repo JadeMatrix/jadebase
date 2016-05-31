@@ -1,5 +1,5 @@
 /* 
- * jb_events.cpp
+ * x_events.cpp
  * 
  * Clicks & strokes are both converted to stroke events & passed to windows,
  * as it is entirely up to the window to check the event position(s) and thus
@@ -44,24 +44,14 @@ namespace
     // Accumulators for reinterpreting various events
     // We don't need any thread safety here as events have to be single-threaded
     
-    #ifdef PLATFORM_XWS_GNUPOSIX
-    
     std::map< Window, jade::window::manipulate* > window_manipulates;
     
-    #endif
-    
-    // X QUIT HANDLING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    #ifdef PLATFORM_XWS_GNUPOSIX
+    // QUIT HANDLING ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     jade::mutex quit_mutex;
     bool quit_flag = false;
     
-    #endif
-    
     // EVENT HANDLERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    #if defined PLATFORM_XWS_GNUPOSIX
     
     void handleKeyEvent( XEvent& x_event )
     {
@@ -228,13 +218,9 @@ namespace
                     ff::write( jb_out, "Got FocusOut X event for invalid window, assumed closed\n" );
         }
     }
-    
-    #endif
 }
 
 /******************************************************************************//******************************************************************************/
-
-#if defined PLATFORM_XWS_GNUPOSIX
 
 void jb_setQuitFlag()
 {
@@ -393,11 +379,5 @@ namespace jade
         return false;                                                           // Requeue instead of submitting a new copy
     }
 }
-
-#else
-
-#error "Events not implemented on non-X platforms"
-
-#endif
 
 

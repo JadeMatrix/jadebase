@@ -88,7 +88,7 @@ namespace jade
         
         void requestRedraw();
         
-        void acceptEvent( window_event& );
+        void acceptEvent( window_event& );                                      // TODO: Make this offline, ie submits a buffered handle-events task
         
         jb_platform_window_t& getPlatformWindow();                              // TODO: make this const-correct
         

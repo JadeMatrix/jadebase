@@ -27,8 +27,8 @@ namespace jade
         case STROKE:
             {
                 ff::write( str,
-                           "STROKE from device 0x",
-                           ff::to_x( e.stroke.dev_id, 2, 2 ),
+                           "STROKE from device ",
+                           jb_platform_idevid_t_2str( e.stroke.dev_id ),
                            ": " );
                 
                 if( e.stroke.click & CLICK_PRIMARY )
