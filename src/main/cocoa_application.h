@@ -1,5 +1,5 @@
 /* 
- * cocoa_appdelegate.h
+ * cocoa_application.h
  * 
  * About
  * 

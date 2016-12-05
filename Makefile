@@ -488,19 +488,19 @@ linux_uninstall:
 
 # OS X #########################################################################
 
-COCOA_APPDELEGATE_H = ${SOURCEDIR}/main/cocoa_appdelegate.h
+COCOA_APPDELEGATE_H = ${SOURCEDIR}/main/cocoa_application.h
 COCOA_EVENTS_H = ${SOURCEDIR}/windowsys/cocoa_events.h
 
-OSX_OBJECTS =	${OBJDIR}/cocoa_appdelegate.o \
+OSX_OBJECTS =	${OBJDIR}/cocoa_application.o \
 				${OBJDIR}/cocoa_events.o \
 				${OBJDIR}/cocoa_keycode.o \
 				${OBJDIR}/cocoa_main.o \
 				${OBJDIR}/cocoa_platform.o \
 				${OBJDIR}/cocoa_window.o
 
-${OBJDIR}/cocoa_appdelegate.o: ${SOURCEDIR}/main/cocoa_appdelegate.mm ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H} ${JADEBASE_SETTINGS_HPP} ${COCOA_EVENTS_H}
+${OBJDIR}/cocoa_application.o: ${SOURCEDIR}/main/cocoa_application.mm ${COCOA_APPDELEGATE_H} ${JADEBASE_MAIN_H} ${JADEBASE_SETTINGS_HPP} ${COCOA_EVENTS_H}
 	@mkdir -p ${OBJDIR}
-	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_appdelegate.mm -o ${OBJDIR}/cocoa_appdelegate.o
+	${OBJCC} -c ${DEFINES} ${WARNS} -fPIC ${INCLUDE} ${SOURCEDIR}/main/cocoa_application.mm -o ${OBJDIR}/cocoa_application.o
 
 ${OBJDIR}/cocoa_events.o: ${SOURCEDIR}/windowsys/cocoa_events.mm ${COCOA_EVENTS_H}
 	@mkdir -p ${OBJDIR}

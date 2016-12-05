@@ -1,5 +1,5 @@
 /* 
- * cocoa_appdelegate.m
+ * cocoa_application.m
  * 
  * About
  * 
@@ -7,7 +7,7 @@
 
 /* INCLUDES *******************************************************************//******************************************************************************/
 
-#import "cocoa_appdelegate.h"
+#import "cocoa_application.h"
 
 #import "jb_main.h"
 #import "../utility/jb_settings.hpp"
